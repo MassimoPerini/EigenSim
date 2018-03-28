@@ -12,7 +12,7 @@ from scipy import linalg
 from Recommenders.utils import *
 
 
-class SLIM_BPR_Cython:
+class Lambda_BPR_Cython:
     def __init__(self, URM_train, recompile_cython=False, sgd_mode='sgd', pseudoInv=False, rcond = 0.2, check_stability = False, save_lambda = False, save_eval = True):
         self.save_lambda = save_lambda
         self.save_eval = save_eval
@@ -212,14 +212,6 @@ class SLIM_BPR_Cython:
 
     #---------FIT
 
-    #init the matrix in 0 epoch (could be removed)
-    def updateSimilarityMatrix(self):
-        #update the weight matrix (initialization)
-        if self.sparse_weights:
-            self.W_sparse = self.S
-        else:
-            self.W = self.S
-
     def epochIteration(self):
         self.S = self.cythonEpoch.epochIteration_Cython()
         if self.sparse_weights:
@@ -245,19 +237,19 @@ class SLIM_BPR_Cython:
                     print("Error")
             else:
                 #init in the 0 epoch
-                self.updateSimilarityMatrix()
+                if self.sparse_weights:
+                    self.W_sparse = self.S
+                else:
+                    self.W = self.S
 
-                #print("Evaluation begins")
                 #results_run = self.evaluateRecommendations(URM_test, minRatingsPerUser=minRatingsPerUser)
                 #self.doSaveLambdaAndEvaluate(-1, results_run)
-                #self.writeCurrentConfig(-1, results_run, logFile)
                 self.epochIteration()
             if (URM_test is not None) and (currentEpoch % validate_every_N_epochs == 0 or (currentEpoch == 0)) and currentEpoch >= start_validation_after_N_epochs:
                 print("Evaluation begins")
                 results_run = self.evaluateRecommendations(URM_test, minRatingsPerUser=minRatingsPerUser, pseudoInverse=self.pseudoInv)
 
                 self.doSaveLambdaAndEvaluate(currentEpoch, results_run)
-                self.writeCurrentConfig(currentEpoch, results_run, logFile)
                 print("Epoch {} of {} complete in {:.2f} minutes".format(currentEpoch+1, epochs, float(time.time() - start_time_epoch) / 60))
             else:
                 print("Epoch {} of {} complete in {:.2f} minutes".format(currentEpoch+1, epochs, float(time.time() - start_time_epoch) / 60))
@@ -315,6 +307,10 @@ class SLIM_BPR_Cython:
 
     def doSaveLambdaAndEvaluate(self,currentEpoch, results_run):
         # Saving lambdas on file
+
+        current_config = {'learn_rate': self.learning_rate, 'epoch': currentEpoch, 'sgd_mode': self.sgd_mode}
+        print("Test case: {}\nResults {}\n".format(current_config, results_run))
+
         if self.save_lambda:
             np.savetxt('out/lambdas/alpha' + str(self.alpha) + 'learning_rate' + str(self.learning_rate) + 'epoch' + str(
                 currentEpoch) + '.txt', self.W_sparse.diagonal(), delimiter=',')
@@ -327,16 +323,6 @@ class SLIM_BPR_Cython:
 
             with open('out/evaluations/'+"nnz_"+str(self.URM_train.nnz)+str(t)+'_alpha' + str(self.alpha) + '_learning_rate' + str(self.learning_rate) +"_"+ str(self.sgd_mode) +"_"+str(self.initialize)+ '.txt', 'a') as out:
                 out.write('Epoch: ' + str(currentEpoch) +' ==> '+ str(results_run) + '\n')
-
-    
-    def writeCurrentConfig(self, currentEpoch, results_run, logFile):
-
-        current_config = {'learn_rate': self.learning_rate, 'epoch': currentEpoch, 'sgd_mode': self.sgd_mode}
-        print("Test case: {}\nResults {}\n".format(current_config, results_run))
-        sys.stdout.flush()
-        if (logFile != None):
-            logFile.write("Test case: {}, Results {}\n".format(current_config, results_run))
-            logFile.flush()
 
     
 
