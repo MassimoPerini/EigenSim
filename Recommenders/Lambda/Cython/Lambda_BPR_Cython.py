@@ -257,9 +257,9 @@ class Lambda_BPR_Cython:
         sys.stdout.flush()
 
 
-    def fit(self, epochs=30, logFile=None, URM_test=None, minRatingsPerUser=1,
+    def fit(self, epochs=30, URM_test=None, minRatingsPerUser=1,
             batch_size=1, validate_every_N_epochs=1, start_validation_after_N_epochs=0,
-            alpha=0.00025, learning_rate=0.0002, sgd_mode='sgd', initialize = "zero"):
+            alpha=0, learning_rate=0.0002, sgd_mode='sgd', initialize = "zero"):
         self.eligibleUsers = []
         # Select only positive interactions
         URM_train = self.URM_train
@@ -269,7 +269,6 @@ class Lambda_BPR_Cython:
             if len(URM_train.indices[start_pos:end_pos]) > 0:
                 self.eligibleUsers.append(user_id)  #user that can be sampled
         self.eligibleUsers = np.array(self.eligibleUsers, dtype=np.int64)
-        self.sgd_mode = sgd_mode
         self.initialize = initialize
         self.alpha = alpha
         self.learning_rate = learning_rate
