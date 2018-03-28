@@ -427,7 +427,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
         if self.save_lambda:
             np.savetxt('out/lambdas/alpha' + str(self.alpha) + 'learning_rate' + str(self.learning_rate) + 'epoch' + str(
-                currentEpoch) + '.txt', self.W_sparse.diagonal(), delimiter=',')
+                currentEpoch) + '.txt', self.S.diagonal(), delimiter=',')
 
         #Saving evaluation on file
         if self.save_eval:
