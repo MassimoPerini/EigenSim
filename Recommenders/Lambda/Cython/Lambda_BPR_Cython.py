@@ -171,7 +171,7 @@ class Lambda_BPR_Cython:
                 user_profile = self.URM_train[user_id]
                 scores = user_profile.dot(self.similarity).toarray().ravel()
         else:
-            # necessita di modifiche (matrici dense non sono state usate)
+            # necessita di modifiche (matrici dense non sono state implementate)
             user_profile = self.URM_train.indices[self.URM_train.indptr[user_id]:self.URM_train.indptr[user_id + 1]]
             user_ratings = self.URM_train.data[self.URM_train.indptr[user_id]:self.URM_train.indptr[user_id + 1]]
             relevant_weights = self.W[user_profile]
