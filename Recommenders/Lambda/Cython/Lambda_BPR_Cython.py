@@ -9,12 +9,18 @@ import os, sys, time
 import numpy as np
 import scipy.sparse as sps
 from scipy import linalg
-from Recommenders.utils import *
+
+from Recommenders.Recommender import Recommender
+from Recommenders.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
+#from Recommenders.utils import *
+from Recommenders.Base.Recommender_utils import check_matrix
 from Recommenders.Lambda.Cython.Lambda_Cython import Lambda_BPR_Cython_Epoch
 
 
-class Lambda_BPR_Cython:
-    def __init__(self, URM_train, recompile_cython=False, sgd_mode='sgd', pseudoInv=False, rcond = 0.2, check_stability = False, save_lambda = False, save_eval = True):
+class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
+    def __init__(self, URM_train, recompile_cython=False, sgd_mode='sgd', pseudoInv=False, rcond=0.2,
+                 check_stability=False, save_lambda=False, save_eval=True):
+        super().__init__()
         self.save_lambda = save_lambda
         self.save_eval = save_eval
         self.URM_train = URM_train
@@ -40,6 +46,22 @@ class Lambda_BPR_Cython:
             self.runCompilationScript()
             print("Compilation Complete")
 
+    def launch_evaluation(self, URM_test, pseudoInverse = False):
+        self.check_stability = False
+
+        if pseudoInverse == False:
+            self.W_sparse = (self.URM_train.transpose().dot(self.W_sparse.dot(self.URM_train)))
+            self.W_sparse.eliminate_zeros()
+            self.W_sparse = check_matrix(self.W_sparse, format='csr')
+            self.sparse_weights = True
+        else:
+            self.W = self.pinv.dot((self.W_sparse.dot(self.URM_train)).todense())
+            self.sparse_weights = False
+
+        return self.evaluateRecommendations(URM_test)
+
+
+    '''
     #------------EVALUATION
     def evaluateRecommendations(self, URM_test, at=5, minRatingsPerUser=1, exclude_seen=True, pseudoInverse = False):
         check_stability = self.check_stability
@@ -158,9 +180,10 @@ class Lambda_BPR_Cython:
             results_run["MRR_delta"] = mrr_delta
 
         return (results_run)
+        '''
 
     #----------------RECOMMEND
-
+    '''
     def recommend(self, user_id, n=None, exclude_seen=True, test_stability_ranking = False, pseudoInv = False):
         if self.sparse_weights:
             if pseudoInv:
@@ -206,19 +229,71 @@ class Lambda_BPR_Cython:
 
         return ranking
 
+
     def _filter_seen_on_scores(self, user_id, scores):
         seen = self.URM_train.indices[self.URM_train.indptr[user_id]:self.URM_train.indptr[user_id + 1]]
         scores[seen] = -np.inf
         return scores
+    '''
+
+    # new recommend
+
+    def recommend(self, user_id, n=None, exclude_seen=True, filterTopPop=False, filterCustomItems=False):
+
+        if n == None:
+            n = self.URM_train.shape[1] - 1
+
+        # compute the scores using the dot product
+        if self.sparse_weights:
+            scores = self.URM_train[user_id].dot(self.W_sparse).toarray().ravel()
+        else:
+            # Numpy dot does not recognize sparse matrices, so we must
+            # invoke the dot function on the sparse one
+            scores = np.ravel(self.URM_train[user_id].dot(self.W))
+
+        #???
+        if self.normalize:
+            # normalization will keep the scores in the same range
+            # of value of the ratings in dataset
+            user_profile = self.URM_train[user_id]
+
+            rated = user_profile.copy()
+            rated.data = np.ones_like(rated.data)
+            if self.sparse_weights:
+                den = rated.dot(self.W_sparse).toarray().ravel()
+            else:
+                den = rated.dot(self.W).ravel()
+            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
+            scores /= den
+
+        if exclude_seen:
+            scores = self._filter_seen_on_scores(user_id, scores)
+
+        if filterTopPop:
+            scores = self._filter_TopPop_on_scores(scores)
+
+        if filterCustomItems:
+            scores = self._filterCustomItems_on_scores(scores)
+
+        # rank items and mirror column to obtain a ranking in descending score
+        # ranking = scores.argsort()
+        # ranking = np.flip(ranking, axis=0)
+
+        # Sorting is done in three steps. Faster then plain np.argsort for higher number of items
+        # - Partition the data to extract the set of relevant items
+        # - Sort only the relevant items
+        # - Get the original item index
+        relevant_items_partition = (-scores).argpartition(n)[0:n]
+        relevant_items_partition_sorting = np.argsort(-scores[relevant_items_partition])
+        ranking = relevant_items_partition[relevant_items_partition_sorting]
+
+        return ranking
 
     #---------FIT
 
     def epochIteration(self):
         self.S = self.cythonEpoch.epochIteration_Cython()
-        if self.sparse_weights:
-            self.W_sparse = self.S
-        else:
-            self.W = self.S
+        self.W_sparse = self.S
 
     #do the iterations
     def fit_alreadyInitialized(self, epochs=30, URM_test=None, minRatingsPerUser=1,
@@ -236,17 +311,14 @@ class Lambda_BPR_Cython:
                     print("Error")
             else:
                 #init in the 0 epoch
-                if self.sparse_weights:
-                    self.W_sparse = self.S
-                else:
-                    self.W = self.S
+                self.W_sparse = self.S
 
                 #results_run = self.evaluateRecommendations(URM_test, minRatingsPerUser=minRatingsPerUser)
                 #self.doSaveLambdaAndEvaluate(-1, results_run)
                 self.epochIteration()
             if (URM_test is not None) and (currentEpoch % validate_every_N_epochs == 0 or (currentEpoch == 0)) and currentEpoch >= start_validation_after_N_epochs:
                 print("Evaluation begins")
-                results_run = self.evaluateRecommendations(URM_test, minRatingsPerUser=minRatingsPerUser, pseudoInverse=self.pseudoInv)
+                results_run = self.launch_evaluation(URM_test, pseudoInverse=self.pseudoInv)
 
                 self.doSaveLambdaAndEvaluate(currentEpoch, results_run)
                 print("Epoch {} of {} complete in {:.2f} minutes".format(currentEpoch+1, epochs, float(time.time() - start_time_epoch) / 60))
