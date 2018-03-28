@@ -48,5 +48,5 @@ print(URM_train.shape)
 lam = Lambda_HO(URM_train, recompile_cython=True, sgd_mode="adagrad", pseudoInv=True, rcond = 0.14, check_stability=False, save_lambda=False, save_eval=False)
 #lam.fit(epochs=400,URM_test=URM_test ,sgd_mode="adagrad", learning_rate=0.00015, alpha=0.001, batch_size=1, validate_every_N_epochs=1)#229961 100k
 
-lam.fit(epochs=12,URM_test=URM_test,sgd_mode="adagrad", learning_rate=0.0003, alpha=0, batch_size=1, validate_every_N_epochs=1, start_validation_after_N_epochs=0, initialize = "zero")
+lam.fit(epochs=12,URM_test=URM_test, learning_rate=0.0003, alpha=0, batch_size=1, validate_every_N_epochs=1, start_validation_after_N_epochs=0, initialize = "zero")
 #res = lam.evaluateRecommendations(URM_test, at=5, check_stability=True)

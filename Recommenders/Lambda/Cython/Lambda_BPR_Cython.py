@@ -10,6 +10,7 @@ import numpy as np
 import scipy.sparse as sps
 from scipy import linalg
 from Recommenders.utils import *
+from Recommenders.Lambda.Cython.Lambda_Cython import Lambda_BPR_Cython_Epoch
 
 
 class Lambda_BPR_Cython:
@@ -220,12 +221,10 @@ class Lambda_BPR_Cython:
             self.W = self.S
 
     #do the iterations
-    def fit_alreadyInitialized(self, epochs=30, logFile=None, URM_test=None, minRatingsPerUser=1,
-                                batch_size=1000, validate_every_N_epochs=1, start_validation_after_N_epochs=0,
-                                alpha=0.00025, learning_rate=0.0005):
+    def fit_alreadyInitialized(self, epochs=30, URM_test=None, minRatingsPerUser=1,
+                                batch_size=1000, validate_every_N_epochs=1, start_validation_after_N_epochs=0):
 
         self.batch_size = batch_size
-        self.alpha = alpha
         start_time_train = time.time()
 
         for currentEpoch in range(epochs):
@@ -274,18 +273,15 @@ class Lambda_BPR_Cython:
         self.learning_rate = learning_rate
 
         # Cython
-        from Recommenders.Lambda.Cython.Lambda_Cython import Lambda_BPR_Cython_Epoch
         if self.pseudoInv:
             self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.sparse_weights, self.eligibleUsers, learning_rate=learning_rate, batch_size=batch_size, sgd_mode=sgd_mode, alpha=alpha, enablePseudoInv=self.pseudoInv, pseudoInv=self.pinv, initialize=initialize)
-            self.fit_alreadyInitialized(epochs=epochs, logFile=logFile, URM_test=URM_test, minRatingsPerUser=minRatingsPerUser, batch_size=batch_size,
-                                                            validate_every_N_epochs=validate_every_N_epochs, start_validation_after_N_epochs=start_validation_after_N_epochs,
-                                                            learning_rate=learning_rate, alpha=alpha)
+            self.fit_alreadyInitialized(epochs=epochs, URM_test=URM_test, minRatingsPerUser=minRatingsPerUser, batch_size=batch_size,
+                                                            validate_every_N_epochs=validate_every_N_epochs, start_validation_after_N_epochs=start_validation_after_N_epochs)
 
         else:
             self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.sparse_weights, self.eligibleUsers, learning_rate=learning_rate, batch_size=batch_size, sgd_mode=sgd_mode, alpha=alpha, enablePseudoInv=self.pseudoInv, initialize=initialize)
-            self.fit_alreadyInitialized(epochs=epochs, logFile=logFile, URM_test=URM_test, minRatingsPerUser=minRatingsPerUser, batch_size=batch_size,
-                                                            validate_every_N_epochs=validate_every_N_epochs, start_validation_after_N_epochs=start_validation_after_N_epochs,
-                                                            learning_rate=learning_rate, alpha=alpha)
+            self.fit_alreadyInitialized(epochs=epochs, URM_test=URM_test, minRatingsPerUser=minRatingsPerUser, batch_size=batch_size,
+                                                            validate_every_N_epochs=validate_every_N_epochs, start_validation_after_N_epochs=start_validation_after_N_epochs)
 
     def runCompilationScript(self):
 
