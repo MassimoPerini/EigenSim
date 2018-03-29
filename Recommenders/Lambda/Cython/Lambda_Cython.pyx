@@ -469,13 +469,19 @@ cdef class Lambda_BPR_Cython_Epoch:
 
         print("Return S matrix to python caller")
 
-
+        '''
         self.S_sparse = Sparse_Matrix_Tree_CSR(self.n_users, self.n_users)
         for index in range(self.n_users):
             self.S_sparse.add_value(index, index, self.lambda_learning[index])
 
         print("returning...")
         return self.S_sparse.get_scipy_csr()
+
+        '''
+        users = np.arange(0, self.n_users)
+        self.S_sparse = sps.coo_matrix((self.lambda_learning, (users, users)), shape=(self.n_users, self.n_users))
+        self.S_sparse = check_matrix(self.S_sparse, 'csr')
+        return self.S_sparse
 
 
 

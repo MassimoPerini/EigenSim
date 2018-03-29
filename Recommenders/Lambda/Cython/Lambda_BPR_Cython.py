@@ -313,15 +313,12 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
         lower_validatons_count = 0
         convergence = False
 
-        #self.W_sparse = self.S
-        #self.W_best = self.S.copy()
         self.epochs_best = 0
         #------------
 
         for currentEpoch in range(epochs):
             if convergence == True:
                 break
-
 
             start_time_epoch = time.time()
             if currentEpoch > 0:
@@ -339,7 +336,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
                 results_run = self.launch_evaluation(URM_test, pseudoInverse=self.pseudoInv)
                 self.doSaveLambdaAndEvaluate(currentEpoch, results_run)
 
-                #--------
+                #-------- early stopping
 
                 if stop_on_validation:
 

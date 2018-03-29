@@ -15,7 +15,7 @@ import scipy as sps
 #LOAD DATASET
 
 #file_path = os.path.expanduser('dataset/movielens_1M/ratings_cleaned.csv')
-file_path = os.path.expanduser('dataset/cut_1M.csv')
+file_path = os.path.expanduser('dataset/1M.csv')
 dataframe = load_dataframe(file_path, ',')
 #dataset = Dataset(dataframe, user_key='userId', item_key='movieId', rating_key='rating')
 dataset = Dataset(dataframe, user_key='userId', item_key='movieId', rating_key='rating') #"User-ID";"ISBN";"Book-Rating"
@@ -45,7 +45,7 @@ print(URM_train.shape)
 #LAMBDA START
 
 
-lam = Lambda_HO(URM_train, recompile_cython=True, sgd_mode="adagrad", pseudoInv=True, rcond = 0.14, check_stability=False, save_lambda=False, save_eval=False)
+lam = Lambda_HO(URM_train, recompile_cython=True, sgd_mode="adagrad", pseudoInv=True, rcond = 0.14, check_stability=False, save_lambda=True, save_eval=True)
 #lam.fit(epochs=400,URM_test=URM_test ,sgd_mode="adagrad", learning_rate=0.00015, alpha=0.001, batch_size=1, validate_every_N_epochs=1)#229961 100k
 
 lam.fit(epochs=12,URM_test=URM_test, learning_rate=0.003, alpha=0, batch_size=1, validate_every_N_epochs=1, start_validation_after_N_epochs=0, initialize = "zero")
