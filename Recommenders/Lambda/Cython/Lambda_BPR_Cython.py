@@ -373,12 +373,12 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
         # Cython
         if self.pseudoInv:
-            self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.sparse_weights, self.eligibleUsers, learning_rate=learning_rate, batch_size=batch_size, sgd_mode=sgd_mode, alpha=alpha, enablePseudoInv=self.pseudoInv, pseudoInv=self.pinv, initialize=initialize)
+            self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.eligibleUsers, learning_rate=learning_rate, batch_size=batch_size, sgd_mode=sgd_mode, alpha=alpha, enablePseudoInv=self.pseudoInv, pseudoInv=self.pinv, initialize=initialize)
             self.fit_alreadyInitialized(epochs=epochs, URM_test=URM_test, minRatingsPerUser=minRatingsPerUser, batch_size=batch_size,
                                                             validate_every_N_epochs=validate_every_N_epochs, start_validation_after_N_epochs=start_validation_after_N_epochs)
 
         else:
-            self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.sparse_weights, self.eligibleUsers, learning_rate=learning_rate, batch_size=batch_size, sgd_mode=sgd_mode, alpha=alpha, enablePseudoInv=self.pseudoInv, initialize=initialize)
+            self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.eligibleUsers, learning_rate=learning_rate, batch_size=batch_size, sgd_mode=sgd_mode, alpha=alpha, enablePseudoInv=self.pseudoInv, initialize=initialize)
             self.fit_alreadyInitialized(epochs=epochs, URM_test=URM_test, minRatingsPerUser=minRatingsPerUser, batch_size=batch_size,
                                                             validate_every_N_epochs=validate_every_N_epochs, start_validation_after_N_epochs=start_validation_after_N_epochs)
 

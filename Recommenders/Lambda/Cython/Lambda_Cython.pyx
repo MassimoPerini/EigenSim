@@ -41,7 +41,6 @@ cdef class Lambda_BPR_Cython_Epoch:
     cdef int numPositiveIteractions
     cdef int useAdaGrad, rmsprop
     cdef float learning_rate
-    cdef int sparse_weights
     cdef long[:] eligibleUsers
     cdef long numEligibleUsers
     cdef int batch_size
@@ -60,7 +59,7 @@ cdef class Lambda_BPR_Cython_Epoch:
 
     cdef S_sparse
 
-    def __init__(self, URM_mask, sparse_weights, eligibleUsers,
+    def __init__(self, URM_mask, eligibleUsers,
                  learning_rate = 0.05, alpha=0.0002,
                  batch_size = 1, sgd_mode='sgd', enablePseudoInv = False, pseudoInv = None, initialize="zero"):
 
@@ -70,7 +69,6 @@ cdef class Lambda_BPR_Cython_Epoch:
         self.n_users = URM_mask.shape[0]
         self.n_items = URM_mask.shape[1]
         self.alpha=alpha
-        self.sparse_weights = sparse_weights
         self.URM_mask_indices = URM_mask.indices
         self.URM_mask_indptr = URM_mask.indptr
         URM_transposed = URM_mask.transpose()
@@ -93,14 +91,9 @@ cdef class Lambda_BPR_Cython_Epoch:
             self.pseudoInv = pseudoInv
             self.enablePseudoInv = 1
 
-        if self.sparse_weights:
-            self.S_sparse = Sparse_Matrix_Tree_CSR(self.n_users, self.n_users)
-
         if sgd_mode=='adagrad':
             self.useAdaGrad = True
             print("adagrad enabled")
-        elif sgd_mode=='rmsprop':
-            self.rmsprop = True #not implemented
         elif sgd_mode=='sgd':
             pass
         else:
@@ -115,10 +108,6 @@ cdef class Lambda_BPR_Cython_Epoch:
         if self.useAdaGrad:
             self.sgd_cache = np.zeros((self.n_users), dtype=float)
 
-        elif self.rmsprop:
-            self.sgd_cache = np.zeros((self.n_users), dtype=float)
-            self.gamma = 0.90
-
 
     cdef int[:] getSeenItemsOfUser(self, long index): #given an user, get the items he likes
         return self.URM_mask_indices[self.URM_mask_indptr[index]:self.URM_mask_indptr[index + 1]]
@@ -129,20 +118,20 @@ cdef class Lambda_BPR_Cython_Epoch:
     cpdef transpose_batch (self):
         cdef long [:] batch_pos_items = np.zeros(self.batch_size, dtype=int)
         cdef long [:] batch_neg_items = np.zeros(self.batch_size, dtype=int)
-        cdef map [long, long] all_users #C++ map
-        cdef map [long, long] itemsChoosenSampling # C++ map
-        cdef long index, index2, currentUser = 0, sampled_user = 0, how_many_times = 0
+        cdef map [long, long] involved_users #C++ map
+        cdef map [long, long] sampled_items # C++ map
+        cdef long index, index2, currentUser = 0, sampled_user = 0, how_many_items_liked_both = 0
         cdef BPR_sample sample
         cdef long[:] batch_users = np.zeros(self.batch_size, dtype=int)
-        cdef int[:] tmp_batch, tmp2_batch, usersPosItem, usersNegItem
+        cdef int[:] users_saw_sampled_item, user_profile, usersPosItem, usersNegItem
         cdef Sparse_Matrix_Tree_CSR batch_matrix
         cdef map[long,long].iterator itr
         cdef long[:,:] dense_batch_matrix
-        cdef double update1=0, update2=0, gradient
+        cdef double x_uij=0, deriv_xuij=0, gradient
 
 
-        all_users.clear()
-        itemsChoosenSampling.clear()
+        involved_users.clear()
+        sampled_items.clear()
         #esegui tutti i campionamenti e tieni traccia degli utenti che devono essere inseriti nella matrice (utenti coinvolti)
         for index in range(self.batch_size):
             # campiona e salva i campionamenti
@@ -151,35 +140,35 @@ cdef class Lambda_BPR_Cython_Epoch:
             batch_pos_items[index] = sample.pos_item
             batch_neg_items[index] = sample.neg_item
 
-            all_users[sample.user] = sample.user        #questa mappa contiene tutti gli user che sono richiesti per l'elaborazione futura
+            involved_users[sample.user] = sample.user        #questa mappa contiene tutti gli user che sono richiesti per l'elaborazione futura
 
-            if itemsChoosenSampling.count(sample.pos_item) == 0: # cerco se nella mappa degli item campionati è gia' stato campionato lo stesso elemento
+            if sampled_items.count(sample.pos_item) == 0: # cerco se nella mappa degli item campionati è gia' stato campionato lo stesso elemento
                                                                         # (se sì non ha senso re-inserire gli utenti a cui piace l'item nell'altra mappa visto che sono stati inseriti in precedenza)
-                itemsChoosenSampling[sample.pos_item] = sample.pos_item
+                sampled_items[sample.pos_item] = sample.pos_item
 
-                tmp_batch = self.getUsersSeenItem(sample.pos_item)
-                for index2 in range(len(tmp_batch)):            #quindi anche quelli che hanno visto l'elemento positivo
-                    all_users[tmp_batch[index2]] = tmp_batch[index2]
+                users_saw_sampled_item = self.getUsersSeenItem(sample.pos_item)
+                for index2 in range(len(users_saw_sampled_item)):            #quindi anche quelli che hanno visto l'elemento positivo
+                    involved_users[users_saw_sampled_item[index2]] = users_saw_sampled_item[index2]
 
-            if itemsChoosenSampling.count(sample.neg_item) == 0: # uguale per il campione "negativo"
-                itemsChoosenSampling[sample.neg_item] = sample.neg_item
+            if sampled_items.count(sample.neg_item) == 0: # uguale per il campione "negativo"
+                sampled_items[sample.neg_item] = sample.neg_item
 
-                tmp_batch = self.getUsersSeenItem(sample.neg_item)
-                for index2 in range(len(tmp_batch)):            #e quelli che hanno visto l'elemento negativo
-                    all_users[tmp_batch[index2]] = tmp_batch[index2]
+                users_saw_sampled_item = self.getUsersSeenItem(sample.neg_item)
+                for index2 in range(len(users_saw_sampled_item)):            #e quelli che hanno visto l'elemento negativo
+                    involved_users[users_saw_sampled_item[index2]] = users_saw_sampled_item[index2]
 
                 #crea la matrice sparsa
         batch_matrix = Sparse_Matrix_Tree_CSR(self.n_users, self.n_items)
         index = 0
 
         print("Step 2")
-        #inserisco i profili nella matrice
-        itr=all_users.begin()
-        while itr!=all_users.end():         #scorro gli user della mappa e copio gli elementi che piacciono ad ogni user nella matrice
+        #inserisco i profili nella matrice (forse è più veloce usare direttamente scipy o altro)
+        itr=involved_users.begin()
+        while itr!=involved_users.end():         #scorro gli user della mappa e copio gli elementi che piacciono ad ogni user nella matrice
             currentUser = deref(itr).first #un utente
-            tmp2_batch = self.getSeenItemsOfUser(currentUser) #elementi che piacciono all'utente
-            for index2 in range(len(tmp2_batch)):   #copia quello che piace all'user nella matrice
-                batch_matrix.add_value(currentUser, tmp2_batch[index2], 1)
+            user_profile = self.getSeenItemsOfUser(currentUser) #elementi che piacciono all'utente
+            for index2 in range(len(user_profile)):   #copia quello che piace all'user nella matrice
+                batch_matrix.add_value(currentUser, user_profile[index2], 1)
             inc(itr)
 
         #calcolo il prodotto con la trasposta
@@ -188,28 +177,26 @@ cdef class Lambda_BPR_Cython_Epoch:
 
         scipy_tmp = batch_matrix.get_scipy_csr()
         scipy_tmp = scipy_tmp.astype(np.long)
-
         scipy_tmp = scipy_tmp.dot(scipy_tmp.T)
         print("done")
-        dense_batch_matrix = scipy_tmp.todense() # rendo densa la matrice per andare più veloce negli accessi. POTREBBE CREARE PROBLEMI IN RAM con grandi campionamenti su grandi matrici
-        print("densifyed")
+        dense_batch_matrix = scipy_tmp.todense() # rendo densa la matrice per andare più veloce negli accessi. POTREBBE CREARE PROBLEMI con grandi campionamenti su grandi matrici
         del(scipy_tmp)
 
         print("iterating... ",len(batch_users))
         for index in range(len(batch_users)):#per ogni campione calcolo e applico il gradiente...
             if index%50000 == 0:
                 print("computing: ", index ," of ", len(batch_users))
-            update1 = 0
+            x_uij = 0
             sampled_user = batch_users[index]       #prendo l'utente del campione
-            update2 = len(self.getSeenItemsOfUser(sampled_user))
+            deriv_xuij = len(self.getSeenItemsOfUser(sampled_user))
 
-            usersPosItem = self.getUsersSeenItem(batch_pos_items[index]) #items che piacciono all'utente campionato in precedenza
-            for index2 in range(len(usersPosItem)):     #e confronto quanti item piacciono a coloro a cui piace quell'item
+            usersPosItem = self.getUsersSeenItem(batch_pos_items[index]) #users a cui piace l'item che piace all'utente
+            for index2 in range(len(usersPosItem)):
                 currentUser = usersPosItem[index2]
                 if currentUser == sampled_user: #avoid learning from the same user sampled
                     continue
-                how_many_times = dense_batch_matrix[sampled_user, currentUser]      #quanti elementi piacciono sia all'utente campionato che a currentUser
-                update1 += (self.lambda_learning[currentUser] * how_many_times)
+                how_many_items_liked_both = dense_batch_matrix[sampled_user, currentUser]      #quanti elementi piacciono sia all'utente campionato che a currentUser
+                x_uij += (self.lambda_learning[currentUser] * how_many_items_liked_both)
 
             usersNegItem = self.getUsersSeenItem(batch_neg_items[index])    #e confronto anche con gli utenti a cui piace l'elemento che non piace all'user
 
@@ -219,10 +206,10 @@ cdef class Lambda_BPR_Cython_Epoch:
                 if currentUser == sampled_user:
                     print("Errore!!!, Non deve entrare qui")
 
-                how_many_times = dense_batch_matrix[sampled_user, currentUser]
-                update1 -= (self.lambda_learning[currentUser] * how_many_times)
+                how_many_items_liked_both = dense_batch_matrix[sampled_user, currentUser]
+                x_uij -= (self.lambda_learning[currentUser] * how_many_items_liked_both)
 
-            gradient = (1 / (1 + exp(update1))) * (update2) - (self.alpha*self.lambda_learning[sampled_user])     #calcolo il gradiente di quel campione
+            gradient = (1 / (1 + exp(x_uij))) * (deriv_xuij) - (self.alpha*self.lambda_learning[sampled_user])     #calcolo il gradiente di quel campione
             self.update_model(gradient, sampled_user, usersPosItem)
 
 
@@ -239,42 +226,42 @@ cdef class Lambda_BPR_Cython_Epoch:
         cdef int [:] usersNegItem = self.getUsersSeenItem(j)
         cdef int [:] currentUserLikeElement = (self.URM_mask_indices[self.URM_mask_indptr[sample.user]:self.URM_mask_indptr[sample.user+1]]) #elementi che piacciono allo user campionato
 
-        cdef double second_part_gradient = 0.0
+        cdef double deriv_x_uij = 0.0
         cdef long index = 0, current_item = 0, index2 = 0, currentUser
 
         for index in range(len(currentUserLikeElement)): #per ogni elemento che piace all'user campionato
             current_item = currentUserLikeElement[index]
-            second_part_gradient += self.pseudoInv[current_item, sampled_user]
+            deriv_x_uij += self.pseudoInv[current_item, sampled_user]
 
             for index2 in range(len(usersPosItem)): #per ogni utente a cui piace l'elemento campionato (riga della colonna)
                 currentUser = usersPosItem[index2]
                 if currentUser == sample.user: # se questo utente è quello campionato lo salto
                     continue
                 x_uij+= (self.pseudoInv[current_item, currentUser] * self.lambda_learning[currentUser])
-                #second_part_gradient += self.pseudoInv[current_item, currentUser]
+                #deriv_x_uij += self.pseudoInv[current_item, currentUser]
 
             for index2 in range(len(usersNegItem)):
                 currentUser = usersNegItem[index2]
                 if currentUser == sample.user:  #questa condizione non dovrebbe mai essere verificata
                     continue
                 x_uij-= (self.pseudoInv[current_item, currentUser] * self.lambda_learning[currentUser])
-                #second_part_gradient -= self.pseudoInv[current_item, currentUser]
+                #deriv_x_uij -= self.pseudoInv[current_item, currentUser]
 
-        gradient = (1 / (1 + exp(x_uij))) * (second_part_gradient) - (self.alpha*self.lambda_learning[sample.user])
+        gradient = (1 / (1 + exp(x_uij))) * (deriv_x_uij) - (self.alpha*self.lambda_learning[sample.user])
         self.update_model(gradient, sampled_user, usersPosItem)
 
 
     cdef update_model (self, double gradient, long sampled_user, int [:] usersPosItem):
 
-        cdef double gradientBk = gradient, cacheUpdate
+        cdef double gradient_copy = gradient, cacheUpdate
         cdef int index2
         cdef long currentUser
 
         if self.useAdaGrad:
-            cacheUpdate = gradientBk ** 2
+            cacheUpdate = gradient_copy ** 2
             self.sgd_cache[sampled_user] += cacheUpdate
 
-            gradient = gradientBk / (sqrt(self.sgd_cache[sampled_user]) + 1e-8)
+            gradient = gradient_copy / (sqrt(self.sgd_cache[sampled_user]) + 1e-8)
             self.lambda_learning[sampled_user] += (self.learning_rate * gradient)   #applico il gradiente all'utente campionato
 
             if self.lambda_learning[sampled_user] <0 : # forzo a 0 il lambda se negativo
@@ -283,106 +270,87 @@ cdef class Lambda_BPR_Cython_Epoch:
                 currentUser = usersPosItem[index2]
                 if currentUser == sampled_user:
                     continue
-                cacheUpdate = gradientBk ** 2
+                cacheUpdate = gradient_copy ** 2
                 self.sgd_cache[currentUser] += cacheUpdate
-                gradient = gradientBk / (sqrt(self.sgd_cache[currentUser]) + 1e-8)
+                gradient = gradient_copy / (sqrt(self.sgd_cache[currentUser]) + 1e-8)
                 self.lambda_learning[currentUser] += (self.learning_rate * gradient)
                 if self.lambda_learning[currentUser]<0:
                     self.lambda_learning[currentUser] = 0
 
         else:
-            self.lambda_learning[sampled_user] += (self.learning_rate * gradientBk)
+            self.lambda_learning[sampled_user] += (self.learning_rate * gradient_copy)
             if self.lambda_learning[sampled_user] <0 :
                 self.lambda_learning[sampled_user] = 0
             for index2 in range(len(usersPosItem)):     #e confronto quanti item piacciono a coloro a cui piace quell'item
                 currentUser = usersPosItem[index2]
                 if currentUser == sampled_user:
                     continue
-                self.lambda_learning[currentUser] += (self.learning_rate * gradientBk)
+                self.lambda_learning[currentUser] += (self.learning_rate * gradient_copy)
                 if self.lambda_learning[currentUser]<0:
                     self.lambda_learning[currentUser] = 0
 
     cdef transpose_seq (self):
-        # trasposta non in batch. LENTA
+        # trasposta non in "batch". LENTA
             # non usata da novembre
         cdef BPR_sample sample = self.sampleBatch_Cython()
         cdef double x_uij = 0.0
         cdef long i = sample.pos_item
         cdef long j = sample.neg_item
         cdef np.ndarray[double] lambdaArray = np.zeros(self.n_items)
-        cdef np.ndarray[long] countArray = np.zeros(self.n_items, dtype=np.int64)
         cdef int [:] usersPosItem = self.getUsersSeenItem(i)   #users a cui piace elemento positivo
-        cdef long index = 0, currentUser = 0
-        cdef int [:] currentUserLikeElement, usersNegItem, currentUserDislikeElements
-        cdef double currentLambda = 0, second_part_gradient = 0, gradient = 0
+        cdef long index = 0, user_liked_current_element = 0, item_seen_by_sampled_user=0
+        cdef int [:] elements_liked_by_user, usersNegItem, currentUserDislikeElements
+        cdef double currentLambda = 0, x_uij_deriv = 0, gradient = 0
 
         for index in range(len(usersPosItem)):
-            currentUser = usersPosItem[index]
-            if currentUser == sample.user:
+            user_liked_current_element = usersPosItem[index]
+            if user_liked_current_element == sample.user:
                 continue
-            currentUserLikeElement = (self.URM_mask_indices[self.URM_mask_indptr[currentUser]:self.URM_mask_indptr[currentUser+1]]) # TUTTI gli elementi che piacciono all'i-esimo user
-            currentLambda = self.lambda_learning[currentUser] #lambda user corrente
-            lambdaArray[currentUserLikeElement] += currentLambda #copio lambda sugli elementi che sono piaciuti
-            countArray[currentUserLikeElement] += 1
+            elements_liked_by_user = (self.URM_mask_indices[self.URM_mask_indptr[user_liked_current_element]:self.URM_mask_indptr[user_liked_current_element+1]]) # TUTTI gli elementi che piacciono all'i-esimo user
+            currentLambda = self.lambda_learning[user_liked_current_element] #lambda user corrente
+            lambdaArray[elements_liked_by_user] += currentLambda #copio lambda sugli elementi che sono piaciuti
 
         usersNegItem = self.getUsersSeenItem(j)
         for index in range(len(usersNegItem)):
-            currentUser = usersNegItem[index]
-            currentUserDislikeElements = (self.URM_mask_indices[self.URM_mask_indptr[currentUser]:self.URM_mask_indptr[currentUser+1]])
-            currentLambda = self.lambda_learning[currentUser]
+            user_liked_current_element = usersNegItem[index]
+            currentUserDislikeElements = (self.URM_mask_indices[self.URM_mask_indptr[user_liked_current_element]:self.URM_mask_indptr[user_liked_current_element+1]])
+            currentLambda = self.lambda_learning[user_liked_current_element]
             lambdaArray[currentUserDislikeElements] -= currentLambda
-            countArray[currentUserDislikeElements] -= 1
 
-        second_part_gradient = 0
         x_uij = 0
         for index in range(len(self.seenItemsSampledUser)):
-            currentUser = self.seenItemsSampledUser[index]#in realta' è un item visto dall'utente campionato
-            x_uij += lambdaArray[currentUser]
+            item_seen_by_sampled_user = self.seenItemsSampledUser[index]#in realta' è un item visto dall'utente campionato
+            x_uij += lambdaArray[item_seen_by_sampled_user]
 
-        second_part_gradient = len(self.seenItemsSampledUser)
-        gradient = (1 / (1 + exp(x_uij))) * (second_part_gradient) - (self.alpha*self.lambda_learning[sample.user])
+        x_uij_deriv = len(self.seenItemsSampledUser)
+        gradient = (1 / (1 + exp(x_uij))) * (x_uij_deriv) - (self.alpha*self.lambda_learning[sample.user])
         self.update_model(gradient, sample.user, usersPosItem)
 
 
-    def epochIteration_Cython(self):
+    cpdef epochIteration_Cython(self):
 
         cdef long totalNumberOfBatch = int(self.numPositiveIteractions / self.batch_size)
         print(self.batch_size, " ", self.numPositiveIteractions)
-        cdef long start_time_epoch = time.time()
-
+        cdef long start_time_epoch = time.time(), start_time_batch
         cdef int printStep = 500000
-
         cdef double cacheUpdate
         cdef float gamma
-
-        if self.rmsprop:
-            gamma = 0.90
 
         start_time_batch = time.time()
 
         if totalNumberOfBatch == 0:
             totalNumberOfBatch = 1
-
         print("total number of batches ", totalNumberOfBatch, "for nnz: ", self.numPositiveIteractions)
-
         for numCurrentBatch in range(totalNumberOfBatch):
-            gradient = 0
-            second_part_gradient = 0
-            t = time.time()
-
             if self.batch_size > 1 and self.enablePseudoInv == 0:         #impara in batch (con la trasposta!, non è implementato con pseudoinversa)
                 self.transpose_batch()
-
             else:
                 if self.batch_size > 1 and self.enablePseudoInv == 1:
                      raise ValueError("Not allowed pseudoInv in batch")
-
                 if self.enablePseudoInv: #calcolo con pseudoinversa
                     self.pseudoinverse_seq()
-
                 else:
                     self.transpose_seq()
-
             if numCurrentBatch % 4500 == 0:
                 print(numCurrentBatch, " of ", totalNumberOfBatch)
 
@@ -396,19 +364,8 @@ cdef class Lambda_BPR_Cython_Epoch:
                 sys.stdout.flush()
                 sys.stderr.flush()
 
-                start_time_batch = time.time()
-
         print("Return S matrix to python caller")
 
-        '''
-        self.S_sparse = Sparse_Matrix_Tree_CSR(self.n_users, self.n_users)
-        for index in range(self.n_users):
-            self.S_sparse.add_value(index, index, self.lambda_learning[index])
-
-        print("returning...")
-        return self.S_sparse.get_scipy_csr()
-
-        '''
         users = np.arange(0, self.n_users)
         self.S_sparse = sps.coo_matrix((self.lambda_learning, (users, users)), shape=(self.n_users, self.n_users))
         self.S_sparse = check_matrix(self.S_sparse, 'csr')
