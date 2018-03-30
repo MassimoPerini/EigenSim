@@ -14,7 +14,6 @@ from Recommenders.Recommender import Recommender
 from Recommenders.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
 #from Recommenders.utils import *
 from Recommenders.Base.Recommender_utils import check_matrix
-from Recommenders.Lambda.Cython.Lambda_Cython import Lambda_BPR_Cython_Epoch
 
 
 class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
@@ -301,25 +300,19 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
         self.batch_size = batch_size
         start_time_train = time.time()
-
         #------------
-
         if validate_every_N_epochs is not None:
             self.validation_every_n = validate_every_N_epochs
         else:
             self.validation_every_n = np.inf
-
         best_validation_metric = None
         lower_validatons_count = 0
         convergence = False
-
         self.epochs_best = 0
         #------------
-
         for currentEpoch in range(epochs):
             if convergence == True:
                 break
-
             start_time_epoch = time.time()
             if currentEpoch > 0:
                 if self.batch_size > 0:
@@ -330,41 +323,29 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
                 #init in the 0 epoch
                 self.W_sparse = self.S
                 self.epochIteration()
-
             if (URM_test is not None) and (currentEpoch % validate_every_N_epochs == 0) and currentEpoch >= start_validation_after_N_epochs:
                 print("Evaluation begins")
                 results_run = self.launch_evaluation(URM_test, pseudoInverse=self.pseudoInv)
                 self.doSaveLambdaAndEvaluate(currentEpoch, results_run)
-
                 #-------- early stopping
-
                 if stop_on_validation:
-
                     current_metric_value = results_run[validation_metric]
                     if best_validation_metric is None or best_validation_metric < current_metric_value:
-
                         best_validation_metric = current_metric_value
                         self.W_best = self.S.copy()
                         self.epochs_best = currentEpoch + 1
-
                     else:
                         lower_validatons_count += 1
-
                     if lower_validatons_count >= lower_validatons_allowed:
                         convergence = True
                         print(
                             "SLIM_BPR_Cython: Convergence reached! Terminating at epoch {}. Best value for '{}' at epoch {} is {:.4f}. Elapsed time {:.2f} min".format(
                                 currentEpoch + 1, validation_metric, self.epochs_best, best_validation_metric,
                                 (time.time() - start_time_epoch) / 60))
-
-
                         # If no validation required, always keep the latest
                 if not stop_on_validation:
                     self.W_best = self.S.copy()
-
                 #------------
-
-
                 print("Epoch {} of {} complete in {:.2f} minutes".format(currentEpoch+1, epochs, float(time.time() - start_time_epoch) / 60))
             else:
                 print("Epoch {} of {} complete in {:.2f} minutes".format(currentEpoch+1, epochs, float(time.time() - start_time_epoch) / 60))
@@ -387,6 +368,8 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
         self.initialize = initialize
         self.alpha = alpha
         self.learning_rate = learning_rate
+
+        from Recommenders.Lambda.Cython.Lambda_Cython import Lambda_BPR_Cython_Epoch
 
         # Cython
         if self.pseudoInv:
