@@ -1,0 +1,161 @@
+GridSearch: New best config found. Config {'topK': 50, 'alpha': 0.10000000000000001, 'normalize_similarity': True}, map value is 0.0921
+GridSearch: New best config found. Config {'topK': 50, 'alpha': 0.10000000000000001, 'normalize_similarity': False}, map value is 0.0924
+GridSearch: New best config found. Config {'topK': 50, 'alpha': 0.20000000000000001, 'normalize_similarity': True}, map value is 0.0950
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 0.20000000000000001, 'normalize_similarity': False}, map value is 0.0943
+GridSearch: New best config found. Config {'topK': 50, 'alpha': 0.30000000000000004, 'normalize_similarity': True}, map value is 0.0961
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 0.30000000000000004, 'normalize_similarity': False}, map value is 0.0956
+GridSearch: New best config found. Config {'topK': 50, 'alpha': 0.40000000000000002, 'normalize_similarity': True}, map value is 0.0974
+GridSearch: New best config found. Config {'topK': 50, 'alpha': 0.40000000000000002, 'normalize_similarity': False}, map value is 0.0983
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 0.5, 'normalize_similarity': True}, map value is 0.0980
+GridSearch: New best config found. Config {'topK': 50, 'alpha': 0.5, 'normalize_similarity': False}, map value is 0.0999
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 0.59999999999999998, 'normalize_similarity': True}, map value is 0.0976
+GridSearch: New best config found. Config {'topK': 50, 'alpha': 0.59999999999999998, 'normalize_similarity': False}, map value is 0.1016
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 0.70000000000000007, 'normalize_similarity': True}, map value is 0.0973
+GridSearch: New best config found. Config {'topK': 50, 'alpha': 0.70000000000000007, 'normalize_similarity': False}, map value is 0.1037
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 0.80000000000000004, 'normalize_similarity': True}, map value is 0.0973
+GridSearch: New best config found. Config {'topK': 50, 'alpha': 0.80000000000000004, 'normalize_similarity': False}, map value is 0.1050
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 0.90000000000000002, 'normalize_similarity': True}, map value is 0.0977
+GridSearch: New best config found. Config {'topK': 50, 'alpha': 0.90000000000000002, 'normalize_similarity': False}, map value is 0.1067
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.0, 'normalize_similarity': True}, map value is 0.0965
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.0, 'normalize_similarity': False}, map value is 0.1026
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.1000000000000001, 'normalize_similarity': True}, map value is 0.0910
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.1000000000000001, 'normalize_similarity': False}, map value is 0.0589
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.2000000000000002, 'normalize_similarity': True}, map value is 0.0850
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.2000000000000002, 'normalize_similarity': False}, map value is 0.0318
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.3000000000000003, 'normalize_similarity': True}, map value is 0.0818
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.3000000000000003, 'normalize_similarity': False}, map value is 0.0217
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.4000000000000001, 'normalize_similarity': True}, map value is 0.0770
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.4000000000000001, 'normalize_similarity': False}, map value is 0.0167
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.5000000000000002, 'normalize_similarity': True}, map value is 0.0740
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.5000000000000002, 'normalize_similarity': False}, map value is 0.0137
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.6000000000000001, 'normalize_similarity': True}, map value is 0.0723
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.6000000000000001, 'normalize_similarity': False}, map value is 0.0115
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.7000000000000002, 'normalize_similarity': True}, map value is 0.0703
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.7000000000000002, 'normalize_similarity': False}, map value is 0.0098
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.8000000000000003, 'normalize_similarity': True}, map value is 0.0679
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.8000000000000003, 'normalize_similarity': False}, map value is 0.0087
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.9000000000000001, 'normalize_similarity': True}, map value is 0.0657
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 1.9000000000000001, 'normalize_similarity': False}, map value is 0.0076
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 2.0, 'normalize_similarity': True}, map value is 0.0640
+GridSearch: Config is suboptimal. Config {'topK': 50, 'alpha': 2.0, 'normalize_similarity': False}, map value is 0.0068
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 0.10000000000000001, 'normalize_similarity': True}, map value is 0.0991
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 0.10000000000000001, 'normalize_similarity': False}, map value is 0.0889
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 0.20000000000000001, 'normalize_similarity': True}, map value is 0.1021
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 0.20000000000000001, 'normalize_similarity': False}, map value is 0.0907
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 0.30000000000000004, 'normalize_similarity': True}, map value is 0.1037
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 0.30000000000000004, 'normalize_similarity': False}, map value is 0.0924
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 0.40000000000000002, 'normalize_similarity': True}, map value is 0.1058
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 0.40000000000000002, 'normalize_similarity': False}, map value is 0.0941
+GridSearch: New best config found. Config {'topK': 100, 'alpha': 0.5, 'normalize_similarity': True}, map value is 0.1072
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 0.5, 'normalize_similarity': False}, map value is 0.0961
+GridSearch: New best config found. Config {'topK': 100, 'alpha': 0.59999999999999998, 'normalize_similarity': True}, map value is 0.1080
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 0.59999999999999998, 'normalize_similarity': False}, map value is 0.0982
+GridSearch: New best config found. Config {'topK': 100, 'alpha': 0.70000000000000007, 'normalize_similarity': True}, map value is 0.1095
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 0.70000000000000007, 'normalize_similarity': False}, map value is 0.1006
+GridSearch: New best config found. Config {'topK': 100, 'alpha': 0.80000000000000004, 'normalize_similarity': True}, map value is 0.1107
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 0.80000000000000004, 'normalize_similarity': False}, map value is 0.1028
+GridSearch: New best config found. Config {'topK': 100, 'alpha': 0.90000000000000002, 'normalize_similarity': True}, map value is 0.1109
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 0.90000000000000002, 'normalize_similarity': False}, map value is 0.1068
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.0, 'normalize_similarity': True}, map value is 0.1109
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.0, 'normalize_similarity': False}, map value is 0.1089
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.1000000000000001, 'normalize_similarity': True}, map value is 0.1105
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.1000000000000001, 'normalize_similarity': False}, map value is 0.0680
+GridSearch: New best config found. Config {'topK': 100, 'alpha': 1.2000000000000002, 'normalize_similarity': True}, map value is 0.1114
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.2000000000000002, 'normalize_similarity': False}, map value is 0.0446
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.3000000000000003, 'normalize_similarity': True}, map value is 0.1107
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.3000000000000003, 'normalize_similarity': False}, map value is 0.0233
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.4000000000000001, 'normalize_similarity': True}, map value is 0.1092
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.4000000000000001, 'normalize_similarity': False}, map value is 0.0177
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.5000000000000002, 'normalize_similarity': True}, map value is 0.1072
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.5000000000000002, 'normalize_similarity': False}, map value is 0.0140
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.6000000000000001, 'normalize_similarity': True}, map value is 0.1042
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.6000000000000001, 'normalize_similarity': False}, map value is 0.0116
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.7000000000000002, 'normalize_similarity': True}, map value is 0.1024
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.7000000000000002, 'normalize_similarity': False}, map value is 0.0098
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.8000000000000003, 'normalize_similarity': True}, map value is 0.0963
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.8000000000000003, 'normalize_similarity': False}, map value is 0.0086
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.9000000000000001, 'normalize_similarity': True}, map value is 0.0938
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 1.9000000000000001, 'normalize_similarity': False}, map value is 0.0077
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 2.0, 'normalize_similarity': True}, map value is 0.0902
+GridSearch: Config is suboptimal. Config {'topK': 100, 'alpha': 2.0, 'normalize_similarity': False}, map value is 0.0069
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.10000000000000001, 'normalize_similarity': True}, map value is 0.0989
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.10000000000000001, 'normalize_similarity': False}, map value is 0.0862
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.20000000000000001, 'normalize_similarity': True}, map value is 0.1011
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.20000000000000001, 'normalize_similarity': False}, map value is 0.0875
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.30000000000000004, 'normalize_similarity': True}, map value is 0.1027
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.30000000000000004, 'normalize_similarity': False}, map value is 0.0886
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.40000000000000002, 'normalize_similarity': True}, map value is 0.1043
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.40000000000000002, 'normalize_similarity': False}, map value is 0.0898
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.5, 'normalize_similarity': True}, map value is 0.1066
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.5, 'normalize_similarity': False}, map value is 0.0916
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.59999999999999998, 'normalize_similarity': True}, map value is 0.1084
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.59999999999999998, 'normalize_similarity': False}, map value is 0.0935
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.70000000000000007, 'normalize_similarity': True}, map value is 0.1094
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.70000000000000007, 'normalize_similarity': False}, map value is 0.0963
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.80000000000000004, 'normalize_similarity': True}, map value is 0.1104
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.80000000000000004, 'normalize_similarity': False}, map value is 0.1004
+GridSearch: New best config found. Config {'topK': 150, 'alpha': 0.90000000000000002, 'normalize_similarity': True}, map value is 0.1118
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 0.90000000000000002, 'normalize_similarity': False}, map value is 0.1058
+GridSearch: New best config found. Config {'topK': 150, 'alpha': 1.0, 'normalize_similarity': True}, map value is 0.1125
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.0, 'normalize_similarity': False}, map value is 0.1095
+GridSearch: New best config found. Config {'topK': 150, 'alpha': 1.1000000000000001, 'normalize_similarity': True}, map value is 0.1127
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.1000000000000001, 'normalize_similarity': False}, map value is 0.0773
+GridSearch: New best config found. Config {'topK': 150, 'alpha': 1.2000000000000002, 'normalize_similarity': True}, map value is 0.1136
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.2000000000000002, 'normalize_similarity': False}, map value is 0.0552
+GridSearch: New best config found. Config {'topK': 150, 'alpha': 1.3000000000000003, 'normalize_similarity': True}, map value is 0.1142
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.3000000000000003, 'normalize_similarity': False}, map value is 0.0265
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.4000000000000001, 'normalize_similarity': True}, map value is 0.1141
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.4000000000000001, 'normalize_similarity': False}, map value is 0.0191
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.5000000000000002, 'normalize_similarity': True}, map value is 0.1141
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.5000000000000002, 'normalize_similarity': False}, map value is 0.0148
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.6000000000000001, 'normalize_similarity': True}, map value is 0.1127
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.6000000000000001, 'normalize_similarity': False}, map value is 0.0118
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.7000000000000002, 'normalize_similarity': True}, map value is 0.1117
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.7000000000000002, 'normalize_similarity': False}, map value is 0.0101
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.8000000000000003, 'normalize_similarity': True}, map value is 0.1096
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.8000000000000003, 'normalize_similarity': False}, map value is 0.0089
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.9000000000000001, 'normalize_similarity': True}, map value is 0.1069
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 1.9000000000000001, 'normalize_similarity': False}, map value is 0.0080
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 2.0, 'normalize_similarity': True}, map value is 0.1032
+GridSearch: Config is suboptimal. Config {'topK': 150, 'alpha': 2.0, 'normalize_similarity': False}, map value is 0.0073
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.10000000000000001, 'normalize_similarity': True}, map value is 0.0962
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.10000000000000001, 'normalize_similarity': False}, map value is 0.0841
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.20000000000000001, 'normalize_similarity': True}, map value is 0.0992
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.20000000000000001, 'normalize_similarity': False}, map value is 0.0850
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.30000000000000004, 'normalize_similarity': True}, map value is 0.1014
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.30000000000000004, 'normalize_similarity': False}, map value is 0.0861
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.40000000000000002, 'normalize_similarity': True}, map value is 0.1035
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.40000000000000002, 'normalize_similarity': False}, map value is 0.0873
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.5, 'normalize_similarity': True}, map value is 0.1051
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.5, 'normalize_similarity': False}, map value is 0.0887
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.59999999999999998, 'normalize_similarity': True}, map value is 0.1067
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.59999999999999998, 'normalize_similarity': False}, map value is 0.0904
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.70000000000000007, 'normalize_similarity': True}, map value is 0.1079
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.70000000000000007, 'normalize_similarity': False}, map value is 0.0931
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.80000000000000004, 'normalize_similarity': True}, map value is 0.1091
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.80000000000000004, 'normalize_similarity': False}, map value is 0.0973
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.90000000000000002, 'normalize_similarity': True}, map value is 0.1101
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 0.90000000000000002, 'normalize_similarity': False}, map value is 0.1056
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.0, 'normalize_similarity': True}, map value is 0.1118
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.0, 'normalize_similarity': False}, map value is 0.1089
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.1000000000000001, 'normalize_similarity': True}, map value is 0.1128
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.1000000000000001, 'normalize_similarity': False}, map value is 0.0847
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.2000000000000002, 'normalize_similarity': True}, map value is 0.1134
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.2000000000000002, 'normalize_similarity': False}, map value is 0.0605
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.3000000000000003, 'normalize_similarity': True}, map value is 0.1135
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.3000000000000003, 'normalize_similarity': False}, map value is 0.0302
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.4000000000000001, 'normalize_similarity': True}, map value is 0.1138
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.4000000000000001, 'normalize_similarity': False}, map value is 0.0202
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.5000000000000002, 'normalize_similarity': True}, map value is 0.1130
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.5000000000000002, 'normalize_similarity': False}, map value is 0.0156
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.6000000000000001, 'normalize_similarity': True}, map value is 0.1133
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.6000000000000001, 'normalize_similarity': False}, map value is 0.0124
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.7000000000000002, 'normalize_similarity': True}, map value is 0.1129
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.7000000000000002, 'normalize_similarity': False}, map value is 0.0107
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.8000000000000003, 'normalize_similarity': True}, map value is 0.1125
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.8000000000000003, 'normalize_similarity': False}, map value is 0.0095
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.9000000000000001, 'normalize_similarity': True}, map value is 0.1113
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 1.9000000000000001, 'normalize_similarity': False}, map value is 0.0086
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 2.0, 'normalize_similarity': True}, map value is 0.1097
+GridSearch: Config is suboptimal. Config {'topK': 200, 'alpha': 2.0, 'normalize_similarity': False}, map value is 0.0078
+best_paramethers: {'topK': 150, 'alpha': 1.3000000000000003, 'normalize_similarity': True}

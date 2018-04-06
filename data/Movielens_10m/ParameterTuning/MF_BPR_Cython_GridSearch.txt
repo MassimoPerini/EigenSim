@@ -1,0 +1,58 @@
+GridSearch: New best config found. Config {'num_factors': 1, 'epochs': 5, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.0940
+GridSearch: Config is suboptimal. Config {'num_factors': 1, 'epochs': 5, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.0931
+GridSearch: Config is suboptimal. Config {'num_factors': 1, 'epochs': 5, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.0914
+GridSearch: Config is suboptimal. Config {'num_factors': 1, 'epochs': 5, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.0542
+GridSearch: Config is suboptimal. Config {'num_factors': 1, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.0920
+GridSearch: Config is suboptimal. Config {'num_factors': 1, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.0929
+GridSearch: Config is suboptimal. Config {'num_factors': 1, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.0932
+GridSearch: Config is suboptimal. Config {'num_factors': 1, 'epochs': 10, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.0755
+GridSearch: Config is suboptimal. Config {'num_factors': 1, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.0932
+GridSearch: Config is suboptimal. Config {'num_factors': 1, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.0923
+GridSearch: Config is suboptimal. Config {'num_factors': 1, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.0932
+GridSearch: Config is suboptimal. Config {'num_factors': 1, 'epochs': 20, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.0879
+GridSearch: New best config found. Config {'num_factors': 5, 'epochs': 5, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.0945
+GridSearch: New best config found. Config {'num_factors': 5, 'epochs': 5, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.0954
+GridSearch: Config is suboptimal. Config {'num_factors': 5, 'epochs': 5, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.0946
+GridSearch: Config is suboptimal. Config {'num_factors': 5, 'epochs': 5, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.0196
+GridSearch: New best config found. Config {'num_factors': 5, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.0959
+GridSearch: Config is suboptimal. Config {'num_factors': 5, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.0948
+GridSearch: Config is suboptimal. Config {'num_factors': 5, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.0953
+GridSearch: Config is suboptimal. Config {'num_factors': 5, 'epochs': 10, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.0800
+GridSearch: Config is suboptimal. Config {'num_factors': 5, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.0924
+GridSearch: Config is suboptimal. Config {'num_factors': 5, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.0948
+GridSearch: Config is suboptimal. Config {'num_factors': 5, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.0955
+GridSearch: Config is suboptimal. Config {'num_factors': 5, 'epochs': 20, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.0919
+GridSearch: Config is suboptimal. Config {'num_factors': 10, 'epochs': 5, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.0925
+GridSearch: Config is suboptimal. Config {'num_factors': 10, 'epochs': 5, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.0936
+GridSearch: Config is suboptimal. Config {'num_factors': 10, 'epochs': 5, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.0939
+GridSearch: Config is suboptimal. Config {'num_factors': 10, 'epochs': 5, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.0204
+GridSearch: Config is suboptimal. Config {'num_factors': 10, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.0927
+GridSearch: Config is suboptimal. Config {'num_factors': 10, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.0926
+GridSearch: Config is suboptimal. Config {'num_factors': 10, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.0938
+GridSearch: Config is suboptimal. Config {'num_factors': 10, 'epochs': 10, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.0893
+GridSearch: Config is suboptimal. Config {'num_factors': 10, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.0882
+GridSearch: Config is suboptimal. Config {'num_factors': 10, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.0925
+GridSearch: Config is suboptimal. Config {'num_factors': 10, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.0937
+GridSearch: Config is suboptimal. Config {'num_factors': 10, 'epochs': 20, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.0933
+GridSearch: Config is suboptimal. Config {'num_factors': 20, 'epochs': 5, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.0924
+GridSearch: Config is suboptimal. Config {'num_factors': 20, 'epochs': 5, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.0917
+GridSearch: Config is suboptimal. Config {'num_factors': 20, 'epochs': 5, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.0906
+GridSearch: Config is suboptimal. Config {'num_factors': 20, 'epochs': 5, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.0641
+GridSearch: Config is suboptimal. Config {'num_factors': 20, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.0927
+GridSearch: Config is suboptimal. Config {'num_factors': 20, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.0915
+GridSearch: Config is suboptimal. Config {'num_factors': 20, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.0911
+GridSearch: Config is suboptimal. Config {'num_factors': 20, 'epochs': 10, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.0864
+GridSearch: Config is suboptimal. Config {'num_factors': 20, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.0940
+GridSearch: Config is suboptimal. Config {'num_factors': 20, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.0916
+GridSearch: Config is suboptimal. Config {'num_factors': 20, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.0918
+GridSearch: Config is suboptimal. Config {'num_factors': 20, 'epochs': 20, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.0902
+GridSearch: Config is suboptimal. Config {'num_factors': 30, 'epochs': 5, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.0919
+GridSearch: Config is suboptimal. Config {'num_factors': 30, 'epochs': 5, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.0914
+GridSearch: Config is suboptimal. Config {'num_factors': 30, 'epochs': 5, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.0914
+GridSearch: Config is suboptimal. Config {'num_factors': 30, 'epochs': 5, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.0667
+GridSearch: Config is suboptimal. Config {'num_factors': 30, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.0920
+GridSearch: Config is suboptimal. Config {'num_factors': 30, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.0921
+GridSearch: Config is suboptimal. Config {'num_factors': 30, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.0922
+GridSearch: Config is suboptimal. Config {'num_factors': 30, 'epochs': 10, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.0857
+GridSearch: Best config is: Config {'num_factors': 5, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.0959
+best_paramethers: {'num_factors': 5, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.01}

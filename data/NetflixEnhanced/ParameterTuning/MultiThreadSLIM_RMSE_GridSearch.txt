@@ -1,0 +1,17 @@
+GridSearch: New best config found. Config {'l1_penalty': 0.1, 'l2_penalty': 0.1}, map value is 0.0500
+GridSearch: Config is suboptimal. Config {'l1_penalty': 0.1, 'l2_penalty': 0.01}, map value is 0.0500
+GridSearch: Config is suboptimal. Config {'l1_penalty': 0.1, 'l2_penalty': 0.001}, map value is 0.0500
+GridSearch: Config is suboptimal. Config {'l1_penalty': 0.1, 'l2_penalty': 0.0001}, map value is 0.0500
+GridSearch: New best config found. Config {'l1_penalty': 0.01, 'l2_penalty': 0.1}, map value is 0.1112
+GridSearch: Config is suboptimal. Config {'l1_penalty': 0.01, 'l2_penalty': 0.01}, map value is 0.1112
+GridSearch: Config is suboptimal. Config {'l1_penalty': 0.01, 'l2_penalty': 0.001}, map value is 0.1112
+GridSearch: Config is suboptimal. Config {'l1_penalty': 0.01, 'l2_penalty': 0.0001}, map value is 0.1112
+GridSearch: New best config found. Config {'l1_penalty': 0.001, 'l2_penalty': 0.1}, map value is 0.1286
+GridSearch: Config is suboptimal. Config {'l1_penalty': 0.001, 'l2_penalty': 0.01}, map value is 0.1286
+GridSearch: Config is suboptimal. Config {'l1_penalty': 0.001, 'l2_penalty': 0.001}, map value is 0.1286
+GridSearch: Config is suboptimal. Config {'l1_penalty': 0.001, 'l2_penalty': 0.0001}, map value is 0.1286
+GridSearch: New best config found. Config {'l1_penalty': 0.0001, 'l2_penalty': 0.1}, map value is 0.1317
+GridSearch: Config is suboptimal. Config {'l1_penalty': 0.0001, 'l2_penalty': 0.01}, map value is 0.1317
+GridSearch: Config is suboptimal. Config {'l1_penalty': 0.0001, 'l2_penalty': 0.001}, map value is 0.1317
+GridSearch: Config is suboptimal. Config {'l1_penalty': 0.0001, 'l2_penalty': 0.0001}, map value is 0.1317
+best_paramethers: {'l1_penalty': 0.0001, 'l2_penalty': 0.1}

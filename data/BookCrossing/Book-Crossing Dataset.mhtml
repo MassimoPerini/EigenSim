@@ -1,0 +1,382 @@
+From: <Saved by Blink>
+Subject: Book-Crossing Dataset
+Date: Tue, 8 Jan 2018 16:12:26 -0000
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--ZmYjoA8sEnYJcidiN0YhUwBuAyAmF4EZsoTUIWFQt4----"
+
+------MultipartBoundary--ZmYjoA8sEnYJcidiN0YhUwBuAyAmF4EZsoTUIWFQt4----
+Content-Type: text/html
+Content-ID: <frame-190-8957a293-f512-49a0-80d0-8d694fbab09d@mhtml.blink>
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://www2.informatik.uni-freiburg.de/~cziegler/BX/
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN"><html><head><meta http-equ=
+iv=3D"Content-Type" content=3D"text/html; charset=3Dwindows-1252"><title>Bo=
+ok-Crossing Dataset</title>
+   =20
+
+    <style type=3D"text/css">
+
+      .normal {
+
+        font-family:helvetica,arial,sans-serif;
+        font-color:#000000;
+        font-size:12px;
+      }
+
+      .normal-red {
+
+        font-family:helvetica,arial,sans-serif;
+        color:#990000;
+        font-size:12px;
+      }
+
+      .large {
+
+        font-family:helvetica,arial,sans-serif;
+        color:#000000;
+        font-size:15px;
+      }
+
+      .large-red {
+
+        font-family:helvetica,arial,sans-serif;
+        color:#990000;
+        font-size:15px;
+      }
+
+      .small {
+
+        font-family:helvetica,arial,sans-serif;
+        color:#000000;
+        font-size:11px;
+      }
+
+      .pic {
+
+        border:1px solid #000;
+        color:#000000;
+      }
+     =20
+      a {
+
+        font-family:helvetica,arial,sans-serif;
+        color:#990000;
+        font-size:12px;
+      }
+
+    </style></head>
+
+  <body class=3D"normal" bgcolor=3D"#ffffff">
+
+    <img src=3D"http://www2.informatik.uni-freiburg.de/~cziegler/images/iif=
+_logo.png">
+      <a href=3D"http://www.informatik.uni-freiburg.de/">Institut
+      f=FCr Informatik</a>, <a href=3D"http://www.uni-freiburg.de/">Univers=
+it=E4t Freiburg</a>
+
+    <hr>
+
+    <h1>&nbsp;Book-Crossing Dataset <span class=3D"small" style=3D"font-wei=
+ght:normal"> ... mined by <a href=3D"http://www.informatik.uni-freiburg.de/=
+~cziegler">Cai-Nicolas Ziegler</a>, <a href=3D"http://www.informatik.uni-fr=
+eiburg.de/~dbis">DBIS Freiburg</a></span></h1>
+    <hr><br>
+
+
+
+
+    <table border=3D"0" width=3D"690">
+
+      <tbody><tr>
+        <td></td>
+        <td>
+          <div class=3D"normal" align=3D"justify">
+            Collected by Cai-Nicolas Ziegler in a 4-week crawl (August / Se=
+ptember 2004) from the <a href=3D"http://www.bookcrossing.com/">Book-Crossi=
+ng</a>=20
+            community with kind permission from Ron Hornbaker, CTO of <a hr=
+ef=3D"http://www.humankindsystems.com/">Humankind Systems</a>.=20
+            Contains 278,858 users (anonymized but with demographic informa=
+tion) providing 1,149,780 ratings (explicit / implicit) about 271,379 books=
+.
+          </div>
+          <br>
+          <table width=3D"100%">
+            <tbody><tr>
+              <td width=3D"20"> </td>
+              <td>
+                <div class=3D"normal" align=3D"justify"><span class=3D"larg=
+e-red"><b>[ ! ]</b></span>
+                  Freely available for research use when acknowledged with =
+the following reference (further details on the dataset are given
+                  in this publication):    =20
+
+                 <ul><li>
+                   <a href=3D"http://www2.informatik.uni-freiburg.de/~dbis/=
+Publications/05/WWW05.html">Improving Recommendation Lists Through Topic Di=
+versification</a>,<br>
+                   <div class=3D"normal" align=3D"justify">Cai-Nicolas Zieg=
+ler, Sean M. McNee, Joseph A. Konstan, Georg Lausen;
+                   <em>Proceedings of the 14th International World Wide Web=
+ Conference (WWW '05),</em>
+                       May 10-14, 2005, Chiba, Japan. <em>To appear.</em><b=
+r><br>
+                       Download:<b> [ </b><a href=3D"http://www2.informatik=
+.uni-freiburg.de/~cziegler/BX/WWW-2005-Preprint.pdf">PDF Pre-Print</a><b> ]=
+</b>
+                   </div></li></ul></div><br>
+
+                  =20
+                =20
+           =20
+                 As a courtesy, if you use the data, I would appreciate kno=
+wing your name, what research group you are in, and the publications that m=
+ay result.
+               =20
+              </td>
+              <td width=3D"20"> </td>
+            </tr>
+          </tbody></table>
+          <br><br>
+        </td>
+      </tr>
+
+      <tr>
+        <td></td>
+        <td>
+          <h2>Format</h2>
+          <span class=3D"normal">The Book-Crossing dataset comprises 3 tabl=
+es.</span>
+          <ul>
+            <li><div align=3D"left" class=3D"normal-red">BX-Users</div>
+            <div class=3D"normal" align=3D"justify">
+            Contains the users. Note that user IDs (<i>`User-ID`</i>) have =
+been anonymized and map to integers. Demographic data is
+            provided (<i>`Location`</i>, <i>`Age`</i>) if available. Otherw=
+ise, these fields contain <i>NULL</i>-values.</div></li><br>          =20
+=20
+            <li><div align=3D"left" class=3D"normal-red">BX-Books</div>
+            <div class=3D"normal" align=3D"justify">
+            Books are identified by their respective ISBN. Invalid ISBNs ha=
+ve already been removed from the dataset. Moreover, some content-based info=
+rmation
+            is given (<i>`Book-Title`</i>, <i>`Book-Author`</i>, <i>`Year-O=
+f-Publication`</i>, <i>`Publisher`</i>), obtained from Amazon Web Services.=
+ Note that in case
+            of several authors, only the first is provided. URLs linking to=
+ cover images are also given, appearing in three different flavours=20
+            (<i>`Image-URL-S`</i>, <i>`Image-URL-M`</i>, <i>`Image-URL-L`</=
+i>), i.e., small, medium, large. These URLs point to the Amazon web site.
+            </div></li><br>
+
+            <li><div align=3D"left" class=3D"normal-red">BX-Book-Ratings</d=
+iv>
+            <div class=3D"normal" align=3D"justify">
+            Contains the book rating information. Ratings (<i>`Book-Rating`=
+</i>) are either explicit, expressed on a scale from 1-10 (higher
+            values denoting higher appreciation), or implicit, expressed by=
+ 0.</div></li><br>          =20
+           </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td></td>
+        <td>
+          <h2>Download</h2>
+          <span class=3D"normal">Various data format flavours are available=
+. Note that all downloads are in .ZIP format</span>
+          <ul>
+            <li><div align=3D"left" class=3D"normal-red"><a href=3D"http://=
+www2.informatik.uni-freiburg.de/~cziegler/BX/BX-SQL-Dump.zip">SQL Dump [26.=
+391 KB]</a></div>
+            <div class=3D"normal" align=3D"justify">
+            Contains both schema information and data insertion statements.=
+ More convenient to use. Run as an
+            SQL-script.</div></li><br>
+=20
+            <li><div align=3D"left" class=3D"normal-red"><a href=3D"http://=
+www2.informatik.uni-freiburg.de/~cziegler/BX/BX-CSV-Dump.zip">CSV Dump [25.=
+475 KB]</a></div>
+            <div class=3D"normal" align=3D"justify">
+            Data as comma-separated values (CSV). The first line contains c=
+olumn names. Field separators are given by
+            semicola, all entries are in quotes.</div></li><br>
+          </ul>
+        </td>
+      </tr>
+
+      <tr>
+        <td width=3D"0"></td>
+        <td>
+          <h2>Other Datasets</h2>
+          <ul>
+            <li><div align=3D"left" class=3D"normal-red"><a href=3D"http://=
+www.cs.umn.edu/GroupLens">MovieLens</a></div>
+            <div class=3D"normal" align=3D"justify">
+            Offers collaborative filtering (CF) datasets for movies. MovieL=
+ens datasets come in different sizes.=20
+            Also links to the older EachMovie dataset that can be obtained =
+upon request from Compaq.</div></li><br>
+=20
+            <li><div align=3D"left" class=3D"normal-red"><a href=3D"http://=
+www.ieor.berkeley.edu/~goldberg/jester-data/">Jester</a></div>
+            <div class=3D"normal" align=3D"justify">
+            Dense dataset for joke recommending. Large numbers of users, bu=
+t small number of items (around 100 jokes) only.</div></li><br>
+          </ul>
+       </td>
+      </tr>
+    </tbody></table>
+<hr>
+
+[<a href=3D"http://www.informatik.uni-freiburg.de/"> IIF </a>] &nbsp;
+[<a href=3D"http://www.informatik.uni-freiburg.de/~dbis/"> DBIS </a>] &nbsp=
+;
+[<a href=3D"http://www.informatik.uni-freiburg.de/~cziegler/"> Cai-Nicolas =
+Ziegler </a>]
+&nbsp;
+ =20
+</body></html>
+------MultipartBoundary--ZmYjoA8sEnYJcidiN0YhUwBuAyAmF4EZsoTUIWFQt4----
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://www2.informatik.uni-freiburg.de/~cziegler/images/iif_logo.png
+
+iVBORw0KGgoAAAANSUhEUgAAAHUAAAB1CAIAAAD/ZjnrAAAACXBIWXMAAC4iAAAuIgGq4t2SAAAd
+JUlEQVR42tV9eXwUx5X/t6rnkmY0EroQugAJgzhkhE5zBFjABkHyC5i1A4Q4xEnwEgeTtY1xMCTK
+Ohi8hvVm2XjXF+Fn/xwbEWOMDT8bgz9gOwYM5lyJSxJIQhc6Rrdmprur9o/qaQ2SAB0jafw+Pma6
+qqurvvP6vfd9r7pFOOcYWOHav+AAY6AUlGhNJXU4WYITxbhQgcIa3GxGoxucAQRWIyJtuCccmcMx
+ezSmJsAoAYCiQqIgBJyDkN7Oqd+EDCS+HZA1SNrx8+XYn4dPL+JcOeqbARUggARQgAAE4OIcQAU4
+YMKEKCxJxaOTMcwOzsEB6pcQDxC+AllCwDgYh4ECQF0L/nYWb5/EV9eANkACjCCShpFATTuZAAJq
+AgCMA27AjbAwPHM/npoFiUBlkKjfQTwQ+Io1cw7Vo7MlDvz3V/i/J1BeDUiAWYOGdXsuhIASqDLg
+xPTx2PkTjAyFwmDwM4j7F199bMYhUQAob8S/f47Xj6HeAVggGT2wepS0J6ODEEgUSguiw/DhKqTH
++h3E/Ygvv9UguBRsP4qXDuFmLRAAyQDGwHsBa8fLQJKgOhFqw9F/xoQo/zIU/YKvGJIQTZsAfHoJ
+z+zF+SJNZ1XWK4W97fUgSVDbkBCFk08j2KJZD38Q3+Pbwdo62vDsh3jtSwCQLD7S2S6uCoMBSiMe
+noZdj0BlGr6DrsI+xle3CQAowcHL+NV7KCwDsYEAjPUDsu3XhiRBbcFHq/H98e23zuCKz6bAPeAq
+DJSAEGzcj7nbUVgNKQic9zO4Yg4ckPDsfsiqFg4POHnqKL7Bl3PNmysqDBQVTZj3Cv74IYgRxARV
+BdDv4IKAMVAL8orwcR4IoLLBtw8+wFf31LIKg4TjxZiyFQfPwRAEDo3dDpAQEA4Q/NfXIERzA4Mr
+fcXX25sZJeSexax/x/UaSDYoA6O2t4rKATO+uIrrdZCoxqsHUfqEbzu4HAYJLx/Bj15DGwM1Q1UH
+GlnPnCBJcDXj4CXN6A+uheg9vjq4gj48tx9PvgtqBpFu78p4pw8+F891Py8AIcBgmwhD707zBlei
+WLMH//EJJBtUkeW6HbjE00p8yi86zQ1GnC2DyiB9F/2bt1mQKP4pF//x/2EIgnrHNAIhgILhYQgJ
+8GQg+0cYByQUO1DRCEK+a/b3FnpGsfp9vPoZDHYod6O8lAIuLJmEiTGAu3/5K6FwtqG0fvBD4J7h
+q4OrMBgkrPsI//lJt8CFJynxQBJSYgC1fyNTSgDFL/S3x/ZXgGuU8OLn+NePYAjqFrgAGINkRWos
+SusHgmuAobpZzLifr3VH6YH+6vTXKOGtU3g2F5IVSvdSt5QAMhIiEBKACVGABSrrx1URABxNLuC7
+Ev96g3ukAI++BWoBQ3fDAOHcMuLAOUaFY2gIoPS7EstqP1+gG9ItfAW4wqEV1eKhN6BygPYg0yh6
+TR4BAMEBuHcYoPhLirZf5e74crSnHNtk/OMO1DRAMvUsH6YywISMeM09Zg3vdxcHwNzL4N6X0g39
+5Vo0JlE8loszV2EI7Bn9JQBXEBGCcUO1KCJrOCD1oJrZU+EACILM2tUHUe6Cr24ZjBL++2u8fRSG
+ICg9ZAciWkoehiCLljO8NxpmG1j/2UcOUIRZAQwywHfCt93sSjhXjt/kggb2xu8TAqjIGq5taeAc
+sSG4J6IfTbCgcJE2wM/1V9zCThk/eRsud898WofV3jccgPaDUYK0WEDpLxPMOQxmbWuPn+KrVdIY
+JIr1B3ChEFJAL2s8TIXZipQYrawrVPi+Ef21JAJARbgVUUFaln0QpWt8vS3D0UK8fBCSFWqvwBXG
+954IxIZo2iRsQnocYO4XliHM0YhQWM396EK7u/zbNWgBmRsrdwEAJ71kQoJZpMeBEg1NUf1Miuwv
+liHwHRflKaoOqnSBr15jlyieP4Qr17V9C31B4r4Rnv16BABUBpsZyf3JMtLjAE/wPojSBb7CMkgE
+eRXYetATM/R2lioDzMiIB4TmethK/7EMxgCThu+gU8SO+OoJU0Lwmw8hO0Gk3udICAAFUUMwJrJ9
+z5Jeb86K9z3LEFxmWCjGRfnFLqmO+BKiVSX2XsChs5B6SNU6jk4AGROjYTW1uzKxbEIwMQZmq49Z
+hrhi1vBbrjiIcgu+Qnkp4FLw7MeA1NfkHiEA05gF89rQSDwsY5TPWQYBOB4Y0/GKgyW34KsF/xQ7
+TuDyNR+4NcYBQzuz8C7VaCwjzscsQ1VhsGLOaBACabCLx/DGV/zglKLZhU2fgZh9sGOMqQiwYWJ0
+u00QQnSWMdyniyGAG6nxGBWuKa8f6a9ga5Tg9eMoKwc19fXHF6ZwTGTXPLWdZZh8FKVyLdZ+MBnw
+j81n0PHVLC9Fixv/dgTwhfKKOD8jTjM7HS9MQAjGDkXkEHCfsAwCVYXRhgfv9RDxwTYO0PHV0y5/
+/RY3yiH1WXl1EcxCrL+D+JZlSARwYdoo3BOhrcVf9FdXXkXFn74ADL7ZYq4yEAvS4zQ72GG8dpYR
+7wuW4dkc9LNMbTn+AC4EviLmJcBnV5B3HdQXaRHBLGJCcU8E0BWPamcZvqhlEALVjaFDsXACAO35
+Fn8QTX8FbX3l7wDXitt9HZcAMlKiEWDsOs73Jcvg2uagRzLaSyT+or/ibpIoimpx8CJggeoL43A7
+ZnFLH4BzxAX3mWUQMBXmIPzTlPYdRn4iVBgHAO+ehrsJUh+yDd5yB2bhLSoHpX2rZXBIFLwNiych
+IUwj94NctPASKpRXZXjvDGD02cNTTIXNjuROzMJbiOcRlKwRfbiSCNvNeOYfNEM36DUhb6GMgxKc
+uYH/KQUx+SabJYzv2EgMDQK7/Wp531mGUN5WLErFxJj2p3D9R6gA9IMLgAsS9Y1xEDWhjPi7VBCI
+F8uICOkVyyDgDNSMjfe3myA/8WwaFBIF4zhwETCA+cg4cAC0uxVMlSHI3KsdUxwSBWvF0sx25fUf
+zyaEUoLCGlwoA3xkHACoKqgFabEeZnF71HSWkdmLWgYBV2Gx4V+ytZkPejWos1DO8UUR1BZIUt9H
+E6sGFMSHITEcnN9FJXtfy/Ao72/+AQlhHsvrZ8oLEZ99UeDLgEYY30kxMBvujpceXaTEwNR9lsFB
+KJgbMcPw2zlatsF/OPEtaCgqTpZ6jK8vRDCL+4Z3t4KgsYwe1jIoAXdj60LYLe1xiB8KvVaHa7We
+nI4vROWAEZnDPSh075QesAzPc/Lz0rBkEhSm1Sn8UHkB0PPlcLaB+ChsFOVbux0ThnWdNuviFJ1l
+dK+WQQi4AqsNf17cnjnxT3Ah8IXqs/tLVBDGRyHceidm0XESBAAyusMyOCgFa8OWhe1s2N9isluW
+llcJ+O4hJuHcMuO1LdndP6tbLMNjGe5Pxa+n+btl0JZWWOvZdeoL4bydWRD0ICxhDEGWO9YyRMwg
+Y0gI3lwCxkGhPWHsz0IrGgHqM/1VGaRApMZ6Aq/unSVyeJwj8w61DAIJ4G68vgxxIVqp269SOV0K
+rWvx2UtihPEdGYaRoT27be9ey+AwUChNWDMXi++FrH4HLIMQKquep9n7PhYBZKTGwihpOeVuSkeW
+0cFwc0gSlBZMnYCt/0d7cZE/xwy3YOLDVwWIwpJgFj1VrnaWEQ7IXiaYg1KoLkSFYdcKSFQzu/4c
+M3gL9QDjAxEPufWIWdxyOodEkerNMrjGBg0Uu3+BmGCNiXwnLIMQKpbRdyEAVzEkGOOjusssbjn9
+Vpah1VgJJALmxJuPYNpIyKp/vVuyO0J9ZhwIICM5CiEBPWAWuug5hIx4wKTt6DZQKM14fjEeSf9O
+got2+9v3gQigInO4xix6ioJOczWWocIkQWnEr+dhw/0auP4f7XYBi93iu4Kxzix65X/ECxTtFkyI
+AmVwN+EnM7H9wfaAwf+j3c5Co+2A6oN5MwajFZPEQ269qiMQApVzznHfCM7q2JIpbOdSpqicEhDC
+PRsbOADOOfOIfsT7v6wr8e4zYGIYHYlLpX2NeCgBcyNxKIYP6b2J5ByEEADJw8jC2eTdnwLt1Ee0
+aP8jhJBbr6Ef77K1c88BE0NGHPad6usogrmlxkKiWtqld4NI4ISQ+Unq7Pj62lowxq2BAQGBVoAT
+or3qlRDS0NAgyzIASZJCQkJEk/7fpqYml8vljSPnvEPPgcN36kjA2OftdQCAySM8zKK3hFssvrHm
+Rnp6hqKqjLE1a9bk5OQoimowGPQOS5cuPXbsGIBRo0Z98803+rmqqhoMhrVr1+7atctgMCiKQgih
+lDLGEhMTjx8/LvmqyNh9fDPiEReG0moQY+/9nP76DHiYRV80RFbUm9U1wu22tLSgk9Gsr6+vr68H
+UFdX11kfm5qaRKu3VFdXDyCq7UJtZswZDbhBe1t/9X59Ro/SZrcdkBCTyShJEiGkS40zGAzCyAql
+7rLVYDBQSu12+5AhQ4KDg8PDwwcDXhg4x/J0/OWL3u88owSq1+szfFIK4R65Q+udz1UUJTQ09MSJ
+E3a7nTFmNBoppQP/x2oMHJiRiOQEXLgG2qsHsrxfn+FXO8AopdHR0YGBgYM5B/GGh433936TfofX
+Z/hPZotzLmIJp9OpKMqd74l+Eio2p/7jRHwv2bOLp4cT6PD6DD/JD0iS5HA4MjIyxo8fn5SUtH37
+dkKIqqoDHf8ST/7h1YeQVgSXAiL14KXelIApuCem/fUZ/iOMsdLSUvG5pqYGA07e0L6/mmPsULy6
+DMwJSZjU7s1EMIu02PbXZ/ibiBijy0hjIK4uLKZEoKj4STpK6/FcLqgVhPbA1032POTmJ8YBgKqq
+ISEhBw4cEPFDZGQkBgNlAwAQEECiUFSsn4MAI57MBQgM5ru/G9X79Rn+A662NoMhNTXVbDbrRwbY
++EJ7/s1TwRXZg3+egQO/xogwKE0AgyTdNqTt8vUZ/iOc85aWFlVVFUVhjGFQ7K+GlKfcLREoDNlj
+8e06PD0fwWaoTWAugEMiMFBIFBLR/jFKMDCkRPvLyyy6WB6lkiRRSikVT1IOtAq02yM9dDVQqAyh
+gXhpIVbPwP87iT3ncK4cSqvX2+nFa4oI0IjUWN8zC8FxVVUVuHQQSZIEb+6SPQtMMXg+rWt84TGg
+IqIQf7ctfgjWP4D1D+ByFU7fwP9UotgBRytaZRgpgi0It2BZGgBfbvhgjLW1tYnPzc3NnTvU19er
+qgqgrq6uc2tTU5NorampGXiDcCd8dZRFJCuJv47HIFGMGYoxQ287ing83Fdit9tXrlwpig7Tp08H
+oGuxuMGXLFmSlpYGICoqyvuWF5+zs7NDQkIA2Gw24dwG3iy0T+nOv7DeKCyAeIDEa++Htv/Db7fn
+95+IvKgghOKzyB91LKz06A7S/8DuLUP4Dla9DCFS4wDEvMUHvX6hqqqeSehsZEWrOF0kOTuv0Xs0
+vbVzzw6VEe/WzqWQzn16jO8Ai74AxlgHR6eqqnBiOky3O7efREzpwIEDSUlJly9fHj9+fHx8vPc8
+RZl18D1sZ1AYYy6Xy2KxiM+MMYPBIMo/uj5KklRZWdna2pqQkCBW63A4ROTgdDrtdrvFYlEURVEU
+i8XSoTU4ONhsNrvdbgAmk4kx5na7zWYzIUR4TrPZ3NbWFhgYaLVavbVbluW2tjbGmNlsNplMsizv
+27fPbDYfOnRIkqS4uDiBaXNzs8vlioiIkCSpPZPtDyJu7bKysjlz5rS0tHDO8/PzExMTL126pKrq
+j370o0uXLomeL7744pQpUxYsWPDII4/Isux0OpcvX56VlZWcnJydnX306FHOeW5u7ooVKzjn9fX1
+S5cuzczMvPfee7Ozs48dO8Y5f+mll9avX885LykpmT9/vtPpZIytXbv2e9/73rhx4+bOnbtr1y7G
+mOAmory/aNGiWbNmLViw4J133uGcv/HGG+vWreOct7a2Zmdn19bWcs7z8vKSkpIWLFgwZcqUEydO
++CO+xcXFY8eObWpq4pyfPXsWwE9/+lPOeVZW1tmzZznnlZWVNptNhF8FBQWCoSmK8uabby5atEho
+Ged8586d8+fP55y3tbUpivLnP/95yZIlsiy3trZyzjdu3Lhy5UrOeVFRUUpKisBXUZQvvvgiLS1N
+lmVVVTtsn0hJSblw4QLnXHT+05/+tHjxYlVVy8rKxowZU11dzRj76quvJk+ezDnftm3bpEmT/KbY
+4CWEEHG3AmhsbMzOzi4sLDx79uzQoUM55wCCgoJGjhy5fPny3bt3JyYmigqxJElms9lsNgtuAkCS
+JKPRKAaUJMlkMnm3GgwGvdVkMolLd+7mbcQDAgLef//93bt3K4oiOot5SpJksVhEZ6PR6Ha7Kysr
+r1+/Hhsb64/4AmCePdaKogQFBa1ater555+3WCwC34CAgAMHDqSkpGzYsGH69Omtra3CKAstEyJO
+5549O9yzqadDB3H76yB2HoR7+X/GWHFxcVFRkaq2P2iqqqr3V6PRWFNTk56eXlFRsWPHDj/FV4+6
+jEajw+FYsmRJVVXV6dOng4KCABBCYmNjN2/efPny5fPnz588eVKom8gz6Pt39PKzOCL8m94ky7Lw
+nDabrampSY8CxVneg+izopSuX79+3bp1AQEBhBBFUcSOi9DQUJ1wtra2pqenv/7663V1deHh4f6I
+L2NMbGwAoCjKjRs3KKWrVq0qKCgQeF2/fn3NmjW7d+9+4YUXRo4cOWHCBKFBTqezsbERHqVzOp0N
+DQ3eX0WrUPbJkyd/+OGHO3fufOqpp4YPHy72o4grOhwOdJVsq6+vr6ysFN0455mZmUeOHNmxY8eT
+Tz4ZEREhSCPn/MqVK9nZ2Xa7/cc//rGUk5Mz2HjeImLrQnx8fHJysjBwo0aNGjt27NixY0eOHJmS
+kmKxWIxGY3V19dmzZwkh27Zti4qK4pxTSq1W65gxY0aNGiW0VXwdPXq0/jUpKSkhIUGo6ujRo5OS
+ko4dO5aQkPDiiy8KJk0pNZlMCQkJ48aN0+ejf4iMjExNTbXb7YKqxcfHp6amfvnll5GRkdu2bbPZ
+bABMJlNiYuKYMWNmz57d0NDg1/xCF35HssA9UbMArkNnQWH1+11Y2M7pyi4H0XddwotJ6n10jqOP
+oI+pz+E7gy/umKbxJk7CX3Xgr3p+XUeEe7FtYbX1/oqiCEbT4YrieIf5yLKsBxvw2gYn3Kl/2Qex
+JLfbfeXKldDQUEppS0vLpUuXoqKiABQUFAQGBhqNRlVVz58/n5eXV1hYaLPZrFYrpfTmzZt79+6t
+q6sbOXKkWLzb7T5z5kx+fj7nPCwsDACl1Ol0nj9/Pjg42Gg0NjU15eXlRUZGSpIkfpWKioqioqLo
+6GgxkxMnThQUFFRXV+fn5ws/5nA4ysrKwsLCCCFVVVU1NTVDhgxpaWm5cOHCsGHDxCp0p0op9Ud+
+UVJSMn78eMEvzp07B+Dw4cOMsalTpwp+UV1dHRMTs3z58kcfffTbb7/lnJ8+fVqEa/PmzVu9erUY
+7cKFC5GRkT//+c/HjBmzc+dOcbOfOnUKwFtvvcUY27x5M4CioiLOucvl4pwvXbrUZDI1NzczxlRV
+ff755xcsWBAbG/vLX/7y0KFDnPPc3Nw5c+aI8bds2SL4YVpa2qZNmzjnItrzXpGf4jtx4sTm5mYB
+XEREhKBhM2fOPHfuHOe8oqIiNTXV+8Ts7OytW7dyzmVZjo6OPnPmDOf8+PHjs2bN4pzv3bs3OTlZ
+9Pzoo49CQ0Mfe+wxzvnChQvDw8P//ve/c84ZY1VVVdnZ2dOmTXvvvfcYY06nU/we4upC9uzZM3fu
+XPF58+bNzz777JYtW0SHzuByzv0xPvOWhoYGkWLfu3dvWFiYiMMMBoPD4Vi5cuWWLVuEYS0uLr7v
+vvuEKUxMTDx58iQAo9F448aNvXv37tixY/78+WLAa9euPfDAAzU1NRcvXmSMzZw589q1a6Jp//79
+GRkZOTk5ubm5wp6qqupwONxut6IoLperw9xCQ0Pfe++9Dz74YN++fd5G3LuPf+XPuhTO+W9/+9v1
+69eHhobq3tlkMk2fPj06OlosSei++Kzvk+ScBwQErFu3Lisra8uWLS6Xy2w2l5SUZGRkFBcX//GP
+f5w0aZKiKGVlZQAIIZ988olIqn399ddOp1PnviJkZJ3eTOF0OkePHt3U1HTmzJn09PQO4YQQf9df
+SZJqamqmTZs2ZMiQo0eP2u12AKqqWiyW5cuXz5o1S2TiR40a9fnnnwunX1RUlJ6eDkCW5ZiYmCNH
+jpw6daqkpERkG27evBkTE5OVlfXXv/51/vz5drv95s2bABwOR35+/rRp08LDwwMDAw8fPnzX9HFL
+S0tqaurvf//7RYsWud3uLh8+8FN8dWUhhIiU69q1axsbG/XZK4pSV1cn7krhavbt27dhw4aFCxcu
+Xrw4NTUVgKAhw4YNe/jhh0WqDEB1dXVQUFBWVlZgYGBqampAQEBVVRWAffv2xcTEPPXUU6tXr162
+bNlbb72l3wTemuv9VZKksrKyuXPnpqSkrFq1qkO83H6C/4iYn8vlunz5svB1zc3NV69eFccvXrwo
+Eo9ut/vSpUv6llPR6nA4cnNzv/zyS/1IS0vL1atXRf7l9OnTsixzzgsKChobG1VVvXLlCue8trb2
+2rVrnPPS0tKysjJZlmVZbmhouHjxohi8qampsLBQH7O+vl585ZxXVVUVFxerqtrW1nbq1Ckx4Q4u
+zn/5haD5Ip4X0ZLRaORegb1YD7zSN7ru65VHEdjqlExE/ujEIGRZFtbDe3zvCfDbE0jvJt7H+uag
+SIfim4BP+DHvRepHOi9S6JRwPjq7uwNYHTyVmAD3lC/1CwlDIZq8J3nLlgG/wleswel0vvPOO6I8
+8dBDDyUmJp45c+bTTz9VFGXatGkzZ84Ui9mzZ09hYaGqqsnJyQsWLADwt7/9LTMzU9QZ33777aKi
+osDAwGXLlsXFxQEoLS09fvz4Qw89BGDXrl0zZsyIiopyuVw7d+6sqKgYOnToz372M7PZLFL1BQUF
+f/nLXwghCxcuTEtLExPrRcHUv/yb+LFramrWrVtnNBqtVqvQo/fff3/Pnj02m23FihWffvqpWOdz
+zz1XUVFhtVoDAgKEKr3wwgt5eXkAZFnOyckxGo0NDQ2zZ8+ura0FkJ+fv2nTJnGhP/zhDyLsra+v
+z8nJiYiIOHjw4IoVKwAQQvLz8+fNmxcfHx8dHX3ixIm+Lsl/ROdv6enp3sc3bty4ceNGzvnDDz/8
+9NNPi4OTJ08WrolzLnzdrFmzPvvsM855W1vb5MmThVkYPXp0QUEB5/zw4cMzZ84U/adMmfLNN99w
+zsvLy0W5rKSkJDo62u12c86XL1/+xBNP+GRF/sgvjEZjeXl5dnb2xIkTN23aJEmS1Wp99913m5qa
+iouLc3JyxN2qKMrSpUtDQkK2b9+emJgIL48nSVJjY+P3v//9GzduzJkzR7SKU7gnba9f6+bNm088
+8cTVq1cfe+wxPYL+wQ9+UFlZuW3btri4uF/96ld6yqana/Ev+yBEPLr2yiuvPP300+LGVxQlISHh
+k08+eeaZZ8aOHStYMqV0w4YNr732mth4IM7V96MEBASsX7/+gw8+OHXq1P79+znnbrfbaDQKMyqS
+cABkWR42bFhVVVVbW9vvfvc7WZZFa0tLi91uj4uLe/nll51OZ6/X4o/4CvWMj4/XH7psaWmZOHHi
+xx9/vHbt2traWj29HRUVFRcX553k5V5FyREjRowYMaK+vr68vJwQEhwcfO3aNbfb3djYWFpaKqgg
+gLa2tl27dhFCXn31VZPJxDl/8MEH33jjDbPZ/Pjjj9vtdt6HrUD+iC8hxGaziYShOGKz2RwOR2Ji
+YmZm5tatWwW+Vqv1F7/4xZQpU9asWSPWb7PZRLgqkgZLliyZPn16cnLysmXLVFVNS0ubOnXq1KlT
+Z8yY8cMf/jApKQmAwWCwWCyqqr700ksvv/yyqNc9/vjjSUlJM2fOnD17dkJCgl637oX8L1L8PD0a
+Kl1WAAAAAElFTkSuQmCC
+------MultipartBoundary--ZmYjoA8sEnYJcidiN0YhUwBuAyAmF4EZsoTUIWFQt4------
