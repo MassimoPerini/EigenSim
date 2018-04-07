@@ -17,7 +17,7 @@ from Recommenders.Base.Recommender_utils import check_matrix
 
 
 class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
-    def __init__(self, URM_train, recompile_cython=False, sgd_mode='sgd', pseudoInv=False,
+    def __init__(self, URM_train, recompile_cython=False,
                  check_stability=False, save_lambda=False, save_eval=True):
         super().__init__()
         self.save_lambda = save_lambda
@@ -28,14 +28,14 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
         self.sparse_weights = True
 
         self.filterTopPop = False
-        self.pseudoInv = pseudoInv
+
         #self.URM_mask = self.URM_train.copy()
         self.URM_mask = self.URM_train
         if self.sparse_weights:
             self.S = sps.csr_matrix((self.n_users, self.n_users), dtype=np.float32)
         else:
             self.S = np.zeros((self.n_users, self.n_users)).astype('float32')
-        self.sgd_mode = sgd_mode
+
         self.check_stability = check_stability
         if recompile_cython:
             print("Compiling in Cython")
@@ -353,10 +353,13 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
     def fit(self, epochs=30, URM_test=None, minRatingsPerUser=1,
             batch_size=1, validate_every_N_epochs=1, start_validation_after_N_epochs=0,
-            alpha=0, learning_rate=0.0002, sgd_mode='sgd', initialize = "zero", rcond=0.2):
+            alpha=0, learning_rate=0.0002, sgd_mode='sgd', initialize = "zero", rcond=0.2,
+            pseudoInv=False):
 
 
         self.rcond = rcond
+        self.pseudoInv = pseudoInv
+        self.sgd_mode = sgd_mode
 
         if self.pseudoInv:
             self.pinv = np.linalg.pinv(self.URM_train.todense(), rcond = rcond) # calculate pseudoinv if pseudoinv is enabled

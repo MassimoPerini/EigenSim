@@ -47,10 +47,12 @@ def runParameterSearch(URM_train, URM_validation, logFilePath ="results/"):
     parameterSearch = BayesianSearch(recommender_class, URM_validation)
 
     hyperparamethers_range_dictionary = {}
+    hyperparamethers_range_dictionary["pseudoInv"] = [True]
+    hyperparamethers_range_dictionary["epochs"] = [50]
     hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.05, 0.5, 0.02))
     hyperparamethers_range_dictionary["learning_rate"] = [0.01]
     hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad"]
-    hyperparamethers_range_dictionary["batch_size"] = [1, 5, 10]
+    hyperparamethers_range_dictionary["batch_size"] = [1]
     hyperparamethers_range_dictionary["initialize"] = ["zero", "one", "random"]
 
     logFile = open(logFilePath + "Lambda_BPR_Cython" + "_BayesianSearch.txt", "a")
