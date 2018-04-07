@@ -17,7 +17,7 @@ from Recommenders.Base.Recommender_utils import check_matrix
 
 
 class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
-    def __init__(self, URM_train, recompile_cython=False, sgd_mode='sgd', pseudoInv=False, rcond=0.2,
+    def __init__(self, URM_train, recompile_cython=False, sgd_mode='sgd', pseudoInv=False,
                  check_stability=False, save_lambda=False, save_eval=True):
         super().__init__()
         self.save_lambda = save_lambda
@@ -26,11 +26,8 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
         self.n_users = URM_train.shape[0]
         self.n_items = URM_train.shape[1]
         self.sparse_weights = True
-        self.rcond = rcond
+
         self.filterTopPop = False
-        if pseudoInv:
-            self.pinv = np.linalg.pinv(self.URM_train.todense(), rcond = rcond) # calculate pseudoinv if pseudoinv is enabled
-            #print("singular values", np.linalg.svd(self.URM_train.todense(), compute_uv=False))
         self.pseudoInv = pseudoInv
         #self.URM_mask = self.URM_train.copy()
         self.URM_mask = self.URM_train
@@ -323,6 +320,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
                 #init in the 0 epoch
                 self.W_sparse = self.S
                 self.epochIteration()
+
             if (URM_test is not None) and (currentEpoch % validate_every_N_epochs == 0) and currentEpoch >= start_validation_after_N_epochs:
                 print("Evaluation begins")
                 results_run = self.launch_evaluation(URM_test, pseudoInverse=self.pseudoInv)
@@ -355,15 +353,27 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
     def fit(self, epochs=30, URM_test=None, minRatingsPerUser=1,
             batch_size=1, validate_every_N_epochs=1, start_validation_after_N_epochs=0,
-            alpha=0, learning_rate=0.0002, sgd_mode='sgd', initialize = "zero"):
+            alpha=0, learning_rate=0.0002, sgd_mode='sgd', initialize = "zero", rcond=0.2):
+
+
+        self.rcond = rcond
+
+        if self.pseudoInv:
+            self.pinv = np.linalg.pinv(self.URM_train.todense(), rcond = rcond) # calculate pseudoinv if pseudoinv is enabled
+            #print("singular values", np.linalg.svd(self.URM_train.todense(), compute_uv=False))
+
+
         self.eligibleUsers = []
+
         # Select only positive interactions
         URM_train = self.URM_train
+
         for user_id in range(self.n_users):
             start_pos = URM_train.indptr[user_id]
             end_pos = URM_train.indptr[user_id + 1]
             if len(URM_train.indices[start_pos:end_pos]) > 0:
                 self.eligibleUsers.append(user_id)  #user that can be sampled
+
         self.eligibleUsers = np.array(self.eligibleUsers, dtype=np.int64)
         self.initialize = initialize
         self.alpha = alpha
@@ -420,3 +430,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
     
 
+
+    def get_lambda(self):
+
+        return self.cythonEpoch.get_lambda()

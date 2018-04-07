@@ -13,7 +13,7 @@ import scipy.io as sio
 import zipfile
 
 from data.DataReader import DataReader, removeFeatures, reconcile_mapper_with_removed_tokens
-from Base.Recommender_utils import check_matrix
+from Recommenders.Base.Recommender_utils import check_matrix
 from data.URM_Dense_K_Cores import select_k_cores
 
 

@@ -7,12 +7,14 @@
 
 import numpy as np
 import scipy.sparse as sps
-from Base.Recommender import Recommender
-from Base.Recommender_utils import check_matrix
+from Recommenders.Base.Recommender import Recommender
+from Recommenders.Base.Recommender_utils import check_matrix
 
 
 class TopPop(Recommender):
     """Top Popular recommender"""
+
+    RECOMMENDER_NAME = "TopPop"
 
     def __init__(self, URM_train):
         super(TopPop, self).__init__()
@@ -26,6 +28,8 @@ class TopPop(Recommender):
         item_pop = (self.URM_train > 0).sum(axis=0)  # this command returns a numpy.matrix of size (1, nitems)
         item_pop = np.asarray(item_pop).squeeze()  # necessary to convert it into a numpy.array of size (nitems,)
         self.pop = np.argsort(item_pop)[::-1]
+
+        self.URM_train = check_matrix(self.URM_train, 'csr', dtype=np.float32)
 
     def recommend(self, user_id, n=None, exclude_seen=True, filterTopPop = False, filterCustomItems = False):
 

@@ -15,6 +15,7 @@ from Recommenders.GraphBased.RP3beta import RP3betaRecommender
 
 
 from data.NetflixEnhanced.NetflixEnhancedReader import NetflixEnhancedReader
+from data.Movielens_1m.Movielens1MReader import Movielens1MReader
 from data.Movielens_10m.Movielens10MReader import Movielens10MReader
 from data.Movielens_20m.Movielens20MReader import Movielens20MReader
 
@@ -28,45 +29,46 @@ import numpy as np
 
 if __name__ == '__main__':
 
+    #dataReader = Movielens10MReader()
 
-    dataSplitter = DataSplitter_Warm(Movielens10MReader)
+
+    dataSplitter = DataSplitter_Warm(Movielens1MReader)
 
     URM_train = dataSplitter.get_URM_train()
     URM_validation = dataSplitter.get_URM_validation()
     URM_test = dataSplitter.get_URM_test()
 
     #ICM = dataSplitter.get_split_for_specific_ICM("ICM_all")
+    #
+    # subsample_mask = np.random.choice([True, False], size=URM_train.shape[1], p=[0.2, 0.8])
+    #
+    # URM_train = URM_train[:,subsample_mask]
+    # URM_validation = URM_validation[:,subsample_mask]
+    # URM_test = URM_test[:,subsample_mask]
 
 
-    personalized_recommender = TopPop(URM_train)
-    non_personalized_recommender = ItemKNNCFRecommender(URM_train)
+
+    non_personalized_recommender = TopPop(URM_train)
+    personalized_recommender = ItemKNNCFRecommender(URM_train)
 
 
     non_personalized_recommender.fit()
     personalized_recommender.fit()
-    recommender = ItemBasedLambdaDiscriminantRecommender(URM_train, non_personalized_recommender, personalized_recommender)
+    recommender = ItemBasedLambdaDiscriminantRecommender(URM_train, non_personalized_recommender,
+                                                         personalized_recommender, URM_validation = URM_validation)
 
-    recommender.fit()
+    try:
+        recommender.loadModel("results/")
+    except:
+        recommender.fit()
+        recommender.saveModel("results/")
 
     user_lambda = recommender.get_lambda_values()
-
-    np.sort(user_lambda)
+    user_lambda = np.sort(user_lambda)
 
 
     map_performance_over_lambda = []
-
-
-    for lambda_threshold in user_lambda:
-
-        recommender.set_lambda_threshold(lambda_threshold)
-
-        results_run = recommender.evaluateRecommendations(URM_test, at=5, exclude_seen=True)
-
-        print("Lambda threshold is {}, results: {}".format(lambda_threshold, results_run))
-
-        map_performance_over_lambda.append(results_run["map"])
-
-
+    x_tick = []
 
 
 
@@ -78,18 +80,48 @@ if __name__ == '__main__':
     plt.switch_backend('agg')
 
 
-    plt.xlabel('lambda threshold')
-    plt.ylabel("MAP")
-    plt.title("Recommender MAP for increasing lambda threshold")
+    ## Plot baseline
+    results_run_non_pers = non_personalized_recommender.evaluateRecommendations(URM_test, at=5, exclude_seen=True)
+    results_run_pers = personalized_recommender.evaluateRecommendations(URM_test, at=5, exclude_seen=True)
+    print("Personalized result: {}".format(results_run_pers))
+    print("Non personalized result: {}".format(results_run_non_pers))
 
 
-    plt.plot(np.arange(len(map_performance_over_lambda)), map_performance_over_lambda, linewidth=3, label="CBF data",
-             linestyle = ":")
 
-    plt.legend()
+    for lambda_threshold_index in range(0, len(user_lambda), 100):
 
-    plt.savefig("plots/MAP_over_lambda_{}_{}".format(
-        personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME))
+        lambda_threshold = user_lambda[lambda_threshold_index]
 
-    plt.close()
+        recommender.set_lambda_threshold(lambda_threshold)
+
+        results_run = recommender.evaluateRecommendations(URM_test, at=5, exclude_seen=True)
+
+        print("Lambda threshold is {}, results: {}".format(lambda_threshold, results_run))
+
+        map_performance_over_lambda.append(results_run["map"])
+        x_tick.append(lambda_threshold)
+
+
+
+
+        plt.xlabel('lambda threshold')
+        plt.ylabel("MAP")
+        plt.title("Recommender MAP for increasing lambda threshold")
+
+
+        plt.plot(x_tick, map_performance_over_lambda, linewidth=3, label="Hybrid",
+                 linestyle = "-")
+
+        plt.plot(x_tick, np.ones_like(x_tick)*results_run_non_pers["map"], linewidth=3, label="Non pers",
+                 linestyle = ":")
+
+        plt.plot(x_tick, np.ones_like(x_tick)*results_run_pers["map"], linewidth=3, label="Pers",
+                 linestyle = "--")
+
+        plt.legend()
+
+        plt.savefig("results/MAP_over_lambda_{}_{}".format(
+            personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME))
+
+        plt.close()
 

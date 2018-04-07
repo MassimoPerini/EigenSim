@@ -88,7 +88,7 @@ cdef class Lambda_BPR_Cython_Epoch:
 
         self.enablePseudoInv = 0
         if enablePseudoInv:
-            self.pseudoInv = pseudoInv
+            self.pseudoInv = pseudoInv.astype(np.float64)
             self.enablePseudoInv = 1
 
         if sgd_mode=='adagrad':
@@ -371,6 +371,10 @@ cdef class Lambda_BPR_Cython_Epoch:
         self.S_sparse = check_matrix(self.S_sparse, 'csr')
         return self.S_sparse
 
+
+    def get_lambda(self):
+
+        return np.array(self.lambda_learning)
 
 
     cdef BPR_sample sampleBatch_Cython(self):

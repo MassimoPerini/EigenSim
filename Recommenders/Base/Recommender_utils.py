@@ -210,4 +210,14 @@ def loadCSVintoSparse (filePath, header = False):
     return  sps.csr_matrix((values, (rows, cols)), dtype=np.float32)
 
 
+def reshapeSparse(sparseMatrix, newShape):
 
+    if sparseMatrix.shape[0] > newShape[0] or sparseMatrix.shape[1] > newShape[1]:
+        ValueError("New shape cannot be smaller than SparseMatrix. SparseMatrix shape is: {}, newShape is {}".format(
+            sparseMatrix.shape, newShape))
+
+
+    sparseMatrix = sparseMatrix.tocoo()
+    newMatrix = sps.csr_matrix((sparseMatrix.data, (sparseMatrix.row, sparseMatrix.col)), shape=newShape)
+
+    return newMatrix

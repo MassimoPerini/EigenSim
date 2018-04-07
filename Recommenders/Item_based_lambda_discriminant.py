@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on 23/10/17
+Created on 06/04/18
 
 @author: Maurizio Ferrari Dacrema
 """
@@ -11,7 +11,7 @@ from Recommenders.Recommender_utils import check_matrix
 from Recommenders.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
 
 from Recommenders.Lambda.Cython.Lambda_BPR_Cython import Lambda_BPR_Cython
-
+import numpy as np
 
 
 class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Recommender):
@@ -23,20 +23,36 @@ class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Reco
     RECOMMENDER_NAME = "ItemBasedLambdaDiscriminantRecommender"
 
 
-    def __init__(self, URM_train, non_personalized_recommender, personalized_recommender):
+    def __init__(self, URM_train, non_personalized_recommender, personalized_recommender, URM_validation = None):
         super(ItemBasedLambdaDiscriminantRecommender, self).__init__()
 
-        self.URM_train = check_matrix(URM_train, 'csr')
+        self.URM_train = check_matrix(URM_train.copy(), 'csr')
         self.non_personalized_recommender = non_personalized_recommender
         self.personalized_recommender = personalized_recommender
 
+        if URM_validation is not None:
+            self.URM_validation = URM_validation.copy()
+        else:
+            self.URM_validation = None
 
 
-    def fit(self, URM_validation = None):
 
-        lambda_cython = Lambda_BPR_Cython(self.URM_train, recompile_cython=True, sgd_mode="adagrad", pseudoInv=True, rcond = 0.14, check_stability=False, save_lambda=False, save_eval=False)
+    def fit(self):
 
-        lambda_cython.fit(epochs=12, URM_test=URM_validation, learning_rate=0.003, alpha=0, batch_size=1, validate_every_N_epochs=1, start_validation_after_N_epochs=0, initialize = "zero")
+        pseudoinverse_size = self.URM_train.shape[0] * self.URM_train.shape[1]*32
+
+        if pseudoinverse_size >= 3*1e+9:
+            input("Pseudoinverse size is: {:.2f} GB. Continue?".format(pseudoinverse_size/1e+9))
+
+
+        lambda_cython = Lambda_BPR_Cython(self.URM_train, recompile_cython=False, sgd_mode="adagrad",
+                                          pseudoInv=True, check_stability=False,
+                                          save_lambda=False, save_eval=False)
+
+
+        lambda_cython.fit(epochs=2, URM_test = self.URM_validation, learning_rate=0.0005, alpha=0,
+                          batch_size=1, validate_every_N_epochs=1,
+                          start_validation_after_N_epochs=0, initialize = "zero", rcond = 0.13)
 
         self.user_lambda = lambda_cython.get_lambda()
 
@@ -57,8 +73,49 @@ class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Reco
     def recommend(self, user_id, n=None, exclude_seen=True, filterTopPop = False, filterCustomItems = False):
 
         if self.user_lambda[user_id] >= self.lambda_threshold:
-            self.personalized_recommender.recommend(user_id, n=n, exclude_seen=exclude_seen, filterTopPop = filterTopPop, filterCustomItems = filterCustomItems)
+            return self.personalized_recommender.recommend(user_id, n=n, exclude_seen=exclude_seen,
+                                                           filterTopPop = filterTopPop, filterCustomItems = filterCustomItems)
 
         else:
-            self.non_personalized_recommender.recommend(user_id, n=n, exclude_seen=exclude_seen, filterTopPop = filterTopPop, filterCustomItems = filterCustomItems)
+            return self.non_personalized_recommender.recommend(user_id, n=n, exclude_seen=exclude_seen,
+                                                               filterTopPop = filterTopPop, filterCustomItems = filterCustomItems)
+
+
+
+
+
+
+
+
+    def saveModel(self, folderPath, namePrefix = None):
+
+
+        print("{}: Saving model in folder '{}'".format(self.RECOMMENDER_NAME, folderPath))
+
+        if namePrefix is None:
+            namePrefix = self.RECOMMENDER_NAME
+
+        namePrefix += "_"
+
+        np.savez(folderPath + "{}.npz".format(namePrefix), user_lambda = self.user_lambda)
+
+
+
+
+    def loadModel(self, folderPath, namePrefix = None):
+
+        print("{}: Loading model from folder '{}'".format(self.RECOMMENDER_NAME, folderPath))
+
+        if namePrefix is None:
+            namePrefix = self.RECOMMENDER_NAME
+
+        namePrefix += "_"
+
+
+        npzfile = np.load(folderPath + "{}.npz".format(namePrefix))
+
+        for attrib_name in npzfile.files:
+             self.__setattr__(attrib_name, npzfile[attrib_name])
+
+
 

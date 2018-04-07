@@ -9,7 +9,7 @@ Created on 12/01/18
 import scipy.sparse as sps
 import numpy as np
 
-from Base.Recommender_utils import check_matrix
+from Recommenders.Base.Recommender_utils import check_matrix
 
 
 
@@ -717,7 +717,7 @@ class DataSplitter_ColdItems_WarmValidation(DataSplitter):
 
 
 
-from Base.Recommender_utils import reshapeSparse
+from Recommenders.Base.Recommender_utils import reshapeSparse
 
 
 class DataSplitter_ColdItems_ColdValidation(DataSplitter):

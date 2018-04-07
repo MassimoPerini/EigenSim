@@ -10,9 +10,9 @@ import time
 
 import numpy as np
 
-from Base.metrics import roc_auc, precision, recall, map, ndcg, rr
+from Recommenders.Base.metrics import roc_auc, precision, recall, map, ndcg, rr
 #from Base.Cython.metrics import roc_auc, precision, recall, map, ndcg, rr
-from Base.Recommender_utils import check_matrix, areURMequals, removeTopPop
+from Recommenders.Base.Recommender_utils import check_matrix, areURMequals, removeTopPop
 
 
 class Recommender(object):

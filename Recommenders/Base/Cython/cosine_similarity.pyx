@@ -23,7 +23,7 @@ from cpython.array cimport array, clone
 
 
 import scipy.sparse as sps
-from Base.Recommender_utils import check_matrix
+from Recommenders.Base.Recommender_utils import check_matrix
 
 
 cdef class Cosine_Similarity:

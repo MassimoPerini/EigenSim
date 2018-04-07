@@ -1,0 +1,38 @@
+GridSearch: New best config found. Config {'topK': 50, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.1502
+GridSearch: Config is suboptimal. Config {'topK': 50, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.1409
+GridSearch: Config is suboptimal. Config {'topK': 50, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.1373
+GridSearch: Config is suboptimal. Config {'topK': 50, 'epochs': 10, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.1371
+GridSearch: New best config found. Config {'topK': 50, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.1517
+GridSearch: Config is suboptimal. Config {'topK': 50, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.1431
+GridSearch: Config is suboptimal. Config {'topK': 50, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.1382
+GridSearch: Config is suboptimal. Config {'topK': 50, 'epochs': 20, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.1376
+GridSearch: Config is suboptimal. Config {'topK': 50, 'epochs': 50, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.1513
+GridSearch: Config is suboptimal. Config {'topK': 50, 'epochs': 50, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.1482
+GridSearch: Config is suboptimal. Config {'topK': 50, 'epochs': 50, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.1393
+GridSearch: Config is suboptimal. Config {'topK': 50, 'epochs': 50, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.1374
+GridSearch: New best config found. Config {'topK': 100, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.1519
+GridSearch: Config is suboptimal. Config {'topK': 100, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.1418
+GridSearch: Config is suboptimal. Config {'topK': 100, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.1386
+GridSearch: Config is suboptimal. Config {'topK': 100, 'epochs': 10, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.1381
+GridSearch: New best config found. Config {'topK': 100, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.1534
+GridSearch: Config is suboptimal. Config {'topK': 100, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.1445
+GridSearch: Config is suboptimal. Config {'topK': 100, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.1393
+GridSearch: Config is suboptimal. Config {'topK': 100, 'epochs': 20, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.1384
+GridSearch: Config is suboptimal. Config {'topK': 100, 'epochs': 50, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.1525
+GridSearch: Config is suboptimal. Config {'topK': 100, 'epochs': 50, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.1492
+GridSearch: Config is suboptimal. Config {'topK': 100, 'epochs': 50, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.1408
+GridSearch: Config is suboptimal. Config {'topK': 100, 'epochs': 50, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.1384
+GridSearch: Config is suboptimal. Config {'topK': 200, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.1525
+GridSearch: Config is suboptimal. Config {'topK': 200, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.1418
+GridSearch: Config is suboptimal. Config {'topK': 200, 'epochs': 10, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.1390
+GridSearch: Config is suboptimal. Config {'topK': 200, 'epochs': 10, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.1383
+GridSearch: New best config found. Config {'topK': 200, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.1538
+GridSearch: Config is suboptimal. Config {'topK': 200, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.1446
+GridSearch: Config is suboptimal. Config {'topK': 200, 'epochs': 20, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.1397
+GridSearch: Config is suboptimal. Config {'topK': 200, 'epochs': 20, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.1384
+GridSearch: New best config found. Config {'topK': 200, 'epochs': 50, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.1540
+GridSearch: Config is suboptimal. Config {'topK': 200, 'epochs': 50, 'batch_size': 1, 'learning_rate': 0.001}, map value is 0.1501
+GridSearch: Config is suboptimal. Config {'topK': 200, 'epochs': 50, 'batch_size': 1, 'learning_rate': 0.0001}, map value is 0.1409
+GridSearch: Config is suboptimal. Config {'topK': 200, 'epochs': 50, 'batch_size': 1, 'learning_rate': 1e-05}, map value is 0.1388
+GridSearch: Best config is: Config {'topK': 200, 'epochs': 50, 'batch_size': 1, 'learning_rate': 0.01}, map value is 0.1540
+best_paramethers: {'topK': 200, 'epochs': 50, 'batch_size': 1, 'learning_rate': 0.01}

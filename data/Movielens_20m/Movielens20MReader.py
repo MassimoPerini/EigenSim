@@ -13,7 +13,7 @@ import zipfile
 
 from data.DataReader import DataReader, reconcile_mapper_with_removed_tokens
 from data.URM_Dense_K_Cores import select_k_cores
-from Base.Recommender_utils import reshapeSparse
+from Recommenders.Base.Recommender_utils import reshapeSparse
 
 
 class Movielens20MReader(DataReader):
@@ -302,104 +302,3 @@ class Movielens20MReader(DataReader):
               "\tICM density: {:.2E}\n".format(
               n_features, self.get_ICM().nnz/(n_items*n_features)))
 
-
-
-    def get_hyperparameters_for_rec_class(self, target_recommender):
-
-        from KNN.item_knn_CBF import ItemKNNCBFRecommender
-        from KNN.item_knn_CF import ItemKNNCFRecommender
-        from KNN.user_knn_CF import UserKNNCFRecommender
-        from SLIM_ElasticNet.SLIM_ElasticNet import MultiThreadSLIM_ElasticNet
-        from SLIM_ElasticNet.SLIM_ElasticNet import SLIM_ElasticNet
-        from GraphBased.P3alpha import P3alphaRecommender
-        from GraphBased.RP3beta import RP3betaRecommender
-
-        try:
-            from MatrixFactorization.Cython.MF_BPR_Cython import MF_BPR_Cython
-            from MatrixFactorization.MatrixFactorization_RMSE import FunkSVD
-            from SLIM_BPR.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
-        except ImportError:
-            MF_BPR_Cython = None
-            FunkSVD = None
-            SLIM_BPR_Cython = None
-
-
-        hyperparam_dict = {}
-
-        if target_recommender is ItemKNNCBFRecommender:
-            hyperparam_dict["topK"] = 100
-            hyperparam_dict["shrink"] = 300
-            hyperparam_dict["similarity"] = 'jaccard'
-            hyperparam_dict["normalize"] = True
-
-            return hyperparam_dict
-
-
-        if target_recommender is ItemKNNCFRecommender:
-            hyperparam_dict["topK"] = 200
-            hyperparam_dict["shrink"] = 1000
-            hyperparam_dict["similarity"] = 'cosine'
-            hyperparam_dict["normalize"] = True
-
-            return hyperparam_dict
-
-        if target_recommender is UserKNNCFRecommender:
-            hyperparam_dict["topK"] = 200
-            hyperparam_dict["shrink"] = 10
-            hyperparam_dict["similarity"] = 'jaccard'
-            hyperparam_dict["normalize"] = True
-
-            return hyperparam_dict
-
-        elif target_recommender is MF_BPR_Cython:
-            hyperparam_dict["num_factors"] = 10
-            hyperparam_dict["epochs"] = 21
-            hyperparam_dict["batch_size"] = 1
-            hyperparam_dict["learning_rate"] = 0.01
-
-            return hyperparam_dict
-
-        elif target_recommender is FunkSVD:
-            hyperparam_dict["num_factors"] = 1
-            hyperparam_dict["epochs"] = 20
-            hyperparam_dict["reg"] = 1e-5
-            hyperparam_dict["learning_rate"] = 1e-4
-
-            return hyperparam_dict
-
-        elif target_recommender is SLIM_BPR_Cython:
-            hyperparam_dict["sgd_mode"] = 'adagrad'
-            hyperparam_dict["epochs"] = 5
-            hyperparam_dict["batch_size"] = 1
-            hyperparam_dict["learning_rate"] = 0.1
-            hyperparam_dict["topK"] = 100
-
-            return hyperparam_dict
-
-        elif target_recommender is SLIM_ElasticNet or target_recommender is MultiThreadSLIM_ElasticNet:
-            hyperparam_dict["topK"] = 100
-            hyperparam_dict["positive_only"] = True
-            hyperparam_dict["l1_penalty"] = 1e-4
-            hyperparam_dict["l2_penalty"] = 1e-2
-
-            return hyperparam_dict
-
-        elif target_recommender is P3alphaRecommender:
-            hyperparam_dict["topK"] = 100
-            hyperparam_dict["alpha"] = 0.7
-            hyperparam_dict["normalize_similarity"] = False
-
-            return hyperparam_dict
-
-
-        elif target_recommender is RP3betaRecommender:
-            hyperparam_dict["topK"] = 50
-            hyperparam_dict["alpha"] = 0.3
-            hyperparam_dict["beta"] = 0.5
-            hyperparam_dict["normalize_similarity"] = True
-
-            return hyperparam_dict
-
-        print("Movielens20MReader: No optimal parameters available for algorithm of class {}".format(target_recommender))
-
-        return hyperparam_dict
