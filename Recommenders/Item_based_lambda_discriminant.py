@@ -45,8 +45,8 @@ class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Reco
             input("Pseudoinverse size is: {:.2f} GB. Continue?".format(pseudoinverse_size/1e+9))
 
 
-        lambda_cython = Lambda_BPR_Cython(self.URM_train, recompile_cython=False, sgd_mode="adagrad",
-                                          pseudoInv=True, check_stability=False,
+        lambda_cython = Lambda_BPR_Cython(self.URM_train, recompile_cython=False,
+                                          check_stability=False,
                                           save_lambda=False, save_eval=False)
 
 

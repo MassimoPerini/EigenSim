@@ -55,12 +55,13 @@ def runParameterSearch(URM_train, URM_validation, logFilePath ="results/"):
     hyperparamethers_range_dictionary["batch_size"] = [1]
     hyperparamethers_range_dictionary["initialize"] = ["zero", "one", "random"]
 
-    logFile = open(logFilePath + "Lambda_BPR_Cython" + "_BayesianSearch.txt", "a")
+    logFile = open(logFilePath + "Lambda_BPR_Cython" + "_{}_BayesianSearch.txt".format(dataReader_class.DATASET_SUBFOLDER[:-1]), "a")
 
     recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
-                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {},
-                             DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
-                             DictionaryKeys.FIT_KEYWORD_ARGS: dict(),
+                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"save_eval":False},
+                             DictionaryKeys.FIT_POSITIONAL_ARGS: [],
+                             DictionaryKeys.FIT_KEYWORD_ARGS: {"URM_test": URM_validation, "validate_every_N_epochs":10,
+                                                               "lower_validatons_allowed":10},
                              DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
 
 
@@ -71,7 +72,8 @@ def runParameterSearch(URM_train, URM_validation, logFilePath ="results/"):
     logFile.flush()
     logFile.close()
 
-    pickle.dump(best_parameters, open(logFilePath + "Lambda_BPR_Cython" + "_best_parameters", "wb"), protocol=pickle.HIGHEST_PROTOCOL)
+    pickle.dump(best_parameters, open(logFilePath + "Lambda_BPR_Cython" +
+                                      "_{}_best_parameters".format(dataReader_class.DATASET_SUBFOLDER[:-1]), "wb"), protocol=pickle.HIGHEST_PROTOCOL)
 
 
 
@@ -93,9 +95,9 @@ import os
 if __name__ == '__main__':
 
 
+    dataReader_class = NetflixEnhancedReader
 
-
-    dataSplitter = DataSplitter_Warm(Movielens1MReader)
+    dataSplitter = DataSplitter_Warm(dataReader_class)
 
     URM_train = dataSplitter.get_URM_train()
     URM_validation = dataSplitter.get_URM_validation()

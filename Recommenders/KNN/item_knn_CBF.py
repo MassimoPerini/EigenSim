@@ -23,6 +23,7 @@ class ItemKNNCBFRecommender(Similarity_Matrix_Recommender, Recommender):
     RECOMMENDER_NAME = "ItemKNNCBFRecommender"
 
     def __init__(self, ICM, URM_train, sparse_weights=True):
+
         super(ItemKNNCBFRecommender, self).__init__()
 
         self.ICM = ICM

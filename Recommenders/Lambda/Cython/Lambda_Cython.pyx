@@ -13,6 +13,7 @@ from cpython.array cimport array, clone
 cimport numpy as np
 import time
 import sys
+import scipy.sparse.linalg
 
 from libc.math cimport exp, sqrt
 from libc.stdlib cimport rand, RAND_MAX
@@ -52,27 +53,36 @@ cdef class Lambda_BPR_Cython_Epoch:
     cdef int[:] URM_mask_indices, URM_mask_indptr
     cdef int[:] URM_mask_transp_indices, URM_mask_transp_indptr #faster access to rows index with 1 of certain item (col)
     cdef double[:] lambda_learning # lambda learned
-    cdef double[:,:] pseudoInv #pseudoinverse
+    cdef float[:,:] pseudoInv #pseudoinverse
     cdef int enablePseudoInv
+
+    cdef float[:,:] SVD_U, SVD_Vh
+    cdef float[:] SVD_s
+    cdef int SVD_latent_factors, low_ram
 
     cdef double [:] sgd_cache #cache adagrad
 
     cdef S_sparse
 
-    def __init__(self, URM_mask, eligibleUsers,
+    def __init__(self, URM_mask, URM_train, eligibleUsers, rcond = 0.1,
                  learning_rate = 0.05, alpha=0.0002,
-                 batch_size = 1, sgd_mode='sgd', enablePseudoInv = False, pseudoInv = None, initialize="zero"):
+                 batch_size = 1, sgd_mode='sgd', enablePseudoInv = False, pseudoInv = None, initialize="zero",
+                 low_ram = True):
 
         super(Lambda_BPR_Cython_Epoch, self).__init__()
+
         URM_mask = check_matrix(URM_mask, 'csr')
+
         self.numPositiveIteractions = int(URM_mask.nnz)
         self.n_users = URM_mask.shape[0]
         self.n_items = URM_mask.shape[1]
         self.alpha=alpha
         self.URM_mask_indices = URM_mask.indices
         self.URM_mask_indptr = URM_mask.indptr
+
         URM_transposed = URM_mask.transpose()
         URM_transposed = check_matrix(URM_transposed, 'csr')
+
         self.URM_mask_transp_indices = URM_transposed.indices
         self.URM_mask_transp_indptr = URM_transposed.indptr
         #typr of initialization
@@ -86,10 +96,18 @@ cdef class Lambda_BPR_Cython_Epoch:
             raise ValueError(
                 "init not valid. Values: zero, one, random")
 
-        self.enablePseudoInv = 0
+        self.enablePseudoInv = enablePseudoInv
+        self.low_ram = low_ram
+
         if enablePseudoInv:
-            self.pseudoInv = pseudoInv.astype(np.float64)
-            self.enablePseudoInv = 1
+
+            if low_ram:
+
+                self.SVD_U, self.SVD_s, self.SVD_Vh = scipy.sparse.linalg.svds(URM_train, k=50)
+                self.SVD_latent_factors = self.SVD_U.shape[1]
+            else:
+                self.pseudoInv = np.linalg.pinv(self.URM_train.todense(), rcond = rcond).astype(np.float32)
+                self.enablePseudoInv = 1
 
         if sgd_mode=='adagrad':
             self.useAdaGrad = True
@@ -213,6 +231,27 @@ cdef class Lambda_BPR_Cython_Epoch:
             self.update_model(gradient, sampled_user, usersPosItem)
 
 
+    cdef compute_pinv_row(self, int row):
+
+        return np.dot(np.multiply(self.SVD_Vh[:, row], self.SVD_s), self.SVD_U[:, :])
+
+
+
+    cdef compute_pinv_cell(self, int row, int column):
+
+        # SVD decomposition is U*s*V.t
+        # Pseudoinverse is V*1/s*U.t
+
+        cdef int latent_factor_index
+        cdef double result = 0.0
+
+        for latent_factor_index in range(self.SVD_latent_factors):
+
+            result += self.SVD_Vh[latent_factor_index, row] * self.SVD_s[latent_factor_index] * self.SVD_U[column, latent_factor_index]
+
+        return result
+
+
 
     cdef pseudoinverse_seq(self):
         cdef BPR_sample sample = self.sampleBatch_Cython()
@@ -231,20 +270,35 @@ cdef class Lambda_BPR_Cython_Epoch:
 
         for index in range(len(currentUserLikeElement)): #per ogni elemento che piace all'user campionato
             current_item = currentUserLikeElement[index]
-            deriv_x_uij += self.pseudoInv[current_item, sampled_user]
+
+            if self.low_ram:
+                deriv_x_uij += self.compute_pinv_cell(current_item, sampled_user)
+            else:
+                deriv_x_uij += self.pseudoInv[current_item, sampled_user]
+
 
             for index2 in range(len(usersPosItem)): #per ogni utente a cui piace l'elemento campionato (riga della colonna)
                 currentUser = usersPosItem[index2]
                 if currentUser == sample.user: # se questo utente è quello campionato lo salto
                     continue
-                x_uij+= (self.pseudoInv[current_item, currentUser] * self.lambda_learning[currentUser])
+
+                if self.low_ram:
+                    x_uij+= (self.compute_pinv_cell(current_item, currentUser) * self.lambda_learning[currentUser])
+                else:
+                    x_uij+= (self.pseudoInv[current_item, currentUser] * self.lambda_learning[currentUser])
+
                 #deriv_x_uij += self.pseudoInv[current_item, currentUser]
 
             for index2 in range(len(usersNegItem)):
                 currentUser = usersNegItem[index2]
                 if currentUser == sample.user:  #questa condizione non dovrebbe mai essere verificata
                     continue
-                x_uij-= (self.pseudoInv[current_item, currentUser] * self.lambda_learning[currentUser])
+
+                if self.low_ram:
+                    x_uij-= (self.compute_pinv_cell(current_item, currentUser) * self.lambda_learning[currentUser])
+                else:
+                    x_uij-= (self.pseudoInv[current_item, currentUser] * self.lambda_learning[currentUser])
+                #x_uij-= (self.compute_pinv_cell(current_item, currentUser) * self.lambda_learning[currentUser])
                 #deriv_x_uij -= self.pseudoInv[current_item, currentUser]
 
         gradient = (1 / (1 + exp(x_uij))) * (deriv_x_uij) - (self.alpha*self.lambda_learning[sample.user])
@@ -289,6 +343,7 @@ cdef class Lambda_BPR_Cython_Epoch:
                 if self.lambda_learning[currentUser]<0:
                     self.lambda_learning[currentUser] = 0
 
+
     cdef transpose_seq (self):
         # trasposta non in "batch". LENTA
             # non usata da novembre
@@ -329,7 +384,7 @@ cdef class Lambda_BPR_Cython_Epoch:
 
     cpdef epochIteration_Cython(self):
 
-        cdef long totalNumberOfBatch = int(self.numPositiveIteractions / self.batch_size)
+        cdef long totalNumberOfBatch = int(self.n_users / self.batch_size)
         print(self.batch_size, " ", self.numPositiveIteractions)
         cdef long start_time_epoch = time.time(), start_time_batch
         cdef int printStep = 500000
@@ -340,7 +395,8 @@ cdef class Lambda_BPR_Cython_Epoch:
 
         if totalNumberOfBatch == 0:
             totalNumberOfBatch = 1
-        print("total number of batches ", totalNumberOfBatch, "for nnz: ", self.numPositiveIteractions)
+        print("total number of batches ", totalNumberOfBatch, "for nnz: ", self.n_users)
+
         for numCurrentBatch in range(totalNumberOfBatch):
             if self.batch_size > 1 and self.enablePseudoInv == 0:         #impara in batch (con la trasposta!, non è implementato con pseudoinversa)
                 self.transpose_batch()

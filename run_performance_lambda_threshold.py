@@ -29,10 +29,10 @@ import numpy as np
 
 if __name__ == '__main__':
 
-    #dataReader = Movielens10MReader()
+    dataReader_class = Movielens1MReader
 
 
-    dataSplitter = DataSplitter_Warm(Movielens1MReader)
+    dataSplitter = DataSplitter_Warm(dataReader_class)
 
     URM_train = dataSplitter.get_URM_train()
     URM_validation = dataSplitter.get_URM_validation()
@@ -57,11 +57,13 @@ if __name__ == '__main__':
     recommender = ItemBasedLambdaDiscriminantRecommender(URM_train, non_personalized_recommender,
                                                          personalized_recommender, URM_validation = URM_validation)
 
+    dataset_name = dataReader_class.DATASET_SUBFOLDER[:-1]
+
     try:
-        recommender.loadModel("results/")
+        recommender.loadModel("results/", namePrefix=dataset_name)
     except:
         recommender.fit()
-        recommender.saveModel("results/")
+        recommender.saveModel("results/", namePrefix=dataset_name)
 
     user_lambda = recommender.get_lambda_values()
     user_lambda = np.sort(user_lambda)
@@ -120,7 +122,7 @@ if __name__ == '__main__':
 
         plt.legend()
 
-        plt.savefig("results/MAP_over_lambda_{}_{}".format(
+        plt.savefig("results/MAP_over_lambda_{}_{}_{}".format(dataset_name,
             personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME))
 
         plt.close()
