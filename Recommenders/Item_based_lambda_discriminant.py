@@ -34,10 +34,6 @@ class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Reco
 
     def fit(self, URM_validation = None):
 
-        self.non_personalized_recommender.fit()
-        self.personalized_recommender.fit()
-
-
         lambda_cython = Lambda_BPR_Cython(self.URM_train, recompile_cython=True, sgd_mode="adagrad", pseudoInv=True, rcond = 0.14, check_stability=False, save_lambda=False, save_eval=False)
 
         lambda_cython.fit(epochs=12, URM_test=URM_validation, learning_rate=0.003, alpha=0, batch_size=1, validate_every_N_epochs=1, start_validation_after_N_epochs=0, initialize = "zero")

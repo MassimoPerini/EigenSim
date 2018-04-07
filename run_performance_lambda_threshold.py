@@ -42,6 +42,8 @@ if __name__ == '__main__':
     non_personalized_recommender = ItemKNNCFRecommender(URM_train)
 
 
+    non_personalized_recommender.fit()
+    personalized_recommender.fit()
     recommender = ItemBasedLambdaDiscriminantRecommender(URM_train, non_personalized_recommender, personalized_recommender)
 
     recommender.fit()
