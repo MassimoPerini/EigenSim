@@ -113,9 +113,10 @@ cdef class Lambda_BPR_Cython_Epoch:
                 self.pseudoInv = np.linalg.pinv(self.URM_train.todense(), rcond = rcond).astype(np.float32)
 
 
+        self.useAdaGrad = False
+
         if sgd_mode=='adagrad':
             self.useAdaGrad = True
-            print("adagrad enabled")
         elif sgd_mode=='sgd':
             pass
         else:
@@ -384,7 +385,7 @@ cdef class Lambda_BPR_Cython_Epoch:
     cpdef epochIteration_Cython(self):
 
         cdef long totalNumberOfBatch = int(self.n_users / self.batch_size)
-        print(self.batch_size, " ", self.numPositiveIteractions)
+        #print(self.batch_size, " ", self.numPositiveIteractions)
         cdef long start_time_epoch = time.time(), start_time_batch
         cdef int printStep = 500000
         cdef double cacheUpdate
@@ -394,9 +395,10 @@ cdef class Lambda_BPR_Cython_Epoch:
 
         if totalNumberOfBatch == 0:
             totalNumberOfBatch = 1
-        print("total number of batches ", totalNumberOfBatch, "for nnz: ", self.n_users)
+        #print("total number of batches ", totalNumberOfBatch, "for nnz: ", self.n_users)
 
         for numCurrentBatch in range(totalNumberOfBatch):
+
             if self.batch_size > 1 and self.enablePseudoInv == 0:         #impara in batch (con la trasposta!, non è implementato con pseudoinversa)
                 self.transpose_batch()
             else:
@@ -426,12 +428,6 @@ cdef class Lambda_BPR_Cython_Epoch:
                 sys.stdout.flush()
                 sys.stderr.flush()
 
-        print("Return S matrix to python caller")
-
-        users = np.arange(0, self.n_users)
-        self.S_sparse = sps.coo_matrix((self.lambda_learning, (users, users)), shape=(self.n_users, self.n_users))
-        self.S_sparse = check_matrix(self.S_sparse, 'csr')
-        return self.S_sparse
 
 
     def get_lambda(self):
@@ -452,6 +448,17 @@ cdef class Lambda_BPR_Cython_Epoch:
 
         print("SLIM_Lambda_Cython: Computing W_sparse")
 
+        # Use transpose
+        if not self.enablePseudoInv:
+
+           W_sparse = self.URM_train.T.dot(sps.diags(self.lambda_incremental).dot(self.URM_train))
+           W_sparse.eliminate_zeros()
+
+           return similarityMatrixTopK(W_sparse.T, k=TopK)
+
+
+
+        # Use pseudoinverse
         if not self.low_ram:
 
             W_sparse = sps.diags(np.array(self.lambda_learning)).dot(np.array(self.pseudoInv).T)
@@ -466,7 +473,7 @@ cdef class Lambda_BPR_Cython_Epoch:
         # Preinitialize max possible length
         cdef double[:] values = np.zeros((self.n_items*TopK))
         cdef int[:] rows = np.zeros((self.n_items*TopK,), dtype=np.int32)
-        cdef int[:] cols = np.zeros((self.n_users*TopK,), dtype=np.int32)
+        cdef int[:] cols = np.zeros((self.n_items*TopK,), dtype=np.int32)
         cdef long sparse_data_pointer = 0
 
         SVD_s_inv = 1/np.array(self.SVD_s)
@@ -516,7 +523,7 @@ cdef class Lambda_BPR_Cython_Epoch:
         cols = np.array(cols[0:sparse_data_pointer])
 
         W_sparse = sps.csr_matrix((values, (rows, cols)),
-                                shape=(self.n_items, self.n_users),
+                                shape=(self.n_items, self.n_items),
                                 dtype=np.float32)
 
         return W_sparse

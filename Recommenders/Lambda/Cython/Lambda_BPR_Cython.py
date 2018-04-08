@@ -12,7 +12,6 @@ import scipy.sparse.linalg
 
 from Recommenders.Recommender import Recommender
 from Recommenders.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
-#from Recommenders.utils import *
 from Recommenders.Base.Recommender_utils import check_matrix
 
 
@@ -34,11 +33,11 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
         self.URM_mask = self.URM_train
         self.check_stability = check_stability
 
-
-        if self.sparse_weights:
-            self.S = sps.csr_matrix((self.n_users, self.n_users), dtype=np.float32)
-        else:
-            self.S = np.zeros((self.n_users, self.n_users)).astype('float32')
+        #
+        # if self.sparse_weights:
+        #     self.S = sps.csr_matrix((self.n_users, self.n_users), dtype=np.float32)
+        # else:
+        #     self.S = np.zeros((self.n_users, self.n_users)).astype('float32')
 
         if recompile_cython:
             print("Compiling in Cython")
@@ -47,149 +46,109 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
 
 
-    def launch_evaluation(self, URM_test, pseudoInverse = False):
+    def launch_evaluation(self, URM_test):
 
         self.check_stability = False
+        self.sparse_weights = True
 
-        if pseudoInverse == False:
-            self.W_sparse = (self.URM_train.transpose().dot(self.W_sparse.dot(self.URM_train)))
-            self.W_sparse.eliminate_zeros()
-            self.W_sparse = check_matrix(self.W_sparse, format='csr')
-            self.sparse_weights = True
-        else:
-
-            # self.W = self.pinv.dot((self.W_sparse.dot(self.URM_train)).todense())
-            # self.sparse_weights = False
-
-            self.W_sparse = self.cythonEpoch.get_W_sparse(self.topK)
-
+        self.lambda_incremental = self.cythonEpoch.get_lambda()
+        self.W_sparse_incremental = self.cythonEpoch.get_W_sparse(self.topK)
+        self.W_sparse = self.W_sparse_incremental
 
 
 
         return self.evaluateRecommendations(URM_test)
 
 
-    # new recommend
-    def recommend(self, user_id, n=None, exclude_seen=True, filterTopPop=False, filterCustomItems=False):
-
-        if n == None:
-            n = self.URM_train.shape[1] - 1
-
-        # compute the scores using the dot product
-        if self.sparse_weights:
-            scores = self.URM_train[user_id].dot(self.W_sparse).toarray().ravel()
-        else:
-            # Numpy dot does not recognize sparse matrices, so we must
-            # invoke the dot function on the sparse one
-            scores = np.ravel(self.URM_train[user_id].dot(self.W))
-
-        #???
-        if self.normalize:
-            # normalization will keep the scores in the same range
-            # of value of the ratings in dataset
-            user_profile = self.URM_train[user_id]
-
-            rated = user_profile.copy()
-            rated.data = np.ones_like(rated.data)
-            if self.sparse_weights:
-                den = rated.dot(self.W_sparse).toarray().ravel()
-            else:
-                den = rated.dot(self.W).ravel()
-            den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
-            scores /= den
-
-        if exclude_seen:
-            scores = self._filter_seen_on_scores(user_id, scores)
-
-        if filterTopPop:
-            scores = self._filter_TopPop_on_scores(scores)
-
-        if filterCustomItems:
-            scores = self._filterCustomItems_on_scores(scores)
-
-        # rank items and mirror column to obtain a ranking in descending score
-        # ranking = scores.argsort()
-        # ranking = np.flip(ranking, axis=0)
-
-        # Sorting is done in three steps. Faster then plain np.argsort for higher number of items
-        # - Partition the data to extract the set of relevant items
-        # - Sort only the relevant items
-        # - Get the original item index
-        relevant_items_partition = (-scores).argpartition(n)[0:n]
-        relevant_items_partition_sorting = np.argsort(-scores[relevant_items_partition])
-        ranking = relevant_items_partition[relevant_items_partition_sorting]
-
-        return ranking
 
     #---------FIT
 
-    def epochIteration(self):
-        self.S = self.cythonEpoch.epochIteration_Cython()
-        self.W_sparse = self.S
-
     #do the iterations
-    def fit_alreadyInitialized(self, epochs=30, URM_test=None, minRatingsPerUser=1,
-                                batch_size=1000, validate_every_N_epochs=1, start_validation_after_N_epochs=0,
+    def fit_alreadyInitialized(self, epochs=30, URM_test=None,
+                               batch_size=1000, validation_every_n=1,
                                stop_on_validation = True, lower_validatons_allowed = 2, validation_metric = "map"):
 
         self.batch_size = batch_size
         start_time_train = time.time()
+
         #------------
-        if validate_every_N_epochs is not None:
-            self.validation_every_n = validate_every_N_epochs
+        if validation_every_n is not None:
+            self.validation_every_n = validation_every_n
         else:
             self.validation_every_n = np.inf
+
         best_validation_metric = None
         lower_validatons_count = 0
         convergence = False
+
         self.epochs_best = 0
+        self.lambda_incremental = self.cythonEpoch.get_lambda()
+        self.lambda_best = self.lambda_incremental.copy()
+        self.W_sparse_incremental = self.cythonEpoch.get_W_sparse(self.topK)
+        self.W_sparse_best = self.W_sparse_incremental.copy()
+
+
         #------------
         for currentEpoch in range(epochs):
+
             if convergence == True:
                 break
+
             start_time_epoch = time.time()
+
             if currentEpoch > 0:
                 if self.batch_size > 0:
-                    self.epochIteration()
+                    self.cythonEpoch.epochIteration_Cython()
                 else:
                     print("Error")
             else:
                 #init in the 0 epoch
-                self.W_sparse = self.S
-                self.epochIteration()
+                self.cythonEpoch.epochIteration_Cython()
 
-            if (URM_test is not None) and (currentEpoch % validate_every_N_epochs == 0) and currentEpoch >= start_validation_after_N_epochs:
+            if (URM_test is not None) and (currentEpoch % validation_every_n == 0):
+
                 print("Evaluation begins")
-                results_run = self.launch_evaluation(URM_test, pseudoInverse=self.pseudoInv)
+
+                results_run = self.launch_evaluation(URM_test)
                 self.doSaveLambdaAndEvaluate(currentEpoch, results_run)
+
                 #-------- early stopping
                 if stop_on_validation:
                     current_metric_value = results_run[validation_metric]
+
                     if best_validation_metric is None or best_validation_metric < current_metric_value:
+
                         best_validation_metric = current_metric_value
-                        self.W_best = self.S.copy()
-                        self.epochs_best = currentEpoch + 1
+
+                        self.lambda_best = self.lambda_incremental.copy()
+                        self.W_sparse_best = self.W_sparse_incremental.copy()
+                        self.epochs_best = currentEpoch
+
                     else:
                         lower_validatons_count += 1
+
                     if lower_validatons_count >= lower_validatons_allowed:
                         convergence = True
                         print(
-                            "SLIM_BPR_Cython: Convergence reached! Terminating at epoch {}. Best value for '{}' at epoch {} is {:.4f}. Elapsed time {:.2f} min".format(
+                            "SLIM_lambda_Cython: Convergence reached! Terminating at epoch {}. Best value for '{}' at epoch {} is {:.4f}. Elapsed time {:.2f} min".format(
                                 currentEpoch + 1, validation_metric, self.epochs_best, best_validation_metric,
                                 (time.time() - start_time_epoch) / 60))
-                        # If no validation required, always keep the latest
-                if not stop_on_validation:
-                    self.W_best = self.S.copy()
+
+                # If no validation required, always keep the latest
+                else:
+                    self.lambda_best = self.lambda_incremental.copy()
+                    self.W_sparse_best = self.W_sparse_incremental.copy()
                 #------------
-                print("Epoch {} of {} complete in {:.2f} minutes".format(currentEpoch+1, epochs, float(time.time() - start_time_epoch) / 60))
-            else:
-                print("Epoch {} of {} complete in {:.2f} minutes".format(currentEpoch+1, epochs, float(time.time() - start_time_epoch) / 60))
+
+
+            print("Epoch {} of {} complete in {:.2f} minutes".format(currentEpoch+1, epochs, float(time.time() - start_time_epoch) / 60))
+
         print("Fit completed in {:.2f} minutes".format(float(time.time() - start_time_train) / 60))
         sys.stdout.flush()
 
 
     def fit(self, epochs=30, URM_test=None, minRatingsPerUser=1, topK = 300,
-            batch_size=1, validate_every_N_epochs=1, start_validation_after_N_epochs=0,
+            batch_size=1, validation_every_n=1,
             alpha=0, learning_rate=0.0002, sgd_mode='sgd', initialize = "zero", rcond=0.2, k=10,
             pseudoInv=False, lower_validatons_allowed=10, low_ram=True):
 
@@ -229,14 +188,16 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
             self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.URM_train, self.eligibleUsers, learning_rate=learning_rate, batch_size=batch_size, sgd_mode=sgd_mode,
                                                        alpha=alpha, enablePseudoInv=self.pseudoInv, low_ram = low_ram, initialize=initialize, rcond=rcond, k=k)
 
-            self.fit_alreadyInitialized(epochs=epochs, URM_test=URM_test, minRatingsPerUser=minRatingsPerUser, batch_size=batch_size,
-                                                            validate_every_N_epochs=validate_every_N_epochs, start_validation_after_N_epochs=start_validation_after_N_epochs,
-                                                            lower_validatons_allowed=lower_validatons_allowed)
+            self.fit_alreadyInitialized(epochs=epochs, URM_test=URM_test, batch_size=batch_size,
+                                        validation_every_n=validation_every_n,
+                                        lower_validatons_allowed=lower_validatons_allowed)
 
         else:
-            self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.eligibleUsers, learning_rate=learning_rate, batch_size=batch_size, sgd_mode=sgd_mode, alpha=alpha, enablePseudoInv=self.pseudoInv, initialize=initialize)
-            self.fit_alreadyInitialized(epochs=epochs, URM_test=URM_test, minRatingsPerUser=minRatingsPerUser, batch_size=batch_size,
-                                                            validate_every_N_epochs=validate_every_N_epochs, start_validation_after_N_epochs=start_validation_after_N_epochs, lower_validatons_allowed=lower_validatons_allowed)
+            self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.URM_train, self.eligibleUsers, learning_rate=learning_rate,
+                                                       batch_size=batch_size, sgd_mode=sgd_mode, alpha=alpha, enablePseudoInv=self.pseudoInv, initialize=initialize)
+
+            self.fit_alreadyInitialized(epochs=epochs, URM_test=URM_test, batch_size=batch_size,
+                                        validation_every_n=validation_every_n, lower_validatons_allowed=lower_validatons_allowed)
 
 
 
@@ -267,7 +228,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
         if self.save_lambda:
             np.savetxt('out/lambdas/alpha' + str(self.alpha) + 'learning_rate' + str(self.learning_rate) + 'epoch' + str(
-                currentEpoch) + '.txt', self.S.diagonal(), delimiter=',')
+                currentEpoch) + '.txt', self.lambda_incremental, delimiter=',')
 
         #Saving evaluation on file
         if self.save_eval:
@@ -465,3 +426,57 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
         scores[seen] = -np.inf
         return scores
     '''
+
+        #
+    #
+    # # new recommend
+    # def recommend(self, user_id, n=None, exclude_seen=True, filterTopPop=False, filterCustomItems=False):
+    #
+    #     if n == None:
+    #         n = self.URM_train.shape[1] - 1
+    #
+    #     # compute the scores using the dot product
+    #     if self.sparse_weights:
+    #         scores = self.URM_train[user_id].dot(self.W_sparse).toarray().ravel()
+    #     else:
+    #         # Numpy dot does not recognize sparse matrices, so we must
+    #         # invoke the dot function on the sparse one
+    #         scores = np.ravel(self.URM_train[user_id].dot(self.W))
+    #
+    #     #???
+    #     if self.normalize:
+    #         # normalization will keep the scores in the same range
+    #         # of value of the ratings in dataset
+    #         user_profile = self.URM_train[user_id]
+    #
+    #         rated = user_profile.copy()
+    #         rated.data = np.ones_like(rated.data)
+    #         if self.sparse_weights:
+    #             den = rated.dot(self.W_sparse).toarray().ravel()
+    #         else:
+    #             den = rated.dot(self.W).ravel()
+    #         den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
+    #         scores /= den
+    #
+    #     if exclude_seen:
+    #         scores = self._filter_seen_on_scores(user_id, scores)
+    #
+    #     if filterTopPop:
+    #         scores = self._filter_TopPop_on_scores(scores)
+    #
+    #     if filterCustomItems:
+    #         scores = self._filterCustomItems_on_scores(scores)
+    #
+    #     # rank items and mirror column to obtain a ranking in descending score
+    #     # ranking = scores.argsort()
+    #     # ranking = np.flip(ranking, axis=0)
+    #
+    #     # Sorting is done in three steps. Faster then plain np.argsort for higher number of items
+    #     # - Partition the data to extract the set of relevant items
+    #     # - Sort only the relevant items
+    #     # - Get the original item index
+    #     relevant_items_partition = (-scores).argpartition(n)[0:n]
+    #     relevant_items_partition_sorting = np.argsort(-scores[relevant_items_partition])
+    #     ranking = relevant_items_partition[relevant_items_partition_sorting]
+    #
+    #     return ranking

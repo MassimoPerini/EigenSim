@@ -51,7 +51,7 @@ class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Reco
 
 
         lambda_cython.fit(epochs=2, URM_test = self.URM_validation, learning_rate=0.0005, alpha=0,
-                          batch_size=1, validate_every_N_epochs=1,
+                          batch_size=1, validation_every_n=1,
                           start_validation_after_N_epochs=0, initialize = "zero", rcond = 0.13)
 
         self.user_lambda = lambda_cython.get_lambda()
