@@ -50,6 +50,8 @@ def runParameterSearch(URM_train, URM_validation, logFilePath ="results/"):
     hyperparamethers_range_dictionary["pseudoInv"] = [True]
     hyperparamethers_range_dictionary["epochs"] = [50]
     hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.05, 0.5, 0.02))
+    hyperparamethers_range_dictionary["low_ram"] = [False]
+    #hyperparamethers_range_dictionary["k"] = [50]#[5, 10, 15, 25, 50]
     hyperparamethers_range_dictionary["learning_rate"] = [0.01]
     hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad"]
     hyperparamethers_range_dictionary["batch_size"] = [1]
@@ -60,8 +62,8 @@ def runParameterSearch(URM_train, URM_validation, logFilePath ="results/"):
     recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
                              DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"save_eval":False},
                              DictionaryKeys.FIT_POSITIONAL_ARGS: [],
-                             DictionaryKeys.FIT_KEYWORD_ARGS: {"URM_test": URM_validation, "validate_every_N_epochs":10,
-                                                               "lower_validatons_allowed":10},
+                             DictionaryKeys.FIT_KEYWORD_ARGS: {"URM_test": URM_validation, "validate_every_N_epochs":5,
+                                                               "lower_validatons_allowed":5},
                              DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
 
 
@@ -95,7 +97,7 @@ import os
 if __name__ == '__main__':
 
 
-    dataReader_class = NetflixEnhancedReader
+    dataReader_class = Movielens1MReader
 
     dataSplitter = DataSplitter_Warm(dataReader_class)
 

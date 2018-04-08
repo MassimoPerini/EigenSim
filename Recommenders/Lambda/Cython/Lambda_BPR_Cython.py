@@ -57,8 +57,14 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
             self.W_sparse = check_matrix(self.W_sparse, format='csr')
             self.sparse_weights = True
         else:
-            self.W = self.pinv.dot((self.W_sparse.dot(self.URM_train)).todense())
-            self.sparse_weights = False
+
+            # self.W = self.pinv.dot((self.W_sparse.dot(self.URM_train)).todense())
+            # self.sparse_weights = False
+
+            self.W_sparse = self.cythonEpoch.get_W_sparse(self.topK)
+
+
+
 
         return self.evaluateRecommendations(URM_test)
 
@@ -123,7 +129,8 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
     #do the iterations
     def fit_alreadyInitialized(self, epochs=30, URM_test=None, minRatingsPerUser=1,
-                                batch_size=1000, validate_every_N_epochs=1, start_validation_after_N_epochs=0, stop_on_validation = True, lower_validatons_allowed = 2, validation_metric = "map"):
+                                batch_size=1000, validate_every_N_epochs=1, start_validation_after_N_epochs=0,
+                               stop_on_validation = True, lower_validatons_allowed = 2, validation_metric = "map"):
 
         self.batch_size = batch_size
         start_time_train = time.time()
@@ -181,12 +188,12 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
         sys.stdout.flush()
 
 
-    def fit(self, epochs=30, URM_test=None, minRatingsPerUser=1,
+    def fit(self, epochs=30, URM_test=None, minRatingsPerUser=1, topK = 300,
             batch_size=1, validate_every_N_epochs=1, start_validation_after_N_epochs=0,
-            alpha=0, learning_rate=0.0002, sgd_mode='sgd', initialize = "zero", rcond=0.2,
-            pseudoInv=False, lower_validatons_allowed=10):
+            alpha=0, learning_rate=0.0002, sgd_mode='sgd', initialize = "zero", rcond=0.2, k=10,
+            pseudoInv=False, lower_validatons_allowed=10, low_ram=True):
 
-
+        self.topK = topK
         self.rcond = rcond
         self.pseudoInv = pseudoInv
         self.sgd_mode = sgd_mode
@@ -220,7 +227,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
         # Cython
         if self.pseudoInv:
             self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.URM_train, self.eligibleUsers, learning_rate=learning_rate, batch_size=batch_size, sgd_mode=sgd_mode,
-                                                       alpha=alpha, enablePseudoInv=self.pseudoInv, low_ram = True, initialize=initialize, rcond=rcond)
+                                                       alpha=alpha, enablePseudoInv=self.pseudoInv, low_ram = low_ram, initialize=initialize, rcond=rcond, k=k)
 
             self.fit_alreadyInitialized(epochs=epochs, URM_test=URM_test, minRatingsPerUser=minRatingsPerUser, batch_size=batch_size,
                                                             validate_every_N_epochs=validate_every_N_epochs, start_validation_after_N_epochs=start_validation_after_N_epochs,

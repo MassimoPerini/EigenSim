@@ -15,6 +15,8 @@ import time
 import sys
 import scipy.sparse.linalg
 
+from Recommenders.Base.Recommender_utils import similarityMatrixTopK
+
 from libc.math cimport exp, sqrt
 from libc.stdlib cimport rand, RAND_MAX
 from libcpp.vector cimport vector
@@ -63,14 +65,17 @@ cdef class Lambda_BPR_Cython_Epoch:
     cdef double [:] sgd_cache #cache adagrad
 
     cdef S_sparse
+    cdef URM_train
 
-    def __init__(self, URM_mask, URM_train, eligibleUsers, rcond = 0.1,
+    def __init__(self, URM_mask, URM_train, eligibleUsers, rcond = 0.1, k=10,
                  learning_rate = 0.05, alpha=0.0002,
-                 batch_size = 1, sgd_mode='sgd', enablePseudoInv = False, pseudoInv = None, initialize="zero",
+                 batch_size = 1, sgd_mode='sgd', enablePseudoInv = False, initialize="zero",
                  low_ram = True):
 
         super(Lambda_BPR_Cython_Epoch, self).__init__()
 
+
+        self.URM_train = check_matrix(URM_train, 'csr')
         URM_mask = check_matrix(URM_mask, 'csr')
 
         self.numPositiveIteractions = int(URM_mask.nnz)
@@ -102,12 +107,11 @@ cdef class Lambda_BPR_Cython_Epoch:
         if enablePseudoInv:
 
             if low_ram:
-
-                self.SVD_U, self.SVD_s, self.SVD_Vh = scipy.sparse.linalg.svds(URM_train, k=50)
+                self.SVD_U, self.SVD_s, self.SVD_Vh = scipy.sparse.linalg.svds(self.URM_train, k=k)
                 self.SVD_latent_factors = self.SVD_U.shape[1]
             else:
                 self.pseudoInv = np.linalg.pinv(self.URM_train.todense(), rcond = rcond).astype(np.float32)
-                self.enablePseudoInv = 1
+
 
         if sgd_mode=='adagrad':
             self.useAdaGrad = True
@@ -231,13 +235,8 @@ cdef class Lambda_BPR_Cython_Epoch:
             self.update_model(gradient, sampled_user, usersPosItem)
 
 
-    cdef compute_pinv_row(self, int row):
 
-        return np.dot(np.multiply(self.SVD_Vh[:, row], self.SVD_s), self.SVD_U[:, :])
-
-
-
-    cdef compute_pinv_cell(self, int row, int column):
+    cdef double compute_pinv_cell(self, int row, int column):
 
         # SVD decomposition is U*s*V.t
         # Pseudoinverse is V*1/s*U.t
@@ -247,7 +246,7 @@ cdef class Lambda_BPR_Cython_Epoch:
 
         for latent_factor_index in range(self.SVD_latent_factors):
 
-            result += self.SVD_Vh[latent_factor_index, row] * self.SVD_s[latent_factor_index] * self.SVD_U[column, latent_factor_index]
+            result += self.SVD_Vh[latent_factor_index, row] / self.SVD_s[latent_factor_index] * self.SVD_U[column, latent_factor_index]
 
         return result
 
@@ -407,13 +406,20 @@ cdef class Lambda_BPR_Cython_Epoch:
                     self.pseudoinverse_seq()
                 else:
                     self.transpose_seq()
-            if numCurrentBatch % 4500 == 0:
-                print(numCurrentBatch, " of ", totalNumberOfBatch)
 
-            if((numCurrentBatch%printStep==0 and not numCurrentBatch==0) or numCurrentBatch==totalNumberOfBatch-1):
+
+
+            if (numCurrentBatch % printStep==0 and not numCurrentBatch==0) or numCurrentBatch==totalNumberOfBatch-1:
+
+                current_time = time.time()
+
+                # Set block size to the number of items necessary in order to print every 30 seconds
+                itemPerSec = numCurrentBatch/(time.time()-start_time_epoch)
+                printStep = int(itemPerSec*30)
+
                 print("Processed {} ( {:.2f}% ) in {:.2f} seconds. Sample per second: {:.0f}".format(
                     numCurrentBatch*self.batch_size,
-                    100.0* float(numCurrentBatch*self.batch_size)/self.numPositiveIteractions,
+                    100.0* float(numCurrentBatch*self.batch_size + 1)/totalNumberOfBatch,
                     time.time() - start_time_batch,
                     float(numCurrentBatch*self.batch_size + 1) / (time.time() - start_time_epoch)))
 
@@ -431,6 +437,90 @@ cdef class Lambda_BPR_Cython_Epoch:
     def get_lambda(self):
 
         return np.array(self.lambda_learning)
+
+
+    def get_W_sparse(self, int TopK):
+        """
+        Returns W_sparse |item|x|item| computed via either the dense pseudoinverse or the
+        SVD decomposition
+
+        W_sparse = R+ * diag(lambda) * R_Train
+
+        """
+
+        cdef int itemIndex
+
+        print("SLIM_Lambda_Cython: Computing W_sparse")
+
+        if not self.low_ram:
+
+            W_sparse = sps.diags(np.array(self.lambda_learning)).dot(np.array(self.pseudoInv).T)
+            W_sparse = self.URM_train.T.dot(W_sparse)
+            #W_sparse = np.array(self.pseudoInv).dot(sps.diags(np.array(self.lambda_learning)).dot(self.URM_train))
+
+            return similarityMatrixTopK(W_sparse.T, k=TopK)
+
+
+
+        # Data structure to incrementally build sparse matrix
+        # Preinitialize max possible length
+        cdef double[:] values = np.zeros((self.n_items*TopK))
+        cdef int[:] rows = np.zeros((self.n_items*TopK,), dtype=np.int32)
+        cdef int[:] cols = np.zeros((self.n_users*TopK,), dtype=np.int32)
+        cdef long sparse_data_pointer = 0
+
+        SVD_s_inv = 1/np.array(self.SVD_s)
+
+
+        for itemIndex in range(self.n_items):
+
+            pseudoinverse_row = np.array(np.multiply(self.SVD_Vh[:, itemIndex], SVD_s_inv)).ravel()
+            pseudoinverse_row = pseudoinverse_row.dot(self.SVD_U.T)
+
+            this_item_weights = sps.diags(np.array(self.lambda_learning)).dot(pseudoinverse_row)
+            this_item_weights = self.URM_train.T.dot(this_item_weights)
+
+
+            # Sort indices and select TopK
+            # Sorting is done in three steps. Faster then plain np.argsort for higher number of items
+            # because we avoid sorting elements we already know we don't care about
+            # - Partition the data to extract the set of TopK items, this set is unsorted
+            # - Sort only the TopK items, discarding the rest
+            # - Get the original item index
+
+            this_item_weights = - np.array(this_item_weights)
+            #
+            # Get the unordered set of topK items
+            top_k_partition = np.argpartition(this_item_weights, TopK-1)[0:TopK]
+            # Sort only the elements in the partition
+            top_k_partition_sorting = np.argsort(this_item_weights[top_k_partition])
+            # Get original index
+            top_k_idx = top_k_partition[top_k_partition_sorting]
+
+
+
+            # Incrementally build sparse matrix
+            for innerItemIndex in range(len(top_k_idx)):
+
+                topKItemIndex = top_k_idx[innerItemIndex]
+
+                values[sparse_data_pointer] = this_item_weights[topKItemIndex]
+                rows[sparse_data_pointer] = itemIndex
+                cols[sparse_data_pointer] = topKItemIndex
+
+                sparse_data_pointer += 1
+
+
+        values = np.array(values[0:sparse_data_pointer])
+        rows = np.array(rows[0:sparse_data_pointer])
+        cols = np.array(cols[0:sparse_data_pointer])
+
+        W_sparse = sps.csr_matrix((values, (rows, cols)),
+                                shape=(self.n_items, self.n_users),
+                                dtype=np.float32)
+
+        return W_sparse
+
 
 
     cdef BPR_sample sampleBatch_Cython(self):
