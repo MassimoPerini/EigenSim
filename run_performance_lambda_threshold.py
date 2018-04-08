@@ -25,6 +25,7 @@ from data.DataSplitter import DataSplitter_Warm
 import matplotlib.pyplot as plt
 
 import numpy as np
+import pickle
 
 
 if __name__ == '__main__':
@@ -57,13 +58,21 @@ if __name__ == '__main__':
     recommender = ItemBasedLambdaDiscriminantRecommender(URM_train, non_personalized_recommender,
                                                          personalized_recommender, URM_validation = URM_validation)
 
+
     dataset_name = dataReader_class.DATASET_SUBFOLDER[:-1]
 
+    optimal_params = pickle.load(open("results/Lambda_BPR_Cython" +
+                                      "_{}_best_parameters".format(dataset_name), "rb"))
+
+
+
+    namePrefix = "Lambda_BPR_Cython_{}_best_parameters".format(dataset_name)
+
     try:
-        recommender.loadModel("results/", namePrefix=dataset_name)
+        recommender.loadModel("results/", namePrefix=namePrefix)
     except:
-        recommender.fit()
-        recommender.saveModel("results/", namePrefix=dataset_name)
+        recommender.fit(**optimal_params)
+        recommender.saveModel("results/", namePrefix=namePrefix)
 
     user_lambda = recommender.get_lambda_values()
     user_lambda = np.sort(user_lambda)

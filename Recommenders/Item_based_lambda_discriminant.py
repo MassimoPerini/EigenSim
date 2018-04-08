@@ -37,7 +37,7 @@ class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Reco
 
 
 
-    def fit(self):
+    def fit(self, **optimal_parameters):
 
         pseudoinverse_size = self.URM_train.shape[0] * self.URM_train.shape[1]*32
 
@@ -50,9 +50,7 @@ class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Reco
                                           save_lambda=False, save_eval=False)
 
 
-        lambda_cython.fit(epochs=2, URM_test = self.URM_validation, learning_rate=0.0005, alpha=0,
-                          batch_size=1, validation_every_n=1,
-                          start_validation_after_N_epochs=0, initialize = "zero", rcond = 0.13)
+        lambda_cython.fit(**optimal_parameters)
 
         self.user_lambda = lambda_cython.get_lambda()
 
@@ -95,7 +93,7 @@ class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Reco
         if namePrefix is None:
             namePrefix = self.RECOMMENDER_NAME
 
-        namePrefix += "_"
+            namePrefix += "_"
 
         np.savez(folderPath + "{}.npz".format(namePrefix), user_lambda = self.user_lambda)
 
@@ -109,7 +107,7 @@ class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Reco
         if namePrefix is None:
             namePrefix = self.RECOMMENDER_NAME
 
-        namePrefix += "_"
+            namePrefix += "_"
 
 
         npzfile = np.load(folderPath + "{}.npz".format(namePrefix))

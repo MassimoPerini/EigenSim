@@ -387,7 +387,7 @@ cdef class Lambda_BPR_Cython_Epoch:
         cdef long totalNumberOfBatch = int(self.n_users / self.batch_size)
         #print(self.batch_size, " ", self.numPositiveIteractions)
         cdef long start_time_epoch = time.time(), start_time_batch
-        cdef int printStep = 500000
+        cdef int printStep = 100
         cdef double cacheUpdate
         cdef float gamma
 
@@ -451,7 +451,7 @@ cdef class Lambda_BPR_Cython_Epoch:
         # Use transpose
         if not self.enablePseudoInv:
 
-           W_sparse = self.URM_train.T.dot(sps.diags(self.lambda_incremental).dot(self.URM_train))
+           W_sparse = self.URM_train.T.dot(sps.diags(self.lambda_learning).dot(self.URM_train))
            W_sparse.eliminate_zeros()
 
            return similarityMatrixTopK(W_sparse.T, k=TopK)
