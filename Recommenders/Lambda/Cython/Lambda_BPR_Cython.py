@@ -218,6 +218,8 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
         print("Compiled module saved in subfolder: {}".format(compiledModuleSubfolder))
 
+        #python compileCython.py Lambda_Cython.pyx build_ext --inplace
+
 
 
     def doSaveLambdaAndEvaluate(self,currentEpoch, results_run):

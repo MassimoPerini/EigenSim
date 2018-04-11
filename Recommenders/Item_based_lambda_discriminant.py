@@ -23,7 +23,7 @@ class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Reco
     RECOMMENDER_NAME = "ItemBasedLambdaDiscriminantRecommender"
 
 
-    def __init__(self, URM_train, non_personalized_recommender, personalized_recommender, URM_validation = None):
+    def __init__(self, URM_train, non_personalized_recommender = None, personalized_recommender = None, URM_validation = None):
         super(ItemBasedLambdaDiscriminantRecommender, self).__init__()
 
         self.URM_train = check_matrix(URM_train.copy(), 'csr')
@@ -71,13 +71,21 @@ class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Reco
     def recommend(self, user_id, n=None, exclude_seen=True, filterTopPop = False, filterCustomItems = False):
 
         if self.user_lambda[user_id] >= self.lambda_threshold:
-            return self.personalized_recommender.recommend(user_id, n=n, exclude_seen=exclude_seen,
-                                                           filterTopPop = filterTopPop, filterCustomItems = filterCustomItems)
+
+            if self.personalized_recommender is not None:
+
+                return self.personalized_recommender.recommend(user_id, n=n, exclude_seen=exclude_seen,
+                                                               filterTopPop = filterTopPop, filterCustomItems = filterCustomItems)
+            else:
+                return np.array([])
 
         else:
-            return self.non_personalized_recommender.recommend(user_id, n=n, exclude_seen=exclude_seen,
-                                                               filterTopPop = filterTopPop, filterCustomItems = filterCustomItems)
+            if self.non_personalized_recommender is not None:
 
+                return self.non_personalized_recommender.recommend(user_id, n=n, exclude_seen=exclude_seen,
+                                                               filterTopPop = filterTopPop, filterCustomItems = filterCustomItems)
+            else:
+                return np.array([])
 
 
 

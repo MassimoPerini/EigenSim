@@ -25,7 +25,7 @@ from data.DataSplitter import DataSplitter_Warm
 import matplotlib.pyplot as plt
 
 import numpy as np
-import pickle
+import pickle, itertools
 
 
 if __name__ == '__main__':
@@ -55,9 +55,15 @@ if __name__ == '__main__':
 
     non_personalized_recommender.fit()
     personalized_recommender.fit()
-    recommender = ItemBasedLambdaDiscriminantRecommender(URM_train, non_personalized_recommender,
-                                                         personalized_recommender, URM_validation = URM_validation)
+    hybrid_all = ItemBasedLambdaDiscriminantRecommender(URM_train,
+                                                        non_personalized_recommender = non_personalized_recommender,
+                                                        personalized_recommender = personalized_recommender,
+                                                        URM_validation = URM_validation)
 
+    hybrid_pers_only = ItemBasedLambdaDiscriminantRecommender(URM_train,
+                                                        non_personalized_recommender = None,
+                                                        personalized_recommender = personalized_recommender,
+                                                        URM_validation = URM_validation)
 
     dataset_name = dataReader_class.DATASET_SUBFOLDER[:-1]
 
@@ -69,16 +75,20 @@ if __name__ == '__main__':
     namePrefix = "Lambda_BPR_Cython_{}_best_parameters".format(dataset_name)
 
     try:
-        recommender.loadModel("results/", namePrefix=namePrefix)
+        hybrid_all.loadModel("results/", namePrefix=namePrefix)
     except:
-        recommender.fit(**optimal_params)
-        recommender.saveModel("results/", namePrefix=namePrefix)
+        hybrid_all.fit(**optimal_params)
+        hybrid_all.saveModel("results/", namePrefix=namePrefix)
 
-    user_lambda = recommender.get_lambda_values()
+    hybrid_pers_only.loadModel("results/", namePrefix=namePrefix)
+
+
+    user_lambda = hybrid_all.get_lambda_values()
     user_lambda = np.sort(user_lambda)
 
 
-    map_performance_over_lambda = []
+    map_performance_hybrid_all = []
+    map_performance_pers_only = []
     x_tick = []
 
 
@@ -99,17 +109,24 @@ if __name__ == '__main__':
 
 
 
-    for lambda_threshold_index in range(0, len(user_lambda), 100):
+    for lambda_threshold_index in range(100, len(user_lambda), 100):
 
         lambda_threshold = user_lambda[lambda_threshold_index]
 
-        recommender.set_lambda_threshold(lambda_threshold)
+        hybrid_all.set_lambda_threshold(lambda_threshold)
+        hybrid_pers_only.set_lambda_threshold(lambda_threshold)
 
-        results_run = recommender.evaluateRecommendations(URM_test, at=5, exclude_seen=True)
+        # results_hybrid_all = hybrid_all.evaluateRecommendations(URM_test, at=5, exclude_seen=True)
+        # print("Lambda threshold is {}, result hybrid all: {}".format(lambda_threshold, results_hybrid_all))
 
-        print("Lambda threshold is {}, results: {}".format(lambda_threshold, results_run))
+        users_to_filter = hybrid_all.get_lambda_values()<lambda_threshold
+        users_to_filter = np.arange(0, len(user_lambda), dtype=np.int)[users_to_filter]
 
-        map_performance_over_lambda.append(results_run["map"])
+        results_pers_only = hybrid_pers_only.evaluateRecommendations(URM_test, at=5, exclude_seen=True, filterCustomUsers=users_to_filter)
+        print("Lambda threshold is {}, result pers only: {}".format(lambda_threshold, results_pers_only))
+
+        #map_performance_hybrid_all.append(results_hybrid_all["map"])
+        map_performance_pers_only.append(results_pers_only["map"])
         x_tick.append(lambda_threshold)
 
 
@@ -119,15 +136,21 @@ if __name__ == '__main__':
         plt.ylabel("MAP")
         plt.title("Recommender MAP for increasing lambda threshold")
 
+        marker_list = ['o', 's', '^', 'v', 'D']
+        marker_iterator_local = itertools.cycle(marker_list)
 
-        plt.plot(x_tick, map_performance_over_lambda, linewidth=3, label="Hybrid",
-                 linestyle = "-")
+
+        # plt.plot(x_tick, map_performance_hybrid_all, linewidth=3, label="Hybrid all",
+        #          linestyle = "-", marker = marker_iterator_local.__next__())
+
+        plt.plot(x_tick, map_performance_pers_only, linewidth=3, label="Pers only",
+                 linestyle = "-", marker = marker_iterator_local.__next__())
 
         plt.plot(x_tick, np.ones_like(x_tick)*results_run_non_pers["map"], linewidth=3, label="Non pers",
-                 linestyle = ":")
+                 linestyle = ":", marker = marker_iterator_local.__next__())
 
         plt.plot(x_tick, np.ones_like(x_tick)*results_run_pers["map"], linewidth=3, label="Pers",
-                 linestyle = "--")
+                 linestyle = "--", marker = marker_iterator_local.__next__())
 
         plt.legend()
 

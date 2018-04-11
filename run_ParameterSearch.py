@@ -49,9 +49,9 @@ def runParameterSearch(URM_train, URM_validation, logFilePath ="results/"):
     hyperparamethers_range_dictionary = {}
     hyperparamethers_range_dictionary["pseudoInv"] = [True]
     hyperparamethers_range_dictionary["epochs"] = [200]
-    #hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.005, 0.3, 0.005))
-    hyperparamethers_range_dictionary["low_ram"] = [True]
-    hyperparamethers_range_dictionary["k"] = list(range(5,260,10))
+    hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.005, 0.3, 0.005))
+    hyperparamethers_range_dictionary["low_ram"] = [False]
+    #hyperparamethers_range_dictionary["k"] = list(range(5,260,10))
     hyperparamethers_range_dictionary["learning_rate"] = [0.01]
     hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad"]
     hyperparamethers_range_dictionary["batch_size"] = [1]
@@ -97,7 +97,7 @@ import os
 if __name__ == '__main__':
 
 
-    dataReader_class = NetflixEnhancedReader
+    dataReader_class = Movielens1MReader
 
     dataSplitter = DataSplitter_Warm(dataReader_class)
 

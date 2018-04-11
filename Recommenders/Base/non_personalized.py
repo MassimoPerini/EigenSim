@@ -25,15 +25,13 @@ class TopPop(Recommender):
 
     def fit(self):
 
-        item_pop = (self.URM_train > 0).sum(axis=0)  # this command returns a numpy.matrix of size (1, nitems)
-        item_pop = np.asarray(item_pop).squeeze()  # necessary to convert it into a numpy.array of size (nitems,)
-        self.pop = np.argsort(item_pop)[::-1]
+        self.item_pop = (self.URM_train > 0).sum(axis=0)  # this command returns a numpy.matrix of size (1, nitems)
+        self.item_pop = np.asarray(self.item_pop).squeeze()  # necessary to convert it into a numpy.array of size (nitems,)
 
-        self.URM_train = check_matrix(self.URM_train, 'csr', dtype=np.float32)
 
     def recommend(self, user_id, n=None, exclude_seen=True, filterTopPop = False, filterCustomItems = False):
 
-        scores = np.array(self.pop.copy(), dtype=np.float)
+        scores = np.array(self.item_pop.copy(), dtype=np.float)
 
         if exclude_seen:
             scores = self._filter_seen_on_scores(user_id, scores)
