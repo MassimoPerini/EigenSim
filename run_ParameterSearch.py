@@ -33,7 +33,7 @@ import pickle
 
 
 
-def runParameterSearch(URM_train, URM_validation, logFilePath ="results/"):
+def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath ="results/"):
 
     from Recommenders.Lambda.Cython.Lambda_BPR_Cython import Lambda_BPR_Cython
 
@@ -49,7 +49,7 @@ def runParameterSearch(URM_train, URM_validation, logFilePath ="results/"):
     hyperparamethers_range_dictionary = {}
     hyperparamethers_range_dictionary["pseudoInv"] = [True]
     hyperparamethers_range_dictionary["epochs"] = [200]
-    hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.005, 0.3, 0.005))
+    hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.05, 0.3, 0.05))
     hyperparamethers_range_dictionary["low_ram"] = [False]
     #hyperparamethers_range_dictionary["k"] = list(range(5,260,10))
     hyperparamethers_range_dictionary["learning_rate"] = [0.01]
@@ -62,8 +62,8 @@ def runParameterSearch(URM_train, URM_validation, logFilePath ="results/"):
     recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
                              DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"save_eval":False},
                              DictionaryKeys.FIT_POSITIONAL_ARGS: [],
-                             DictionaryKeys.FIT_KEYWORD_ARGS: {"URM_test": URM_validation, "validation_every_n":5,
-                                                               "lower_validatons_allowed":10},
+                             DictionaryKeys.FIT_KEYWORD_ARGS: {"URM_test": URM_validation, "validation_every_n":1,
+                                                               "lower_validatons_allowed":5, "min_improvement_tolerance":0.005},
                              DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
 
 
@@ -93,11 +93,14 @@ def runParameterSearch(URM_train, URM_validation, logFilePath ="results/"):
 
 import os
 
+import traceback
+import multiprocessing
 
-if __name__ == '__main__':
 
 
-    dataReader_class = Movielens1MReader
+def read_data_split_and_search(dataReader_class):
+
+
 
     dataSplitter = DataSplitter_Warm(dataReader_class)
 
@@ -109,4 +112,30 @@ if __name__ == '__main__':
 
 
 
-    runParameterSearch(URM_train, URM_validation)
+    runParameterSearch(URM_train, URM_validation, dataReader_class)
+
+
+
+if __name__ == '__main__':
+
+    dataReader_class_list = [
+        NetflixEnhancedReader,
+        Movielens10MReader
+        #BookCrossingReader,
+        #XingChallenge2016Reader
+    ]
+
+
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
+    resultList = pool.map(read_data_split_and_search, dataReader_class_list)
+
+    #
+    # for dataReader_class in dataReader_class_list:
+    #     try:
+    #         read_data_split_and_search(dataReader_class)
+    #     except Exception as e:
+    #
+    #         print("On recommender {} Exception {}".format(dataReader_class, str(e)))
+    #         traceback.print_exc()
+    #
+

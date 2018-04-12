@@ -66,7 +66,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
     #do the iterations
     def fit_alreadyInitialized(self, epochs=30, URM_test=None,
                                batch_size=1000, validation_every_n=1,
-                               stop_on_validation = True, lower_validatons_allowed = 2, validation_metric = "map"):
+                               stop_on_validation = True, lower_validatons_allowed = 2, validation_metric = "map", min_improvement_tolerance = 1e-3):
 
         self.batch_size = batch_size
         start_time_train = time.time()
@@ -116,7 +116,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
                 if stop_on_validation:
                     current_metric_value = results_run[validation_metric]
 
-                    if best_validation_metric is None or best_validation_metric < current_metric_value:
+                    if best_validation_metric is None or best_validation_metric < current_metric_value - min_improvement_tolerance:
 
                         best_validation_metric = current_metric_value
 
@@ -148,7 +148,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
 
     def fit(self, epochs=30, URM_test=None, minRatingsPerUser=1, topK = 300,
-            batch_size=1, validation_every_n=1,
+            batch_size=1, validation_every_n=1, min_improvement_tolerance = 1e-3,
             alpha=0, learning_rate=0.0002, sgd_mode='sgd', initialize = "zero", rcond=0.2, k=10,
             pseudoInv=False, lower_validatons_allowed=10, low_ram=True):
 
@@ -189,7 +189,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
                                                        alpha=alpha, enablePseudoInv=self.pseudoInv, low_ram = low_ram, initialize=initialize, rcond=rcond, k=k)
 
             self.fit_alreadyInitialized(epochs=epochs, URM_test=URM_test, batch_size=batch_size,
-                                        validation_every_n=validation_every_n,
+                                        validation_every_n=validation_every_n, min_improvement_tolerance = min_improvement_tolerance,
                                         lower_validatons_allowed=lower_validatons_allowed)
 
         else:
@@ -197,7 +197,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
                                                        batch_size=batch_size, sgd_mode=sgd_mode, alpha=alpha, enablePseudoInv=self.pseudoInv, initialize=initialize)
 
             self.fit_alreadyInitialized(epochs=epochs, URM_test=URM_test, batch_size=batch_size,
-                                        validation_every_n=validation_every_n, lower_validatons_allowed=lower_validatons_allowed)
+                                        validation_every_n=validation_every_n, lower_validatons_allowed=lower_validatons_allowed, min_improvement_tolerance=min_improvement_tolerance)
 
 
 

@@ -8,7 +8,7 @@ Created on 06/04/18
 
 from Recommenders.Item_based_lambda_discriminant import ItemBasedLambdaDiscriminantRecommender
 
-from Recommenders.Base.non_personalized import TopPop
+from Recommenders.Base.non_personalized import TopPop, Random
 from Recommenders.KNN.item_knn_CF import ItemKNNCFRecommender
 from Recommenders.GraphBased.P3alpha import P3alphaRecommender
 from Recommenders.GraphBased.RP3beta import RP3betaRecommender
@@ -26,6 +26,28 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 import pickle, itertools
+import scipy.sparse as sps
+
+
+def plot_lambda_profile_length(user_lambda, URM_train, dataset_name):
+
+    plt.xlabel('profile length')
+    plt.ylabel("user lambda")
+    plt.title("Profile length and corresponding lambda")
+
+
+    URM_train = sps.csr_matrix(URM_train)
+    profile_length = np.ediff1d(URM_train.indptr)
+
+    profile_length_user_id = np.argsort(profile_length)
+
+    plt.scatter(profile_length[profile_length_user_id], user_lambda[profile_length_user_id], s=0.5)
+
+    plt.savefig("results/Profile_length_over_lambda_{}".format(dataset_name))
+
+    plt.close()
+
+
 
 
 if __name__ == '__main__':
@@ -51,10 +73,12 @@ if __name__ == '__main__':
 
     non_personalized_recommender = TopPop(URM_train)
     personalized_recommender = ItemKNNCFRecommender(URM_train)
+    random_recommender = Random(URM_train)
 
 
     non_personalized_recommender.fit()
     personalized_recommender.fit()
+    random_recommender.fit()
     hybrid_all = ItemBasedLambdaDiscriminantRecommender(URM_train,
                                                         non_personalized_recommender = non_personalized_recommender,
                                                         personalized_recommender = personalized_recommender,
@@ -72,6 +96,7 @@ if __name__ == '__main__':
 
 
 
+
     namePrefix = "Lambda_BPR_Cython_{}_best_parameters".format(dataset_name)
 
     try:
@@ -84,11 +109,24 @@ if __name__ == '__main__':
 
 
     user_lambda = hybrid_all.get_lambda_values()
+
+    plot_lambda_profile_length(user_lambda, URM_train, dataset_name)
+
+
     user_lambda = np.sort(user_lambda)
+
 
 
     map_performance_hybrid_all = []
     map_performance_pers_only = []
+    map_performance_pers_only_less = []
+    map_performance_non_pers_only_less = []
+    map_performance_random_less = []
+
+    map_performance_pers_only_less_train_subset = []
+    map_performance_non_pers_only_less_train_subset = []
+    map_performance_pers_only_train_subset = []
+
     x_tick = []
 
 
@@ -108,26 +146,123 @@ if __name__ == '__main__':
     print("Non personalized result: {}".format(results_run_non_pers))
 
 
+    lambda_threshold = user_lambda[0]
 
-    for lambda_threshold_index in range(100, len(user_lambda), 100):
+    for lambda_threshold_index in range(0, len(user_lambda), 5):
+
+        if lambda_threshold_index != 0 and not lambda_threshold/user_lambda[lambda_threshold_index] <= 0.90:
+            continue
 
         lambda_threshold = user_lambda[lambda_threshold_index]
+
+
 
         hybrid_all.set_lambda_threshold(lambda_threshold)
         hybrid_pers_only.set_lambda_threshold(lambda_threshold)
 
-        # results_hybrid_all = hybrid_all.evaluateRecommendations(URM_test, at=5, exclude_seen=True)
-        # print("Lambda threshold is {}, result hybrid all: {}".format(lambda_threshold, results_hybrid_all))
+        results_hybrid_all = hybrid_all.evaluateRecommendations(URM_test, at=5, exclude_seen=True)
+        print("Lambda threshold is {}, result hybrid all: {}".format(lambda_threshold, results_hybrid_all))
 
-        users_to_filter = hybrid_all.get_lambda_values()<lambda_threshold
-        users_to_filter = np.arange(0, len(user_lambda), dtype=np.int)[users_to_filter]
+        users_with_lower_lambda = hybrid_all.get_lambda_values()<lambda_threshold
+        users_with_lower_lambda = np.arange(0, len(user_lambda), dtype=np.int)[users_with_lower_lambda]
 
-        results_pers_only = hybrid_pers_only.evaluateRecommendations(URM_test, at=5, exclude_seen=True, filterCustomUsers=users_to_filter)
+        results_pers_only = hybrid_pers_only.evaluateRecommendations(URM_test, at=5, exclude_seen=True, filterCustomUsers=users_with_lower_lambda)
         print("Lambda threshold is {}, result pers only: {}".format(lambda_threshold, results_pers_only))
 
-        #map_performance_hybrid_all.append(results_hybrid_all["map"])
+        users_with_higher_lambda = hybrid_all.get_lambda_values()>lambda_threshold
+        users_with_higher_lambda = np.arange(0, len(user_lambda), dtype=np.int)[users_with_higher_lambda]
+
+        if lambda_threshold_index == 0:
+            results_pers_only_less = {"map": 0.0}
+            results_non_pers_only_less = {"map": 0.0}
+            results_random_less = {"map": 0.0}
+        else:
+            results_pers_only_less = personalized_recommender.evaluateRecommendations(URM_test, at=5, exclude_seen=True, filterCustomUsers=users_with_higher_lambda)
+            print("Lambda threshold is {}, result pers only less than lambda: {}".format(lambda_threshold, results_pers_only_less))
+
+            results_non_pers_only_less = non_personalized_recommender.evaluateRecommendations(URM_test, at=5, exclude_seen=True, filterCustomUsers=users_with_higher_lambda)
+            print("Lambda threshold is {}, result non pers only less than lambda: {}".format(lambda_threshold, results_non_pers_only_less))
+
+            results_random_less = random_recommender.evaluateRecommendations(URM_test, at=5, exclude_seen=True, filterCustomUsers=users_with_higher_lambda)
+            print("Lambda threshold is {}, result random less than lambda: {}".format(lambda_threshold, results_random_less))
+
+
+        if lambda_threshold_index == 0:
+            results_pers_only_less_train_subset = {"map": 0.0}
+            results_non_pers_only_less_train_subset = {"map": 0.0}
+        else:
+            URM_train_subset = URM_train[users_with_lower_lambda,:]
+            URM_test_subset = URM_test[users_with_lower_lambda,:]
+            personalized_recommender_train_subset = ItemKNNCFRecommender(URM_train_subset)
+            personalized_recommender_train_subset.fit()
+            results_pers_only_less_train_subset = personalized_recommender_train_subset.evaluateRecommendations(URM_test_subset, at=5, exclude_seen=True)
+            print("Lambda threshold is {}, result pers only less than lambda_train_subset: {}".format(lambda_threshold, results_pers_only_less))
+
+            non_personalized_recommender_train_subset = TopPop(URM_train_subset)
+            non_personalized_recommender_train_subset.fit()
+            results_non_pers_only_less_train_subset = non_personalized_recommender_train_subset.evaluateRecommendations(URM_test_subset, at=5, exclude_seen=True)
+            print("Lambda threshold is {}, result non pers only less than lambda_train_subset: {}".format(lambda_threshold, results_non_pers_only_less))
+
+
+        URM_train_subset = URM_train[users_with_higher_lambda,:]
+        URM_test_subset = URM_test[users_with_higher_lambda,:]
+        personalized_recommender_train_subset = ItemKNNCFRecommender(URM_train_subset)
+        personalized_recommender_train_subset.fit()
+        results_pers_only_train_subset = personalized_recommender_train_subset.evaluateRecommendations(URM_test_subset, at=5, exclude_seen=True)
+        print("Lambda threshold is {}, result pers only: {}".format(lambda_threshold, results_pers_only_train_subset))
+
+
+        map_performance_hybrid_all.append(results_hybrid_all["map"])
         map_performance_pers_only.append(results_pers_only["map"])
+        map_performance_pers_only_less.append(results_pers_only_less["map"])
+        map_performance_non_pers_only_less.append(results_non_pers_only_less["map"])
+        map_performance_random_less.append(results_random_less["map"])
+
+        map_performance_pers_only_less_train_subset.append(results_pers_only_less_train_subset["map"])
+        map_performance_non_pers_only_less_train_subset.append(results_non_pers_only_less_train_subset["map"])
+        map_performance_pers_only_train_subset.append(results_pers_only_train_subset["map"])
         x_tick.append(lambda_threshold)
+
+
+
+        plt.xlabel('lambda threshold')
+        plt.ylabel("MAP")
+        plt.title("Recommender MAP for increasing lambda threshold")
+
+        marker_list = ['o', 's', '^', 'v', 'D']
+        marker_iterator_local = itertools.cycle(marker_list)
+
+
+        plt.plot(x_tick, map_performance_hybrid_all, linewidth=3, label="Hybrid all",
+                 linestyle = "-", marker = marker_iterator_local.__next__())
+
+        plt.plot(x_tick, map_performance_pers_only, linewidth=3, label="Pers only",
+                 linestyle = "-", marker = marker_iterator_local.__next__())
+
+        plt.plot(x_tick, map_performance_pers_only_less, linewidth=3, label="Pers only less lambda",
+                 linestyle = "-", marker = marker_iterator_local.__next__())
+
+        plt.plot(x_tick, map_performance_non_pers_only_less, linewidth=3, label="Non pers only less lambda",
+                 linestyle = "-", marker = marker_iterator_local.__next__())
+
+        plt.plot(x_tick, map_performance_random_less, linewidth=3, label="Random less lambda",
+                 linestyle = "-", marker = marker_iterator_local.__next__())
+
+
+        plt.plot(x_tick, np.ones_like(x_tick)*results_run_non_pers["map"], linewidth=3, label="Non pers",
+                 linestyle = ":", marker = marker_iterator_local.__next__())
+
+        plt.plot(x_tick, np.ones_like(x_tick)*results_run_pers["map"], linewidth=3, label="Pers",
+                 linestyle = "--", marker = marker_iterator_local.__next__())
+
+        plt.legend(loc="upper left")
+
+        plt.savefig("results/MAP_over_lambda_{}_{}_{}_train_on_all_URM".format(dataset_name,
+            personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME))
+
+        plt.close()
+
+
 
 
 
@@ -140,11 +275,21 @@ if __name__ == '__main__':
         marker_iterator_local = itertools.cycle(marker_list)
 
 
-        # plt.plot(x_tick, map_performance_hybrid_all, linewidth=3, label="Hybrid all",
-        #          linestyle = "-", marker = marker_iterator_local.__next__())
-
-        plt.plot(x_tick, map_performance_pers_only, linewidth=3, label="Pers only",
+        plt.plot(x_tick, map_performance_hybrid_all, linewidth=3, label="Hybrid all",
                  linestyle = "-", marker = marker_iterator_local.__next__())
+
+        plt.plot(x_tick, map_performance_pers_only_train_subset, linewidth=3, label="Pers only",
+                 linestyle = "-", marker = marker_iterator_local.__next__())
+
+        plt.plot(x_tick, map_performance_pers_only_less_train_subset, linewidth=3, label="Pers only less lambda",
+                 linestyle = "-", marker = marker_iterator_local.__next__())
+
+        plt.plot(x_tick, map_performance_non_pers_only_less_train_subset, linewidth=3, label="Non pers only less lambda",
+                 linestyle = "-", marker = marker_iterator_local.__next__())
+
+        plt.plot(x_tick, map_performance_random_less, linewidth=3, label="Random less lambda",
+                 linestyle = "-", marker = marker_iterator_local.__next__())
+
 
         plt.plot(x_tick, np.ones_like(x_tick)*results_run_non_pers["map"], linewidth=3, label="Non pers",
                  linestyle = ":", marker = marker_iterator_local.__next__())
@@ -152,10 +297,9 @@ if __name__ == '__main__':
         plt.plot(x_tick, np.ones_like(x_tick)*results_run_pers["map"], linewidth=3, label="Pers",
                  linestyle = "--", marker = marker_iterator_local.__next__())
 
-        plt.legend()
+        plt.legend(loc="upper left")
 
-        plt.savefig("results/MAP_over_lambda_{}_{}_{}".format(dataset_name,
+        plt.savefig("results/MAP_over_lambda_{}_{}_{}_train_on_subset".format(dataset_name,
             personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME))
 
         plt.close()
-

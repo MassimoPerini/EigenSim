@@ -64,6 +64,64 @@ class TopPop(Recommender):
         return "TopPop"
 
 
+
+
+
+
+class Random(Recommender):
+    """Random recommender"""
+
+    RECOMMENDER_NAME = "Random"
+
+    def __init__(self, URM_train):
+        super(Random, self).__init__()
+
+        # convert to csc matrix for faster column-wise sum
+        self.URM_train = check_matrix(URM_train, 'csc', dtype=np.float32)
+
+
+    def fit(self):
+
+        self.n_items = self.URM_train.shape[1]
+
+
+    def recommend(self, user_id, n=None, exclude_seen=True, filterTopPop = False, filterCustomItems = False):
+
+        scores = np.random.rand(self.n_items)
+
+        if exclude_seen:
+            scores = self._filter_seen_on_scores(user_id, scores)
+
+        if filterTopPop:
+            scores = self._filter_TopPop_on_scores(scores)
+
+        if filterCustomItems:
+            scores = self._filterCustomItems_on_scores(scores)
+
+
+        # rank items and mirror column to obtain a ranking in descending score
+        #ranking = scores.argsort()
+        #ranking = np.flip(ranking, axis=0)
+
+        # Sorting is done in three steps. Faster then plain np.argsort for higher number of items
+        # - Partition the data to extract the set of relevant items
+        # - Sort only the relevant items
+        # - Get the original item index
+        relevant_items_partition = (-scores).argpartition(n)[0:n]
+        relevant_items_partition_sorting = np.argsort(-scores[relevant_items_partition])
+        ranking = relevant_items_partition[relevant_items_partition_sorting]
+
+
+        return ranking
+
+
+
+    def __str__(self):
+        return "Random"
+
+
+
+
 class GlobalEffects(Recommender):
     """docstring for GlobalEffects"""
 
