@@ -17,6 +17,7 @@ from data.NetflixEnhanced.NetflixEnhancedReader import NetflixEnhancedReader
 from data.Movielens_1m.Movielens1MReader import Movielens1MReader
 from data.Movielens_10m.Movielens10MReader import Movielens10MReader
 from data.Movielens_20m.Movielens20MReader import Movielens20MReader
+from data.BookCrossing.BookCrossingReader import BookCrossingReader
 
 
 from ParameterTuning.BayesianSearch import BayesianSearch
@@ -63,7 +64,7 @@ def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath 
                              DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"save_eval":False},
                              DictionaryKeys.FIT_POSITIONAL_ARGS: [],
                              DictionaryKeys.FIT_KEYWORD_ARGS: {"URM_test": URM_validation, "validation_every_n":1,
-                                                               "lower_validatons_allowed":5, "min_improvement_tolerance":0.005},
+                                                               "lower_validatons_allowed":5, "min_improvement_tolerance":0.001},
                              DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
 
 
@@ -120,22 +121,22 @@ if __name__ == '__main__':
 
     dataReader_class_list = [
         NetflixEnhancedReader,
-        Movielens10MReader
+        #Movielens20MReader,
         #BookCrossingReader,
         #XingChallenge2016Reader
     ]
 
 
-    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
-    resultList = pool.map(read_data_split_and_search, dataReader_class_list)
+    # pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
+    # resultList = pool.map(read_data_split_and_search, dataReader_class_list)
 
-    #
-    # for dataReader_class in dataReader_class_list:
-    #     try:
-    #         read_data_split_and_search(dataReader_class)
-    #     except Exception as e:
-    #
-    #         print("On recommender {} Exception {}".format(dataReader_class, str(e)))
-    #         traceback.print_exc()
-    #
+
+    for dataReader_class in dataReader_class_list:
+        try:
+            read_data_split_and_search(dataReader_class)
+        except Exception as e:
+
+            print("On recommender {} Exception {}".format(dataReader_class, str(e)))
+            traceback.print_exc()
+
 
