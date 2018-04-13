@@ -110,7 +110,8 @@ cdef class Lambda_BPR_Cython_Epoch:
                 self.SVD_U, self.SVD_s, self.SVD_Vh = scipy.sparse.linalg.svds(self.URM_train, k=k)
                 self.SVD_latent_factors = self.SVD_U.shape[1]
             else:
-                self.pseudoInv = np.linalg.pinv(self.URM_train.todense(), rcond = rcond).astype(np.float32, copy=False)
+                self.URM_train.astype(np.float32)
+                self.pseudoInv = np.linalg.pinv(self.URM_train.todense(), rcond = rcond)
 
 
         self.useAdaGrad = False

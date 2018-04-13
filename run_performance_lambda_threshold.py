@@ -29,6 +29,7 @@ import pickle, itertools
 import scipy.sparse as sps
 
 
+
 def plot_lambda_profile_length(user_lambda, URM_train, dataset_name):
 
     plt.xlabel('profile length')
@@ -52,7 +53,8 @@ def plot_lambda_profile_length(user_lambda, URM_train, dataset_name):
 
 if __name__ == '__main__':
 
-    dataReader_class = Movielens1MReader
+
+    dataReader_class = Movielens10MReader
 
 
     dataSplitter = DataSplitter_Warm(dataReader_class)
@@ -69,7 +71,7 @@ if __name__ == '__main__':
     # URM_validation = URM_validation[:,subsample_mask]
     # URM_test = URM_test[:,subsample_mask]
 
-
+    print("Fit Non hybrid begin")
 
     non_personalized_recommender = TopPop(URM_train)
     personalized_recommender = ItemKNNCFRecommender(URM_train)
@@ -79,15 +81,22 @@ if __name__ == '__main__':
     non_personalized_recommender.fit()
     personalized_recommender.fit()
     random_recommender.fit()
+
+    print("Fit Non hybrid complete")
+
     hybrid_all = ItemBasedLambdaDiscriminantRecommender(URM_train,
                                                         non_personalized_recommender = non_personalized_recommender,
                                                         personalized_recommender = personalized_recommender,
                                                         URM_validation = URM_validation)
 
+    print("Hybrid instantiated")
+
     hybrid_pers_only = ItemBasedLambdaDiscriminantRecommender(URM_train,
                                                         non_personalized_recommender = None,
                                                         personalized_recommender = personalized_recommender,
                                                         URM_validation = URM_validation)
+
+    print("Hybrid instantiated")
 
     dataset_name = dataReader_class.DATASET_SUBFOLDER[:-1]
 
@@ -96,8 +105,10 @@ if __name__ == '__main__':
 
 
 
+    print("Using params: {}".format(optimal_params))
 
-    namePrefix = "Lambda_BPR_Cython_{}_best_parameters".format(dataset_name)
+    namePrefix = "Lambda_BPR_Cython_{}_best_parameters_lambda".format(dataset_name)
+
 
     try:
         hybrid_all.loadModel("results/", namePrefix=namePrefix)

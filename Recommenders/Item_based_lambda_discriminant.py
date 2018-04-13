@@ -10,8 +10,9 @@ from Recommenders.Recommender import Recommender
 from Recommenders.Recommender_utils import check_matrix
 from Recommenders.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
 
-from Recommenders.Lambda.Cython.Lambda_BPR_Cython import Lambda_BPR_Cython
+
 import numpy as np
+import pickle
 
 
 class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Recommender):
@@ -43,6 +44,8 @@ class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Reco
 
         if pseudoinverse_size >= 3*1e+9:
             input("Pseudoinverse size is: {:.2f} GB. Continue?".format(pseudoinverse_size/1e+9))
+
+        from Recommenders.Lambda.Cython.Lambda_BPR_Cython import Lambda_BPR_Cython
 
 
         lambda_cython = Lambda_BPR_Cython(self.URM_train, recompile_cython=False,
@@ -105,6 +108,8 @@ class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Reco
 
         np.savez(folderPath + "{}.npz".format(namePrefix), user_lambda = self.user_lambda)
 
+        #pickle.dump(self.user_lambda, open(folderPath + "{}.npz".format(namePrefix), "wb"), protocol=pickle.HIGHEST_PROTOCOL)
+
 
 
 
@@ -117,7 +122,7 @@ class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Reco
 
             namePrefix += "_"
 
-
+        #self.user_lambda = pickle.load(open(folderPath + "{}.npz".format(namePrefix), "wb"))
         npzfile = np.load(folderPath + "{}.npz".format(namePrefix))
 
         for attrib_name in npzfile.files:
