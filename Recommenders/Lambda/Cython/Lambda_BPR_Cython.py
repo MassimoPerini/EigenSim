@@ -17,6 +17,10 @@ from Recommenders.Base.Recommender_utils import check_matrix
 
 class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
+    RECOMMENDER_NAME = "Lambda_BPR_Cython"
+
+
+
     def __init__(self, URM_train, recompile_cython=False,
                  check_stability=False, save_lambda=False, save_eval=True):
 
@@ -250,6 +254,41 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
 
 
+
+
+
+
+    def saveModel(self, folderPath, namePrefix = None):
+
+
+        print("{}: Saving model in folder '{}'".format(self.RECOMMENDER_NAME, folderPath))
+
+        if namePrefix is None:
+            namePrefix = self.RECOMMENDER_NAME
+
+            namePrefix += "_"
+
+        np.savez(folderPath + "{}.npz".format(namePrefix), user_lambda = self.get_lambda())
+
+        #pickle.dump(self.user_lambda, open(folderPath + "{}.npz".format(namePrefix), "wb"), protocol=pickle.HIGHEST_PROTOCOL)
+
+
+
+
+    def loadModel(self, folderPath, namePrefix = None):
+
+        print("{}: Loading model from folder '{}'".format(self.RECOMMENDER_NAME, folderPath))
+
+        if namePrefix is None:
+            namePrefix = self.RECOMMENDER_NAME
+
+            namePrefix += "_"
+
+        #self.user_lambda = pickle.load(open(folderPath + "{}.npz".format(namePrefix), "wb"))
+        npzfile = np.load(folderPath + "{}.npz".format(namePrefix))
+
+        for attrib_name in npzfile.files:
+             self.__setattr__(attrib_name, npzfile[attrib_name])
 
 
 

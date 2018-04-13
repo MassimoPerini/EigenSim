@@ -50,7 +50,7 @@ def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath 
     hyperparamethers_range_dictionary = {}
     hyperparamethers_range_dictionary["pseudoInv"] = [True]
     hyperparamethers_range_dictionary["epochs"] = [200]
-    hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.05, 0.3, 0.05))
+    hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.05, 0.3, 0.02))
     hyperparamethers_range_dictionary["low_ram"] = [False]
     #hyperparamethers_range_dictionary["k"] = list(range(5,260,10))
     hyperparamethers_range_dictionary["learning_rate"] = [0.01]
@@ -69,7 +69,7 @@ def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath 
 
 
 
-    best_parameters = parameterSearch.search(recommenderDictionary, logFile = logFile, parallelize=False)
+    best_parameters = parameterSearch.search(recommenderDictionary, logFile = logFile, parallelize=False, n_cases=20)
 
     logFile.write("best_parameters: {}".format(best_parameters))
     logFile.flush()
@@ -81,14 +81,21 @@ def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath 
 
 
 
+    # Create an object of the same class of the imput
+    # Passing the paramether as a dictionary
+    recommender = recommender_class(*recommenderDictionary[DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS],
+                                    **recommenderDictionary[DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS])
+
+    recommender.fit(*recommenderDictionary[DictionaryKeys.FIT_POSITIONAL_ARGS],
+                    **recommenderDictionary[DictionaryKeys.FIT_KEYWORD_ARGS],
+                    **best_parameters)
 
 
 
 
+    namePrefix = logFilePath + "Lambda_BPR_Cython_{}_best_parameters_lambda".format(dataReader_class.DATASET_SUBFOLDER[:-1])
 
-
-
-
+    recommender.saveModel("results/", namePrefix=namePrefix)
 
 
 
@@ -120,7 +127,7 @@ def read_data_split_and_search(dataReader_class):
 if __name__ == '__main__':
 
     dataReader_class_list = [
-        NetflixEnhancedReader,
+        Movielens10MReader,
         #Movielens20MReader,
         #BookCrossingReader,
         #XingChallenge2016Reader
