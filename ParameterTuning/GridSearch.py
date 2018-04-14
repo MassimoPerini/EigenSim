@@ -37,7 +37,7 @@ class GridSearch(AbstractClassSearch):
 
 
 
-    def runSingleCase(self, paramether_dictionary, dictionary):
+    def runSingleCase(self, paramether_dictionary, dictionary, folderPath = None, namePrefix = None):
 
         try:
 
@@ -56,6 +56,11 @@ class GridSearch(AbstractClassSearch):
 
             paramether_dictionary_to_save = self.from_fit_params_to_saved_params_function(recommender, paramether_dictionary)
 
+
+            if folderPath != None:
+                recommender.saveModel(folderPath, namePrefix = namePrefix)
+
+
             #return recommender.evaluateRecommendations(self.URM_validation, at=5, mode="sequential")
             return self.evaluation_function(recommender, self.URM_validation, paramether_dictionary), paramether_dictionary_to_save
 
@@ -69,7 +74,8 @@ class GridSearch(AbstractClassSearch):
 
 
 
-    def search(self, dictionary, metric ="map", logFile = None, parallelPoolSize = 2, parallelize = True):
+    def search(self, dictionary, metric ="map", logFile = None, parallelPoolSize = 2, parallelize = True,
+               folderPath = None, namePrefix = None):
 
         hyperparamethers_range_dictionary = dictionary[DictionaryKeys.FIT_RANGE_KEYWORD_ARGS]
 
@@ -111,6 +117,12 @@ class GridSearch(AbstractClassSearch):
 
 
         writeLog("GridSearch: Best config is: Config {}, {} value is {:.4f}\n".format(self.paramether_dictionary_best, metric, self.results_test_best[metric]), logFile)
+
+        if folderPath != None:
+
+            writeLog("BayesianSearch: Saving model in {}\n".format(folderPath), logFile)
+            self.runSingleCase(self.paramether_dictionary_best, metric, folderPath = folderPath, namePrefix = namePrefix)
+
 
         return self.paramether_dictionary_best
 

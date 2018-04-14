@@ -46,7 +46,8 @@ class BayesianSearch(AbstractClassSearch):
 
 
 
-    def search(self, dictionary, metric ="map", n_cases = 30, logFile = None, parallelPoolSize = 2, parallelize = True):
+    def search(self, dictionary, metric ="map", n_cases = 30, logFile = None, parallelPoolSize = 2, parallelize = True,
+               folderPath = None, namePrefix = None):
 
         # Associate the params that will be returned by BayesianOpt object to those you want to save
         # E.g. with early stopping you know which is the optimal number of epochs only afterwards
@@ -120,8 +121,17 @@ class BayesianSearch(AbstractClassSearch):
         self.best_solution_parameters = self.from_fit_params_to_saved_params[frozenset(self.best_solution_parameters.items())]
 
 
-        writeLog("GridSearch: Best config is: Config {}, {} value is {:.4f}\n".format(
+        writeLog("BayesianSearch: Best config is: Config {}, {} value is {:.4f}\n".format(
             self.best_solution_parameters, metric, self.best_solution_val), self.logFile)
+
+
+
+        if folderPath != None:
+
+            writeLog("BayesianSearch: Saving model in {}\n".format(folderPath), self.logFile)
+            self.runSingleCase(dictionary, metric, folderPath = folderPath, namePrefix = namePrefix, **self.best_solution_parameters)
+
+
 
         return self.best_solution_parameters.copy()
 
@@ -154,7 +164,7 @@ class BayesianSearch(AbstractClassSearch):
 
 
 
-    def runSingleCase(self, dictionary, metric, **paramether_dictionary_input):
+    def runSingleCase(self, dictionary, metric, folderPath = None, namePrefix = None, **paramether_dictionary_input):
 
 
         paramether_dictionary = self.parameter_bayesian_to_token(paramether_dictionary_input)
@@ -185,6 +195,11 @@ class BayesianSearch(AbstractClassSearch):
 
             writeLog("BayesianSearch: Testing config: {} - results: {}\n".format(paramether_dictionary_to_save, result_dict), self.logFile)
 
+
+            if folderPath != None:
+                recommender.saveModel(folderPath, namePrefix = namePrefix)
+
+
             return result_dict[metric]
 
 
@@ -194,11 +209,6 @@ class BayesianSearch(AbstractClassSearch):
             traceback.print_exc()
 
             return None
-
-
-
-
-
 
 
 

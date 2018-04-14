@@ -64,12 +64,13 @@ def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath 
                              DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"save_eval":False},
                              DictionaryKeys.FIT_POSITIONAL_ARGS: [],
                              DictionaryKeys.FIT_KEYWORD_ARGS: {"URM_test": URM_validation, "validation_every_n":1,
-                                                               "lower_validatons_allowed":5, "min_improvement_tolerance":0.001},
+                                                               "lower_validatons_allowed":5},
                              DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
 
 
 
-    best_parameters = parameterSearch.search(recommenderDictionary, logFile = logFile, parallelize=False, n_cases=20)
+    best_parameters = parameterSearch.search(recommenderDictionary, logFile = logFile, parallelize=False, n_cases=20,
+                                             folderPath = logFilePath, namePrefix = "Lambda_BPR_Cython_{}_best_parameters_lambda".format(dataReader_class.DATASET_SUBFOLDER[:-1]))
 
     logFile.write("best_parameters: {}".format(best_parameters))
     logFile.flush()
@@ -78,24 +79,6 @@ def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath 
     pickle.dump(best_parameters, open(logFilePath + "Lambda_BPR_Cython" +
                                       "_{}_best_parameters".format(dataReader_class.DATASET_SUBFOLDER[:-1]), "wb"), protocol=pickle.HIGHEST_PROTOCOL)
 
-
-
-
-    # Create an object of the same class of the imput
-    # Passing the paramether as a dictionary
-    recommender = recommender_class(*recommenderDictionary[DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS],
-                                    **recommenderDictionary[DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS])
-
-    recommender.fit(*recommenderDictionary[DictionaryKeys.FIT_POSITIONAL_ARGS],
-                    **recommenderDictionary[DictionaryKeys.FIT_KEYWORD_ARGS],
-                    **best_parameters)
-
-
-
-
-    namePrefix = "Lambda_BPR_Cython_{}_best_parameters_lambda".format(dataReader_class.DATASET_SUBFOLDER[:-1])
-
-    recommender.saveModel("results/", namePrefix=namePrefix)
 
 
 

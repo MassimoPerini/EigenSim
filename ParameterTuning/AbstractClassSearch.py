@@ -48,7 +48,7 @@ def from_fit_params_to_saved_params_function_default(recommender, paramether_dic
 
 
 
-def evaluation_function_default(recommender, URM_validation, paramether_dictionary):
+def evaluation_function_default(recommender, URM_validation, parameter_dictionary):
 
 
     return recommender.evaluateRecommendations(URM_validation, at=5, mode="sequential")
