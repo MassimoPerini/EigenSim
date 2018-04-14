@@ -111,12 +111,12 @@ class BayesianSearch(AbstractClassSearch):
         self.bayesian_optimizer = BayesianOptimization(self.runSingleCase_partial, hyperparamethers_range_dictionary)
 
 
-        self.bayesian_optimizer.maximize(init_points=1, n_iter=n_cases, kappa=2)
+        self.bayesian_optimizer.maximize(init_points=5, n_iter=n_cases, kappa=2)
 
         best_solution = self.bayesian_optimizer.res['max']
 
         self.best_solution_val = best_solution["max_val"]
-        self.best_solution_parameters = best_solution["max_params"]
+        self.best_solution_parameters = best_solution["max_params"].copy()
         self.best_solution_parameters = self.parameter_bayesian_to_token(self.best_solution_parameters)
         self.best_solution_parameters = self.from_fit_params_to_saved_params[frozenset(self.best_solution_parameters.items())]
 
@@ -129,8 +129,7 @@ class BayesianSearch(AbstractClassSearch):
         if folderPath != None:
 
             writeLog("BayesianSearch: Saving model in {}\n".format(folderPath), self.logFile)
-            self.runSingleCase(dictionary, metric, folderPath = folderPath, namePrefix = namePrefix, **best_solution["max_params"])
-
+            self.runSingleCase_param_parsed(dictionary, metric, self.best_solution_parameters, folderPath = folderPath, namePrefix = namePrefix)
 
 
         return self.best_solution_parameters.copy()
@@ -168,6 +167,13 @@ class BayesianSearch(AbstractClassSearch):
 
 
         paramether_dictionary = self.parameter_bayesian_to_token(paramether_dictionary_input)
+
+        return self.runSingleCase_param_parsed(dictionary, metric, paramether_dictionary, folderPath = folderPath, namePrefix = namePrefix)
+
+
+
+
+    def runSingleCase_param_parsed(self, dictionary, metric, paramether_dictionary, folderPath = None, namePrefix = None):
 
 
         try:

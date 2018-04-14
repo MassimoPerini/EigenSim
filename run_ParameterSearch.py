@@ -64,12 +64,12 @@ def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath 
                              DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"save_eval":False},
                              DictionaryKeys.FIT_POSITIONAL_ARGS: [],
                              DictionaryKeys.FIT_KEYWORD_ARGS: {"URM_test": URM_validation, "validation_every_n":1,
-                                                               "lower_validatons_allowed":1},
+                                                               "lower_validatons_allowed":5},
                              DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
 
 
 
-    best_parameters = parameterSearch.search(recommenderDictionary, logFile = logFile, parallelize=False, n_cases=0,
+    best_parameters = parameterSearch.search(recommenderDictionary, logFile = logFile, parallelize=False, n_cases=1,
                                              folderPath = logFilePath, namePrefix = "Lambda_BPR_Cython_{}_best_parameters_lambda".format(dataReader_class.DATASET_SUBFOLDER[:-1]))
 
     logFile.write("best_parameters: {}".format(best_parameters))
@@ -78,6 +78,12 @@ def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath 
 
     pickle.dump(best_parameters, open(logFilePath + "Lambda_BPR_Cython" +
                                       "_{}_best_parameters".format(dataReader_class.DATASET_SUBFOLDER[:-1]), "wb"), protocol=pickle.HIGHEST_PROTOCOL)
+
+
+
+
+
+
 
 
 
@@ -110,8 +116,9 @@ def read_data_split_and_search(dataReader_class):
 if __name__ == '__main__':
 
     dataReader_class_list = [
+        Movielens10MReader,
         Movielens1MReader,
-        #Movielens20MReader,
+        NetflixEnhancedReader,
         #BookCrossingReader,
         #XingChallenge2016Reader
     ]
