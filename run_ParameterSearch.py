@@ -93,7 +93,7 @@ def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath 
 
 
 
-    namePrefix = logFilePath + "Lambda_BPR_Cython_{}_best_parameters_lambda".format(dataReader_class.DATASET_SUBFOLDER[:-1])
+    namePrefix = "Lambda_BPR_Cython_{}_best_parameters_lambda".format(dataReader_class.DATASET_SUBFOLDER[:-1])
 
     recommender.saveModel("results/", namePrefix=namePrefix)
 
