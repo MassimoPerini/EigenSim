@@ -111,7 +111,7 @@ class BayesianSearch(AbstractClassSearch):
         self.bayesian_optimizer = BayesianOptimization(self.runSingleCase_partial, hyperparamethers_range_dictionary)
 
 
-        self.bayesian_optimizer.maximize(init_points=5, n_iter=n_cases, kappa=2)
+        self.bayesian_optimizer.maximize(init_points=1, n_iter=n_cases, kappa=2)
 
         best_solution = self.bayesian_optimizer.res['max']
 
@@ -129,7 +129,7 @@ class BayesianSearch(AbstractClassSearch):
         if folderPath != None:
 
             writeLog("BayesianSearch: Saving model in {}\n".format(folderPath), self.logFile)
-            self.runSingleCase(dictionary, metric, folderPath = folderPath, namePrefix = namePrefix, **self.best_solution_parameters)
+            self.runSingleCase(dictionary, metric, folderPath = folderPath, namePrefix = namePrefix, **best_solution["max_params"])
 
 
 

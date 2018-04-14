@@ -50,13 +50,13 @@ def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath 
     hyperparamethers_range_dictionary = {}
     hyperparamethers_range_dictionary["pseudoInv"] = [True]
     hyperparamethers_range_dictionary["epochs"] = [200]
-    hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.05, 0.3, 0.02))
+    hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.10, 0.3, 0.05))
     hyperparamethers_range_dictionary["low_ram"] = [False]
     #hyperparamethers_range_dictionary["k"] = list(range(5,260,10))
     hyperparamethers_range_dictionary["learning_rate"] = [0.01]
     hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad"]
     hyperparamethers_range_dictionary["batch_size"] = [1]
-    hyperparamethers_range_dictionary["initialize"] = ["zero", "one", "random"]
+    hyperparamethers_range_dictionary["initialize"] = ["zero", "random"]#, "one", "random"]
 
     logFile = open(logFilePath + "Lambda_BPR_Cython" + "_{}_BayesianSearch.txt".format(dataReader_class.DATASET_SUBFOLDER[:-1]), "a")
 
@@ -64,12 +64,12 @@ def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath 
                              DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"save_eval":False},
                              DictionaryKeys.FIT_POSITIONAL_ARGS: [],
                              DictionaryKeys.FIT_KEYWORD_ARGS: {"URM_test": URM_validation, "validation_every_n":1,
-                                                               "lower_validatons_allowed":5},
+                                                               "lower_validatons_allowed":1},
                              DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
 
 
 
-    best_parameters = parameterSearch.search(recommenderDictionary, logFile = logFile, parallelize=False, n_cases=20,
+    best_parameters = parameterSearch.search(recommenderDictionary, logFile = logFile, parallelize=False, n_cases=0,
                                              folderPath = logFilePath, namePrefix = "Lambda_BPR_Cython_{}_best_parameters_lambda".format(dataReader_class.DATASET_SUBFOLDER[:-1]))
 
     logFile.write("best_parameters: {}".format(best_parameters))
@@ -110,7 +110,7 @@ def read_data_split_and_search(dataReader_class):
 if __name__ == '__main__':
 
     dataReader_class_list = [
-        Movielens10MReader,
+        Movielens1MReader,
         #Movielens20MReader,
         #BookCrossingReader,
         #XingChallenge2016Reader

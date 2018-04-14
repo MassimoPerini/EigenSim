@@ -129,8 +129,6 @@ cdef class Lambda_BPR_Cython_Epoch:
         self.eligibleUsers = eligibleUsers
         self.numEligibleUsers = len(eligibleUsers)
 
-        if self.useAdaGrad:
-            self.sgd_cache = np.zeros((self.n_users), dtype=float)
 
 
     cdef int[:] getSeenItemsOfUser(self, long index): #given an user, get the items he likes
@@ -397,6 +395,9 @@ cdef class Lambda_BPR_Cython_Epoch:
         if totalNumberOfBatch == 0:
             totalNumberOfBatch = 1
         #print("total number of batches ", totalNumberOfBatch, "for nnz: ", self.n_users)
+
+        if self.useAdaGrad:
+            self.sgd_cache = np.zeros((self.n_users), dtype=float)
 
         for numCurrentBatch in range(totalNumberOfBatch):
 
