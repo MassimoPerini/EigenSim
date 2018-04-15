@@ -71,7 +71,6 @@ if __name__ == '__main__':
     # URM_validation = URM_validation[:,subsample_mask]
     # URM_test = URM_test[:,subsample_mask]
 
-    print("Fit Non hybrid begin")
 
     non_personalized_recommender = TopPop(URM_train)
     personalized_recommender = ItemKNNCFRecommender(URM_train)
@@ -82,21 +81,16 @@ if __name__ == '__main__':
     personalized_recommender.fit()
     random_recommender.fit()
 
-    print("Fit Non hybrid complete")
-
     hybrid_all = ItemBasedLambdaDiscriminantRecommender(URM_train,
                                                         non_personalized_recommender = non_personalized_recommender,
                                                         personalized_recommender = personalized_recommender,
                                                         URM_validation = URM_validation)
 
-    print("Hybrid instantiated")
 
     hybrid_pers_only = ItemBasedLambdaDiscriminantRecommender(URM_train,
                                                         non_personalized_recommender = None,
                                                         personalized_recommender = personalized_recommender,
                                                         URM_validation = URM_validation)
-
-    print("Hybrid instantiated")
 
     dataset_name = dataReader_class.DATASET_SUBFOLDER[:-1]
 
@@ -107,7 +101,7 @@ if __name__ == '__main__':
 
     print("Using params: {}".format(optimal_params))
 
-    namePrefix = "Lambda_BPR_Cython_{}_best_parameters_lambda".format(dataset_name)
+    namePrefix = "Lambda_BPR_Cython_{}_best_model".format(dataset_name)
 
 
     try:
@@ -247,23 +241,23 @@ if __name__ == '__main__':
         plt.plot(x_tick, map_performance_hybrid_all, linewidth=3, label="Hybrid all",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
-        plt.plot(x_tick, map_performance_pers_only, linewidth=3, label="Pers only",
+        plt.plot(x_tick, map_performance_pers_only, linewidth=3, label="Personalized only",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
-        plt.plot(x_tick, map_performance_pers_only_less, linewidth=3, label="Pers only less lambda",
+        plt.plot(x_tick, map_performance_pers_only_less, linewidth=3, label="Personalized only less lambda",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
-        plt.plot(x_tick, map_performance_non_pers_only_less, linewidth=3, label="Non pers only less lambda",
+        plt.plot(x_tick, map_performance_non_pers_only_less, linewidth=3, label="Non personalized only less lambda",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
         plt.plot(x_tick, map_performance_random_less, linewidth=3, label="Random less lambda",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
 
-        plt.plot(x_tick, np.ones_like(x_tick)*results_run_non_pers["map"], linewidth=3, label="Non pers",
+        plt.plot(x_tick, np.ones_like(x_tick)*results_run_non_pers["map"], linewidth=3, label="TopPop",
                  linestyle = ":", marker = marker_iterator_local.__next__())
 
-        plt.plot(x_tick, np.ones_like(x_tick)*results_run_pers["map"], linewidth=3, label="Pers",
+        plt.plot(x_tick, np.ones_like(x_tick)*results_run_pers["map"], linewidth=3, label="Item KNN Collaborative",
                  linestyle = "--", marker = marker_iterator_local.__next__())
 
         plt.legend(loc="upper left")
@@ -289,23 +283,23 @@ if __name__ == '__main__':
         plt.plot(x_tick, map_performance_hybrid_all, linewidth=3, label="Hybrid all",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
-        plt.plot(x_tick, map_performance_pers_only_train_subset, linewidth=3, label="Pers only",
+        plt.plot(x_tick, map_performance_pers_only_train_subset, linewidth=3, label="Personalized only",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
-        plt.plot(x_tick, map_performance_pers_only_less_train_subset, linewidth=3, label="Pers only less lambda",
+        plt.plot(x_tick, map_performance_pers_only_less_train_subset, linewidth=3, label="Personalized only less lambda",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
-        plt.plot(x_tick, map_performance_non_pers_only_less_train_subset, linewidth=3, label="Non pers only less lambda",
+        plt.plot(x_tick, map_performance_non_pers_only_less_train_subset, linewidth=3, label="Non personalized only less lambda",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
         plt.plot(x_tick, map_performance_random_less, linewidth=3, label="Random less lambda",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
 
-        plt.plot(x_tick, np.ones_like(x_tick)*results_run_non_pers["map"], linewidth=3, label="Non pers",
+        plt.plot(x_tick, np.ones_like(x_tick)*results_run_non_pers["map"], linewidth=3, label="TopPop",
                  linestyle = ":", marker = marker_iterator_local.__next__())
 
-        plt.plot(x_tick, np.ones_like(x_tick)*results_run_pers["map"], linewidth=3, label="Pers",
+        plt.plot(x_tick, np.ones_like(x_tick)*results_run_pers["map"], linewidth=3, label="Item KNN Collaborative",
                  linestyle = "--", marker = marker_iterator_local.__next__())
 
         plt.legend(loc="upper left")

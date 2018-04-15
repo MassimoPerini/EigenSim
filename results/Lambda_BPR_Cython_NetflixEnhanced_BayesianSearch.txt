@@ -1,1 +1,0 @@
-BayesianSearch: Testing config: {'pseudoInv': True, 'epochs': 0, 'rcond': 0.2, 'low_ram': False, 'learning_rate': 0.01, 'sgd_mode': 'adagrad', 'batch_size': 1, 'initialize': 'random'} - results: {'AUC': 0.16903674846778058, 'precision': 0.08224709064296566, 'recall': 0.06902987938848316, 'map': 0.06209216755032049, 'NDCG': 0.06850023489515966, 'MRR': 0.17282796952928806}
