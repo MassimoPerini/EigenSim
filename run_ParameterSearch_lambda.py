@@ -49,8 +49,8 @@ def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath 
 
     hyperparamethers_range_dictionary = {}
     hyperparamethers_range_dictionary["pseudoInv"] = [True]
-    hyperparamethers_range_dictionary["epochs"] = [200]
-    hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.10, 0.3, 0.05))
+    hyperparamethers_range_dictionary["epochs"] = [10]
+    hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.10, 0.3, 0.02))
     hyperparamethers_range_dictionary["low_ram"] = [False]
     #hyperparamethers_range_dictionary["k"] = list(range(5,260,10))
     hyperparamethers_range_dictionary["learning_rate"] = [0.01]
@@ -58,7 +58,8 @@ def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath 
     hyperparamethers_range_dictionary["batch_size"] = [1]
     hyperparamethers_range_dictionary["initialize"] = ["zero", "random"]#, "one", "random"]
 
-    logFile = open(logFilePath + "Lambda_BPR_Cython" + "_{}_BayesianSearch.txt".format(dataReader_class.DATASET_SUBFOLDER[:-1]), "a")
+    output_root_path = logFilePath + "Lambda_BPR_Cython" + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
+
 
     recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
                              DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"save_eval":False},
@@ -69,16 +70,7 @@ def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath 
 
 
 
-    best_parameters = parameterSearch.search(recommenderDictionary, logFile = logFile, parallelize=False, n_cases=1,
-                                             folderPath = logFilePath, namePrefix = "Lambda_BPR_Cython_{}_best_parameters_lambda".format(dataReader_class.DATASET_SUBFOLDER[:-1]))
-
-    logFile.write("best_parameters: {}".format(best_parameters))
-    logFile.flush()
-    logFile.close()
-
-    pickle.dump(best_parameters, open(logFilePath + "Lambda_BPR_Cython" +
-                                      "_{}_best_parameters".format(dataReader_class.DATASET_SUBFOLDER[:-1]), "wb"), protocol=pickle.HIGHEST_PROTOCOL)
-
+    best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=10)
 
 
 
@@ -116,8 +108,8 @@ def read_data_split_and_search(dataReader_class):
 if __name__ == '__main__':
 
     dataReader_class_list = [
-        Movielens10MReader,
         Movielens1MReader,
+        Movielens10MReader,
         NetflixEnhancedReader,
         #BookCrossingReader,
         #XingChallenge2016Reader

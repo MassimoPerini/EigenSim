@@ -8,7 +8,7 @@ Created on 10/03/2018
 
 from ParameterTuning.AbstractClassSearch import AbstractClassSearch, DictionaryKeys
 from functools import partial
-import traceback
+import traceback, pickle
 
 try:
     from bayes_opt import BayesianOptimization
@@ -46,8 +46,8 @@ class BayesianSearch(AbstractClassSearch):
 
 
 
-    def search(self, dictionary, metric ="map", n_cases = 30, logFile = None, parallelPoolSize = 2, parallelize = True,
-               folderPath = None, namePrefix = None):
+    def search(self, dictionary, metric ="map", n_cases = 30, output_root_path = None, parallelPoolSize = 2, parallelize = True,
+               save_best_model = True):
 
         # Associate the params that will be returned by BayesianOpt object to those you want to save
         # E.g. with early stopping you know which is the optimal number of epochs only afterwards
@@ -57,7 +57,9 @@ class BayesianSearch(AbstractClassSearch):
 
         hyperparamethers_range_dictionary = dictionary[DictionaryKeys.FIT_RANGE_KEYWORD_ARGS].copy()
 
-        self.logFile = logFile
+        self.output_root_path = output_root_path
+        self.logFile = open(self.output_root_path + "_BayesianSearch.txt", "a")
+        self.save_best_model = save_best_model
 
         self.categorical_mapper_dict_case_to_index = {}
         self.categorical_mapper_dict_index_to_case = {}
@@ -110,6 +112,10 @@ class BayesianSearch(AbstractClassSearch):
 
         self.bayesian_optimizer = BayesianOptimization(self.runSingleCase_partial, hyperparamethers_range_dictionary)
 
+        self.best_solution_val = None
+        self.best_solution_parameters = None
+        self.best_solution_object = None
+
 
         self.bayesian_optimizer.maximize(init_points=5, n_iter=n_cases, kappa=2)
 
@@ -124,12 +130,12 @@ class BayesianSearch(AbstractClassSearch):
         writeLog("BayesianSearch: Best config is: Config {}, {} value is {:.4f}\n".format(
             self.best_solution_parameters, metric, self.best_solution_val), self.logFile)
 
-
-
-        if folderPath != None:
-
-            writeLog("BayesianSearch: Saving model in {}\n".format(folderPath), self.logFile)
-            self.runSingleCase_param_parsed(dictionary, metric, self.best_solution_parameters, folderPath = folderPath, namePrefix = namePrefix)
+        #
+        #
+        # if folderPath != None:
+        #
+        #     writeLog("BayesianSearch: Saving model in {}\n".format(folderPath), self.logFile)
+        #     self.runSingleCase_param_parsed(dictionary, metric, self.best_solution_parameters, folderPath = folderPath, namePrefix = namePrefix)
 
 
         return self.best_solution_parameters.copy()
@@ -163,17 +169,17 @@ class BayesianSearch(AbstractClassSearch):
 
 
 
-    def runSingleCase(self, dictionary, metric, folderPath = None, namePrefix = None, **paramether_dictionary_input):
+    def runSingleCase(self, dictionary, metric, **paramether_dictionary_input):
 
 
         paramether_dictionary = self.parameter_bayesian_to_token(paramether_dictionary_input)
 
-        return self.runSingleCase_param_parsed(dictionary, metric, paramether_dictionary, folderPath = folderPath, namePrefix = namePrefix)
+        return self.runSingleCase_param_parsed(dictionary, metric, paramether_dictionary)
 
 
 
 
-    def runSingleCase_param_parsed(self, dictionary, metric, paramether_dictionary, folderPath = None, namePrefix = None):
+    def runSingleCase_param_parsed(self, dictionary, metric, paramether_dictionary):
 
 
         try:
@@ -199,11 +205,27 @@ class BayesianSearch(AbstractClassSearch):
             self.from_fit_params_to_saved_params[frozenset(paramether_dictionary.items())] = paramether_dictionary_to_save
 
 
-            writeLog("BayesianSearch: Testing config: {} - results: {}\n".format(paramether_dictionary_to_save, result_dict), self.logFile)
 
 
-            if folderPath != None:
-                recommender.saveModel(folderPath, namePrefix = namePrefix)
+            if self.best_solution_val == None or self.best_solution_val<result_dict[metric]:
+
+                writeLog("BayesianSearch: New best config found. Config: {} - results: {}\n".format(paramether_dictionary_to_save, result_dict), self.logFile)
+
+                pickle.dump(paramether_dictionary_to_save.copy(),
+                            open(self.output_root_path + "_best_parameters", "wb"),
+                            protocol=pickle.HIGHEST_PROTOCOL)
+
+                self.best_solution_val = result_dict[metric]
+                self.best_solution_parameters = paramether_dictionary_to_save.copy()
+                self.best_solution_object = recommender
+
+                if self.save_best_model:
+                    print("BayesianSearch: Saving model in {}\n".format(self.output_root_path))
+                    recommender.saveModel(self.output_root_path, namePrefix = "_best_model")
+
+
+            else:
+                writeLog("BayesianSearch: Config is suboptimal. Config: {} - results: {}\n".format(paramether_dictionary_to_save, result_dict), self.logFile)
 
 
             return result_dict[metric]
