@@ -150,3 +150,51 @@ class Similarity_Matrix_Recommender(object):
         return ranking[:n]
 
 
+
+
+    def saveModel(self, folderPath, namePrefix = None, forceSparse = True):
+
+        import scipy.sparse as sps
+
+        print("{}: Saving model in folder '{}'".format(self.RECOMMENDER_NAME, folderPath))
+
+        if namePrefix is None:
+            namePrefix = self.RECOMMENDER_NAME
+
+        namePrefix += "_"
+
+        if self.sparse_weights:
+            sps.save_npz(folderPath + "{}W_sparse.npz".format(namePrefix), self.W_sparse)
+        else:
+            if forceSparse:
+                sps.save_npz(folderPath + "{}W_sparse.npz".format(namePrefix), sps.csr_matrix(self.W))
+            else:
+                sps.save_npz(folderPath + "{}W.npz".format(namePrefix), self.W)
+
+
+    def loadModel(self, folderPath, namePrefix = None, forceSparse = True):
+
+        import scipy.sparse as sps
+
+        print("{}: Loading model from folder '{}'".format(self.RECOMMENDER_NAME, folderPath))
+
+        if namePrefix is None:
+            namePrefix = self.RECOMMENDER_NAME
+
+        namePrefix += "_"
+
+        try:
+            self.W_sparse = sps.load_npz(folderPath + "{}W_sparse.npz".format(namePrefix))
+            self.sparse_weights = True
+
+        except:
+
+            W = sps.load_npz(folderPath + "{}W.npz".format(namePrefix))
+
+            if forceSparse:
+                self.W_sparse = sps.csr_matrix(W)
+                self.sparse_weights = True
+            else:
+                self.W = W
+                self.sparse_weights = False
+

@@ -178,11 +178,14 @@ class Recommender(object):
 
 
             if n_eval % 10000 == 0 or n_eval==len(usersToEvaluate)-1:
-                print("Processed {} ( {:.2f}% ) in {:.2f} seconds. Users per second: {:.0f}".format(
-                                  n_eval,
-                                  100.0* float(n_eval+1)/len(usersToEvaluate),
-                                  time.time()-start_time,
-                                  float(n_eval)/(time.time()-start_time)))
+                try:
+                    print("Processed {} ( {:.2f}% ) in {:.2f} seconds. Users per second: {:.0f}".format(
+                                      n_eval,
+                                      100.0* float(n_eval+1)/len(usersToEvaluate),
+                                      time.time() -start_time,
+                                      float(n_eval)/(time.time() - start_time)))
+                except:
+                    pass
 
 
 

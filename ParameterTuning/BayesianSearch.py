@@ -54,6 +54,8 @@ class BayesianSearch(AbstractClassSearch):
         # but you might want to save it as well
         self.from_fit_params_to_saved_params = {}
 
+        self.dictionary_input = dictionary.copy()
+
 
         hyperparamethers_range_dictionary = dictionary[DictionaryKeys.FIT_RANGE_KEYWORD_ARGS].copy()
 
@@ -139,6 +141,29 @@ class BayesianSearch(AbstractClassSearch):
 
 
         return self.best_solution_parameters.copy()
+
+
+
+    def evaluate_on_test(self, URM_test):
+
+        # Create an object of the same class of the imput
+        # Passing the paramether as a dictionary
+        recommender = self.recommender_class(*self.dictionary_input[DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS],
+                                             **self.dictionary_input[DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS])
+
+
+        recommender.fit(*self.dictionary_input[DictionaryKeys.FIT_POSITIONAL_ARGS],
+                        **self.dictionary_input[DictionaryKeys.FIT_KEYWORD_ARGS],
+                        **self.best_solution_parameters)
+
+
+        result_dict = self.evaluation_function(recommender, URM_test, self.best_solution_parameters)
+
+
+        writeLog("ParameterSearch: Best result evaluated on URM_test. Config: {} - results: {}\n".format(self.best_solution_parameters, result_dict), self.logFile)
+
+        return result_dict
+
 
 
 
