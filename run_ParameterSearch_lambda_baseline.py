@@ -301,9 +301,9 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
 
     recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
-                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {},
+                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"URM_validation": URM_validation},
                              DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
-                             DictionaryKeys.FIT_KEYWORD_ARGS: dict(),
+                             DictionaryKeys.FIT_KEYWORD_ARGS: {"validation_every_n":5, "stop_on_validation":True, "lower_validatons_allowed":10},
                              DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
 
 
@@ -327,9 +327,9 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
 
     recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
-                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {},
+                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"URM_validation": URM_validation},
                              DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
-                             DictionaryKeys.FIT_KEYWORD_ARGS: dict(),
+                             DictionaryKeys.FIT_KEYWORD_ARGS: {"validation_every_n":5, "stop_on_validation":True, "lower_validatons_allowed":10},
                              DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
 
 
@@ -372,22 +372,22 @@ if __name__ == '__main__':
     dataReader_class_list = [
         Movielens1MReader,
         Movielens10MReader,
-        NetflixEnhancedReader,
+        #NetflixEnhancedReader,
         #BookCrossingReader,
         #XingChallenge2016Reader
     ]
 
 
-    # pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
-    # resultList = pool.map(read_data_split_and_search, dataReader_class_list)
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
+    resultList = pool.map(read_data_split_and_search, dataReader_class_list)
 
-
-    for dataReader_class in dataReader_class_list:
-        try:
-            read_data_split_and_search(dataReader_class)
-        except Exception as e:
-
-            print("On recommender {} Exception {}".format(dataReader_class, str(e)))
-            traceback.print_exc()
-
-
+    #
+    # for dataReader_class in dataReader_class_list:
+    #     try:
+    #         read_data_split_and_search(dataReader_class)
+    #     except Exception as e:
+    #
+    #         print("On recommender {} Exception {}".format(dataReader_class, str(e)))
+    #         traceback.print_exc()
+    #
+    #

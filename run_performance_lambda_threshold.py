@@ -32,6 +32,12 @@ import scipy.sparse as sps
 
 def plot_lambda_profile_length(user_lambda, URM_train, dataset_name):
 
+    # Turn interactive plotting off
+    plt.ioff()
+
+    # Ensure it works even on SSH
+    plt.switch_backend('agg')
+
     plt.xlabel('profile length')
     plt.ylabel("user lambda")
     plt.title("Profile length and corresponding lambda")
@@ -54,7 +60,7 @@ def plot_lambda_profile_length(user_lambda, URM_train, dataset_name):
 if __name__ == '__main__':
 
 
-    dataReader_class = Movielens10MReader
+    dataReader_class = Movielens1MReader
 
 
     dataSplitter = DataSplitter_Warm(dataReader_class)
@@ -228,6 +234,11 @@ if __name__ == '__main__':
         map_performance_pers_only_train_subset.append(results_pers_only_train_subset["map"])
         x_tick.append(lambda_threshold)
 
+        # Turn interactive plotting off
+        plt.ioff()
+
+        # Ensure it works even on SSH
+        plt.switch_backend('agg')
 
 
         plt.xlabel('lambda threshold')
@@ -260,16 +271,26 @@ if __name__ == '__main__':
         plt.plot(x_tick, np.ones_like(x_tick)*results_run_pers["map"], linewidth=3, label="Item KNN Collaborative",
                  linestyle = "--", marker = marker_iterator_local.__next__())
 
-        plt.legend(loc="upper left")
+        legend = plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1), ncol=2)
+        legend = [legend]
 
         plt.savefig("results/MAP_over_lambda_{}_{}_{}_train_on_all_URM".format(dataset_name,
-            personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME))
+            personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME),
+            additional_artists=legend, bbox_inches="tight")
 
         plt.close()
 
 
 
 
+
+
+
+        # Turn interactive plotting off
+        plt.ioff()
+
+        # Ensure it works even on SSH
+        plt.switch_backend('agg')
 
 
         plt.xlabel('lambda threshold')
@@ -302,9 +323,11 @@ if __name__ == '__main__':
         plt.plot(x_tick, np.ones_like(x_tick)*results_run_pers["map"], linewidth=3, label="Item KNN Collaborative",
                  linestyle = "--", marker = marker_iterator_local.__next__())
 
-        plt.legend(loc="upper left")
+        legend = plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1), ncol=2)
+        legend = [legend]
 
         plt.savefig("results/MAP_over_lambda_{}_{}_{}_train_on_subset".format(dataset_name,
-            personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME))
+            personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME),
+            additional_artists=legend, bbox_inches="tight")
 
         plt.close()
