@@ -55,12 +55,93 @@ def plot_lambda_profile_length(user_lambda, URM_train, dataset_name):
     plt.close()
 
 
+from Recommenders.Base.metrics import roc_auc, precision, recall, map, ndcg, rr
+
+
+def plot_lambda_user_performance(user_lambda, personalized_recommender, URM_train, URM_test, dataset_name):
+
+    # Turn interactive plotting off
+    plt.ioff()
+
+    # Ensure it works even on SSH
+    plt.switch_backend('agg')
+
+    plt.xlabel('MAP')
+    plt.ylabel("user lambda")
+    plt.title("User MAP and corresponding lambda")
+
+    URM_train = sps.csr_matrix(URM_train)
+    URM_test = sps.csr_matrix(URM_test)
+
+    user_int_test = np.ediff1d(URM_test.indptr) >= 1
+
+    user_map = np.zeros(URM_test.shape[0])
+
+
+    for test_user in range(URM_test.shape[0]):
+
+        if not user_int_test[test_user]:
+            continue
+
+        # Calling the 'evaluateOneUser' function instead of copying its code would be cleaner, but is 20% slower
+
+        # Being the URM CSR, the indices are the non-zero column indexes
+        relevant_items = URM_test.indices[URM_test.indptr[test_user]:URM_test.indptr[test_user+1]]
+
+
+        recommended_items = personalized_recommender.recommend(user_id=test_user, exclude_seen=False,
+                                                    n=5, filterTopPop=False)
+
+        is_relevant = np.in1d(recommended_items, relevant_items, assume_unique=True)
+
+        # evaluate the recommendation list with ranking metrics ONLY
+        # roc_auc_ += roc_auc(is_relevant)
+        # precision_ += precision(is_relevant)
+        # recall_ += recall(is_relevant, relevant_items)
+        try:
+            map_ = map(is_relevant, relevant_items)
+            user_map[test_user] = map_
+        except:
+            pass
+        # mrr_ += rr(is_relevant)
+        # ndcg_ += ndcg(recommended_items, relevant_items, relevance=self.get_user_test_ratings(test_user), at=self.at)
+
+
+
+
+    user_map_user_id = np.argsort(user_map[user_int_test])
+
+    plt.scatter(user_map[user_map_user_id], user_lambda[user_map_user_id], s=0.5)
+
+    plt.savefig("results/User_MAP_over_lambda_{}".format(dataset_name))
+
+    plt.close()
+
+
+    # Turn interactive plotting off
+    plt.ioff()
+
+    # Ensure it works even on SSH
+    plt.switch_backend('agg')
+
+    plt.xlabel('MAP')
+    plt.ylabel("user lambda")
+    plt.title("User MAP and corresponding lambda")
+
+    lambda_user_id = np.argsort(user_lambda[user_int_test])
+
+    plt.scatter(user_lambda[lambda_user_id],user_map[lambda_user_id], s=0.5)
+
+    plt.savefig("results/Lambda_over_user_map_{}".format(dataset_name))
+
+    plt.close()
+
 
 
 if __name__ == '__main__':
 
 
-    dataReader_class = Movielens1MReader
+    dataReader_class = Movielens10MReader
 
 
     dataSplitter = DataSplitter_Warm(dataReader_class)
@@ -122,6 +203,7 @@ if __name__ == '__main__':
     user_lambda = hybrid_all.get_lambda_values()
 
     plot_lambda_profile_length(user_lambda, URM_train, dataset_name)
+    plot_lambda_user_performance(user_lambda, personalized_recommender, URM_train, URM_test, dataset_name)
 
 
     user_lambda = np.sort(user_lambda)
