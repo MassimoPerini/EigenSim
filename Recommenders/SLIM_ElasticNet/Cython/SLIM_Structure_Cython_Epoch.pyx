@@ -22,6 +22,7 @@ cimport numpy as np
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 
 from libc.math cimport exp, sqrt
+from libc.stdlib cimport rand, RAND_MAX
 
 
 
@@ -244,6 +245,21 @@ cdef class SLIM_Structure_Cython_Epoch:
 
 
 
+
+    def epochIteration_Cython(self, epochs=30, loss = "mse", force_positive = False, sample_quota = 0.10):
+
+        if loss == "mse":
+            print("LOSS MSE")
+            self.epochIteration_Cython_SGD(epochs, False, force_positive, sample_quota)
+
+        elif loss == "bpr":
+            print("LOSS BPR")
+            self.epochIteration_Cython_SGD(epochs, True, force_positive, sample_quota)
+        else:
+            raise ValueError("Loss value not recognized")
+
+
+
     cdef init_S_structure_current_item(self, int current_item, int* Si_mask, double* Si_dense):
         """
         The function initializes the dense similarity vector for current item from the global data structure
@@ -449,37 +465,12 @@ cdef class SLIM_Structure_Cython_Epoch:
         return gradient_update
 
 
-    def epochIteration_Cython(self, epochs=30, loss = "mse", force_positive = False):
-        #
-        # if loss == "mse":
-        #     print("LOSS MSE")
-        #     if self.batch_size>1:
-        #         self.epochIteration_Cython_batch(epochs=epochs)
-        #     else:
-        #         self.epochIteration_Cython_MSE(epochs=epochs)
-        #
-        # elif loss == "bpr":
-        #     print("LOSS BPR")
-        #     self.epochIteration_Cython_BPR(epochs=epochs)
-
-
-        if loss == "mse":
-            print("LOSS MSE")
-            self.epochIteration_Cython_SGD(epochs, False, force_positive)
-
-        elif loss == "bpr":
-            print("LOSS BPR")
-            self.epochIteration_Cython_SGD(epochs, True, force_positive)
-        else:
-            raise ValueError("Loss value not recognized")
-
-
-    cdef epochIteration_Cython_SGD(self, int n_epochs, int use_BPR, int force_positive):
+    cdef epochIteration_Cython_SGD(self, int n_epochs, int use_BPR, int force_positive, double sample_quota):
 
         cdef int current_item, current_epoch
         cdef int sample_index, sample_user
         cdef int item_index, item_id
-        cdef double sample_rating, gradient_update, gradient, prediction
+        cdef double sample_rating, gradient_update, gradient, prediction, sample_quota_current_item
         cdef int is_last_sample = False
 
         cdef int[:] sample_indices, sample_shuffle
@@ -513,6 +504,11 @@ cdef class SLIM_Structure_Cython_Epoch:
             sample_indices = self.URM_indices_csc[self.URM_indptr_csc[current_item]:self.URM_indptr_csc[current_item + 1]]
             sample_data = self.URM_data_csc[self.URM_indptr_csc[current_item]:self.URM_indptr_csc[current_item + 1]]
 
+            if len(sample_indices) == 0:
+                continue
+
+
+
             sample_shuffle = np.arange(0, len(sample_indices), dtype=np.int32)
 
 
@@ -533,6 +529,13 @@ cdef class SLIM_Structure_Cython_Epoch:
                 self.beta_2_power_t = self.beta_2
 
 
+            # Adjust sample percentage for current item to ensure at least one is chosen
+            sample_quota_current_item = 1/len(sample_indices)
+
+            if sample_quota_current_item < sample_quota:
+                sample_quota_current_item = sample_quota
+
+
 
             for current_epoch in range(n_epochs):
 
@@ -541,6 +544,9 @@ cdef class SLIM_Structure_Cython_Epoch:
                 #print("sample_shuffle {}".format(time.time() - start_time))
 
                 for sample_index in range(len(sample_indices)):
+
+                    if rand() > RAND_MAX * sample_quota:
+                        continue
 
                     sample_user = sample_indices[sample_shuffle[sample_index]]
                     sample_rating = sample_data[sample_shuffle[sample_index]]

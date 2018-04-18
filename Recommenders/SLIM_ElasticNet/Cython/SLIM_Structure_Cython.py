@@ -76,6 +76,7 @@ class SLIM_Structure_Cython(Similarity_Matrix_Recommender, Recommender):
 
     def fit(self, epochs=300, logFile=None, URM_test=None, filterTopPop = False, minRatingsPerUser=1,
             batch_size = 1, lambda_1 = 0.0, lambda_2 = 0.0, learning_rate = 1e-3, topK = 200,
+            sample_quota = None,
             structure_mode = "full", init_type = "random", loss = "mse", force_positive = False,
             sgd_mode='adam', gamma=0.995, beta_1=0.9, beta_2=0.999,
             stop_on_validation = False, lower_validatons_allowed = 5, validation_metric = "map",
@@ -154,6 +155,14 @@ class SLIM_Structure_Cython(Similarity_Matrix_Recommender, Recommender):
             validation_function = default_validation_function
 
 
+        if sample_quota is None:
+
+            n_users = self.URM_train.shape[0]
+            n_interactions = self.URM_train.nnz
+
+            sample_quota = n_users / n_interactions
+
+
         self.learning_rate = learning_rate
 
 
@@ -180,7 +189,7 @@ class SLIM_Structure_Cython(Similarity_Matrix_Recommender, Recommender):
 
         while currentEpoch < self.epochs and not convergence:
 
-            self.cythonEpoch.epochIteration_Cython(epochs = cython_epochs, loss = loss, force_positive = force_positive)
+            self.cythonEpoch.epochIteration_Cython(epochs = cython_epochs, loss = loss, force_positive = force_positive, sample_quota = sample_quota)
             currentEpoch += cython_epochs
 
             # Determine whether a validaton step is required

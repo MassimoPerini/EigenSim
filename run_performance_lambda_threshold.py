@@ -73,9 +73,9 @@ def plot_lambda_user_performance(user_lambda, personalized_recommender, URM_trai
     URM_train = sps.csr_matrix(URM_train)
     URM_test = sps.csr_matrix(URM_test)
 
-    user_int_test = np.ediff1d(URM_test.indptr) >= 1
+    user_int_test = np.ediff1d(URM_test.indptr) >= 2
 
-    user_map = np.zeros(URM_test.shape[0])
+    user_map = np.ones(URM_test.shape[0])*100
 
 
     for test_user in range(URM_test.shape[0]):
@@ -108,8 +108,11 @@ def plot_lambda_user_performance(user_lambda, personalized_recommender, URM_trai
 
 
 
+    user_map = user_map[user_int_test]
+    user_lambda = user_lambda[user_int_test]
 
-    user_map_user_id = np.argsort(user_map[user_int_test])
+    user_map_user_id = np.argsort(user_map)
+
 
     plt.scatter(user_map[user_map_user_id], user_lambda[user_map_user_id], s=0.5)
 
@@ -128,7 +131,7 @@ def plot_lambda_user_performance(user_lambda, personalized_recommender, URM_trai
     plt.ylabel("user lambda")
     plt.title("User MAP and corresponding lambda")
 
-    lambda_user_id = np.argsort(user_lambda[user_int_test])
+    lambda_user_id = np.argsort(user_lambda)
 
     plt.scatter(user_lambda[lambda_user_id],user_map[lambda_user_id], s=0.5)
 
@@ -138,10 +141,100 @@ def plot_lambda_user_performance(user_lambda, personalized_recommender, URM_trai
 
 
 
-if __name__ == '__main__':
+def plot_lambda_user_performance_on_train(user_lambda, personalized_recommender, URM_train, dataset_name):
+
+    URM_test = URM_train.copy()
+
+    # Turn interactive plotting off
+    plt.ioff()
+
+    # Ensure it works even on SSH
+    plt.switch_backend('agg')
+
+    plt.xlabel('user lambda')
+    plt.ylabel("MAP")
+    plt.title("User MAP and corresponding lambda")
+
+    URM_train = sps.csr_matrix(URM_train)
+    URM_test = sps.csr_matrix(URM_test)
+
+    user_int_test = np.ediff1d(URM_test.indptr) >= 2
+
+    user_map = np.ones(URM_test.shape[0])*100
 
 
-    dataReader_class = Movielens10MReader
+    for test_user in range(URM_test.shape[0]):
+
+        if not user_int_test[test_user]:
+            continue
+
+        # Calling the 'evaluateOneUser' function instead of copying its code would be cleaner, but is 20% slower
+
+        # Being the URM CSR, the indices are the non-zero column indexes
+        relevant_items = URM_test.indices[URM_test.indptr[test_user]:URM_test.indptr[test_user+1]]
+
+
+        recommended_items = personalized_recommender.recommend(user_id=test_user, exclude_seen=False,
+                                                    n=5, filterTopPop=False)
+
+        is_relevant = np.in1d(recommended_items, relevant_items, assume_unique=True)
+
+        # evaluate the recommendation list with ranking metrics ONLY
+        # roc_auc_ += roc_auc(is_relevant)
+        # precision_ += precision(is_relevant)
+        # recall_ += recall(is_relevant, relevant_items)
+        try:
+            map_ = map(is_relevant, relevant_items)
+            user_map[test_user] = map_
+        except:
+            pass
+        # mrr_ += rr(is_relevant)
+        # ndcg_ += ndcg(recommended_items, relevant_items, relevance=self.get_user_test_ratings(test_user), at=self.at)
+
+
+
+    user_map = user_map[user_int_test]
+    user_lambda = user_lambda[user_int_test]
+
+    user_map_user_id = np.argsort(user_map)
+
+
+    plt.scatter(user_map[user_map_user_id], user_lambda[user_map_user_id], s=0.5)
+
+    plt.savefig("results/User_MAP_over_lambda_on_train_{}".format(dataset_name))
+
+    plt.close()
+
+
+    # Turn interactive plotting off
+    plt.ioff()
+
+    # Ensure it works even on SSH
+    plt.switch_backend('agg')
+
+    plt.xlabel('user lambda')
+    plt.ylabel("MAP")
+    plt.title("User MAP and corresponding lambda")
+
+    lambda_user_id = np.argsort(user_lambda)
+
+    plt.scatter(user_lambda[lambda_user_id],user_map[lambda_user_id], s=0.5)
+
+    plt.savefig("results/Lambda_over_user_map_on_train_{}".format(dataset_name))
+
+    plt.close()
+
+
+
+
+def plot_hybrid_performance(dataReader_class):
+
+    plot_hybrid_performance_inner(dataReader_class, True)
+    #plot_hybrid_performance_inner(dataReader_class, False)
+
+def plot_hybrid_performance_inner(dataReader_class, use_lambda):
+
+    #dataReader_class = Movielens10MReader
 
 
     dataSplitter = DataSplitter_Warm(dataReader_class)
@@ -199,12 +292,18 @@ if __name__ == '__main__':
 
     hybrid_pers_only.loadModel("results/", namePrefix=namePrefix)
 
+    if use_lambda:
+        user_lambda = hybrid_all.get_lambda_values()
+    else:
+        user_lambda = np.ediff1d(URM_train.indptr)
 
-    user_lambda = hybrid_all.get_lambda_values()
 
     plot_lambda_profile_length(user_lambda, URM_train, dataset_name)
     plot_lambda_user_performance(user_lambda, personalized_recommender, URM_train, URM_test, dataset_name)
+    plot_lambda_user_performance_on_train(user_lambda, personalized_recommender, URM_train, dataset_name)
 
+    hybrid_all.user_lambda = user_lambda.copy()
+    hybrid_pers_only.user_lambda = user_lambda.copy()
 
     user_lambda = np.sort(user_lambda)
 
@@ -356,8 +455,13 @@ if __name__ == '__main__':
         legend = plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1), ncol=2)
         legend = [legend]
 
-        plt.savefig("results/MAP_over_lambda_{}_{}_{}_train_on_all_URM".format(dataset_name,
-            personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME),
+        if use_lambda:
+            discrminant_is = "_lambda"
+        else:
+            discrminant_is = "_profile_len"
+
+        plt.savefig("results/MAP_over_lambda_{}_{}_{}_train_on_all_URM{}".format(dataset_name,
+            personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME, discrminant_is),
             additional_artists=legend, bbox_inches="tight")
 
         plt.close()
@@ -408,8 +512,36 @@ if __name__ == '__main__':
         legend = plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1), ncol=2)
         legend = [legend]
 
-        plt.savefig("results/MAP_over_lambda_{}_{}_{}_train_on_subset".format(dataset_name,
-            personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME),
+        plt.savefig("results/MAP_over_lambda_{}_{}_{}_train_on_subset{}".format(dataset_name,
+            personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME, discrminant_is),
             additional_artists=legend, bbox_inches="tight")
 
         plt.close()
+
+
+import multiprocessing, traceback
+
+if __name__ == '__main__':
+
+    dataReader_class_list = [
+        Movielens1MReader,
+        Movielens10MReader,
+        #NetflixEnhancedReader,
+        #BookCrossingReader,
+        #XingChallenge2016Reader
+    ]
+
+
+    # pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
+    # resultList = pool.map(plot_hybrid_performance, dataReader_class_list)
+
+
+    for dataReader_class in dataReader_class_list:
+        try:
+            plot_hybrid_performance(dataReader_class)
+        except Exception as e:
+
+            print("On recommender {} Exception {}".format(dataReader_class, str(e)))
+            traceback.print_exc()
+
+

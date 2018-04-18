@@ -77,59 +77,59 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     #
     # best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=10)
 
-
-
-
-
-    recommender_class = UserKNNCFRecommender
-    parameterSearch = BayesianSearch(recommender_class, URM_validation)
-
-    hyperparamethers_range_dictionary = {}
-    hyperparamethers_range_dictionary["topK"] = [50, 100, 150, 200]
-    hyperparamethers_range_dictionary["shrink"] = [0, 10, 50, 100, 200, 300, 500, 1000]
-    hyperparamethers_range_dictionary["similarity"] = ['cosine', 'pearson', 'adjusted', 'jaccard']
-    hyperparamethers_range_dictionary["normalize"] = [True, False]
-
-    output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
-
-    recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
-                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {},
-                             DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
-                             DictionaryKeys.FIT_KEYWORD_ARGS: dict(),
-                             DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
-
-
-    best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=10)
-
-    parameterSearch.evaluate_on_test(URM_test)
+    #
+    #
+    #
+    #
+    # recommender_class = UserKNNCFRecommender
+    # parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    #
+    # hyperparamethers_range_dictionary = {}
+    # hyperparamethers_range_dictionary["topK"] = [50, 100, 150, 200]
+    # hyperparamethers_range_dictionary["shrink"] = [0, 10, 50, 100, 200, 300, 500, 1000]
+    # hyperparamethers_range_dictionary["similarity"] = ['cosine', 'pearson', 'adjusted', 'jaccard']
+    # hyperparamethers_range_dictionary["normalize"] = [True, False]
+    #
+    # output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
+    #
+    # recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
+    #                          DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {},
+    #                          DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
+    #                          DictionaryKeys.FIT_KEYWORD_ARGS: dict(),
+    #                          DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
+    #
+    #
+    # best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=10)
+    #
+    # parameterSearch.evaluate_on_test(URM_test)
 
 
     ##########################################################################################################
-
-    recommender_class = ItemKNNCFRecommender
-
-    parameterSearch = BayesianSearch(recommender_class, URM_validation)
-
-    hyperparamethers_range_dictionary = {}
-    hyperparamethers_range_dictionary["topK"] = [100, 200, 500]
-    hyperparamethers_range_dictionary["shrink"] = [0, 10, 50, 100, 200, 300, 500, 1000]
-    hyperparamethers_range_dictionary["similarity"] = ['cosine', 'pearson', 'adjusted', 'jaccard']
-    hyperparamethers_range_dictionary["normalize"] = [True, False]
-
-
-    output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
-
-    recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
-                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {},
-                             DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
-                             DictionaryKeys.FIT_KEYWORD_ARGS: dict(),
-                             DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
-
-
-    best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=10)
-
-    parameterSearch.evaluate_on_test(URM_test)
-
+    #
+    # recommender_class = ItemKNNCFRecommender
+    #
+    # parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    #
+    # hyperparamethers_range_dictionary = {}
+    # hyperparamethers_range_dictionary["topK"] = [100, 200, 500]
+    # hyperparamethers_range_dictionary["shrink"] = [0, 10, 50, 100, 200, 300, 500, 1000]
+    # hyperparamethers_range_dictionary["similarity"] = ['cosine', 'pearson', 'adjusted', 'jaccard']
+    # hyperparamethers_range_dictionary["normalize"] = [True, False]
+    #
+    #
+    # output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
+    #
+    # recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
+    #                          DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {},
+    #                          DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
+    #                          DictionaryKeys.FIT_KEYWORD_ARGS: dict(),
+    #                          DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
+    #
+    #
+    # best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=10)
+    #
+    # parameterSearch.evaluate_on_test(URM_test)
+    #
 
 
 
@@ -166,29 +166,29 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
 
 
    ##########################################################################################################
-
-    recommender_class = P3alphaRecommender
-    parameterSearch = BayesianSearch(recommender_class, URM_validation)
-
-
-    hyperparamethers_range_dictionary = {}
-    hyperparamethers_range_dictionary["topK"] = [50, 100, 150, 200]
-    hyperparamethers_range_dictionary["alpha"] = list(np.arange(0.1, 2.1, 0.2))
-    hyperparamethers_range_dictionary["normalize_similarity"] = [True, False]
-
-
-    output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
-
-    recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
-                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {},
-                             DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
-                             DictionaryKeys.FIT_KEYWORD_ARGS: dict(),
-                             DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
-
-
-    best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=10)
-
-    parameterSearch.evaluate_on_test(URM_test)
+    #
+    # recommender_class = P3alphaRecommender
+    # parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    #
+    #
+    # hyperparamethers_range_dictionary = {}
+    # hyperparamethers_range_dictionary["topK"] = [50, 100, 150, 200]
+    # hyperparamethers_range_dictionary["alpha"] = list(np.arange(0.1, 2.1, 0.2))
+    # hyperparamethers_range_dictionary["normalize_similarity"] = [True, False]
+    #
+    #
+    # output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
+    #
+    # recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
+    #                          DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {},
+    #                          DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
+    #                          DictionaryKeys.FIT_KEYWORD_ARGS: dict(),
+    #                          DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
+    #
+    #
+    # best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=10)
+    #
+    # parameterSearch.evaluate_on_test(URM_test)
 
 
     ##########################################################################################################
@@ -293,7 +293,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
 
     hyperparamethers_range_dictionary = {}
     hyperparamethers_range_dictionary["topK"] = [100, 200, 500]
-    hyperparamethers_range_dictionary["sgd_mode"] = ["adam"]
+    hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad", "adam"]
     hyperparamethers_range_dictionary["lambda_1"] = [0.0, 1e-3, 1e-6, 1e-9]
     hyperparamethers_range_dictionary["lambda_2"] = [0.0, 1e-3, 1e-6, 1e-9]
 
@@ -307,7 +307,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
                              DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
 
 
-    best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=10)
+    best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=30)
 
     parameterSearch.evaluate_on_test(URM_test)
 
@@ -319,7 +319,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
 
     hyperparamethers_range_dictionary = {}
     hyperparamethers_range_dictionary["topK"] = [100, 200, 500]
-    hyperparamethers_range_dictionary["sgd_mode"] = ["adam"]
+    hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad", "adam"]
     hyperparamethers_range_dictionary["lambda_1"] = [0.0, 1e-3, 1e-6, 1e-9]
     hyperparamethers_range_dictionary["lambda_2"] = [0.0, 1e-3, 1e-6, 1e-9]
 
@@ -333,7 +333,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
                              DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
 
 
-    best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=10)
+    best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=30)
 
     parameterSearch.evaluate_on_test(URM_test)
 
