@@ -44,6 +44,8 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     from Recommenders.KNN.item_knn_CF import ItemKNNCFRecommender
     from Recommenders.GraphBased.P3alpha import P3alphaRecommender
     from Recommenders.SLIM_ElasticNet.Cython.SLIM_Structure_Cython import SLIM_Structure_BPR_Cython, SLIM_Structure_MSE_Cython
+    from Recommenders.MatrixFactorization.Cython.MF_BPR_Cython import MF_BPR_Cython
+    from Recommenders.SLIM_BPR.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
 
 
     ##########################################################################################################
@@ -252,56 +254,49 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     # pickle.dump(best_parameters, open(logFilePath + recommender_class.RECOMMENDER_NAME + "_best_parameters", "wb"), protocol=pickle.HIGHEST_PROTOCOL)
     #
     # ##########################################################################################################
-    #
-    # recommender_class = MF_BPR_Cython
-    # parameterSearch = GridSearch(recommender_class, URM_validation)
-    #
-    #
-    # hyperparamethers_range_dictionary = {}
-    # hyperparamethers_range_dictionary["num_factors"] = [1, 5, 10, 20, 30]
-    # hyperparamethers_range_dictionary["epochs"] = [5, 10, 20]
-    # hyperparamethers_range_dictionary["batch_size"] = [1]
-    # hyperparamethers_range_dictionary["learning_rate"] = [1e-2, 1e-3, 1e-4, 1e-5]
-    #
-    # logFile = open(logFilePath + recommender_class.RECOMMENDER_NAME + "_GridSearch.txt", "a")
-    #
-    # recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
-    #                          DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {},
-    #                          DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
-    #                          DictionaryKeys.FIT_KEYWORD_ARGS: dict(),
-    #                          DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
-    #
-    #
-    # best_parameters = parameterSearch.search(recommenderDictionary, logFile = logFile, parallelPoolSize = 8)
-    #
-    # logFile.write("best_parameters: {}".format(best_parameters))
-    # logFile.flush()
-    # logFile.close()
-    #
-    # pickle.dump(best_parameters, open(logFilePath + recommender_class.RECOMMENDER_NAME + "_best_parameters", "wb"), protocol=pickle.HIGHEST_PROTOCOL)
+
+    recommender_class = MF_BPR_Cython
+    parameterSearch = BayesianSearch(recommender_class, URM_validation)
+
+    hyperparamethers_range_dictionary = {}
+    hyperparamethers_range_dictionary["num_factors"] = [5, 10, 30, 50, 100]
+    hyperparamethers_range_dictionary["epochs"] = [200]
+    hyperparamethers_range_dictionary["batch_size"] = [1]
+    hyperparamethers_range_dictionary["user_reg"] = [1e-2, 1e-3, 1e-4, 1e-5]
+    hyperparamethers_range_dictionary["positive_reg"] = [1e-2, 1e-3, 1e-4, 1e-5]
+    hyperparamethers_range_dictionary["negative_reg"] = [1e-2, 1e-3, 1e-4, 1e-5]
+    hyperparamethers_range_dictionary["sgd_mode"] = ["rmsprop", "adagrad"]
+
+    output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
+
+    recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
+                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"positive_threshold": 0, "URM_validation": URM_validation},
+                             DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
+                             DictionaryKeys.FIT_KEYWORD_ARGS: {"validation_every_n":5, "stop_on_validation":True, "lower_validatons_allowed":30},
+                             DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
 
 
+    best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=30)
 
-
+    parameterSearch.evaluate_on_test(URM_test)
 
 
     #########################################################################################################
 
-    recommender_class = SLIM_Structure_BPR_Cython
+    recommender_class = SLIM_BPR_Cython
     parameterSearch = BayesianSearch(recommender_class, URM_validation)
-
 
     hyperparamethers_range_dictionary = {}
     hyperparamethers_range_dictionary["topK"] = [100, 200, 500]
-    hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad", "adam"]
-    hyperparamethers_range_dictionary["lambda_1"] = [0.0, 1e-3, 1e-6, 1e-9]
-    hyperparamethers_range_dictionary["lambda_2"] = [0.0, 1e-3, 1e-6, 1e-9]
-
+    hyperparamethers_range_dictionary["sgd_mode"] = ["adam"]
+    hyperparamethers_range_dictionary["lambda_i"] = [0.0, 1e-3, 1e-6, 1e-9]
+    hyperparamethers_range_dictionary["lambda_j"] = [0.0, 1e-3, 1e-6, 1e-9]
 
     output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
 
     recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
-                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"URM_validation": URM_validation},
+                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {'train_with_sparse_weights':False, 'symmetric':True, 'positive_threshold':4,
+                                                                       "URM_validation": URM_validation.copy()},
                              DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
                              DictionaryKeys.FIT_KEYWORD_ARGS: {"validation_every_n":5, "stop_on_validation":True, "lower_validatons_allowed":10},
                              DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
@@ -310,32 +305,60 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=30)
 
     parameterSearch.evaluate_on_test(URM_test)
+
+
+
+    #########################################################################################################
+    #
+    # recommender_class = SLIM_Structure_BPR_Cython
+    # parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    #
+    #
+    # hyperparamethers_range_dictionary = {}
+    # hyperparamethers_range_dictionary["topK"] = [100, 200, 500]
+    # hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad", "adam"]
+    # hyperparamethers_range_dictionary["lambda_1"] = [0.0, 1e-3, 1e-6, 1e-9]
+    # hyperparamethers_range_dictionary["lambda_2"] = [0.0, 1e-3, 1e-6, 1e-9]
+    #
+    #
+    # output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
+    #
+    # recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
+    #                          DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"URM_validation": URM_validation},
+    #                          DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
+    #                          DictionaryKeys.FIT_KEYWORD_ARGS: {"validation_every_n":5, "stop_on_validation":True, "lower_validatons_allowed":10},
+    #                          DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
+    #
+    #
+    # best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=30)
+    #
+    # parameterSearch.evaluate_on_test(URM_test)
 
 
     ##########################################################################################################
-
-    recommender_class = SLIM_Structure_MSE_Cython
-    parameterSearch = BayesianSearch(recommender_class, URM_validation)
-
-    hyperparamethers_range_dictionary = {}
-    hyperparamethers_range_dictionary["topK"] = [100, 200, 500]
-    hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad", "adam"]
-    hyperparamethers_range_dictionary["lambda_1"] = [0.0, 1e-3, 1e-6, 1e-9]
-    hyperparamethers_range_dictionary["lambda_2"] = [0.0, 1e-3, 1e-6, 1e-9]
-
-
-    output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
-
-    recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
-                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"URM_validation": URM_validation},
-                             DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
-                             DictionaryKeys.FIT_KEYWORD_ARGS: {"validation_every_n":5, "stop_on_validation":True, "lower_validatons_allowed":10},
-                             DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
-
-
-    best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=30)
-
-    parameterSearch.evaluate_on_test(URM_test)
+    #
+    # recommender_class = SLIM_Structure_MSE_Cython
+    # parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    #
+    # hyperparamethers_range_dictionary = {}
+    # hyperparamethers_range_dictionary["topK"] = [100, 200, 500]
+    # hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad", "adam"]
+    # hyperparamethers_range_dictionary["lambda_1"] = [0.0, 1e-3, 1e-6, 1e-9]
+    # hyperparamethers_range_dictionary["lambda_2"] = [0.0, 1e-3, 1e-6, 1e-9]
+    #
+    #
+    # output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
+    #
+    # recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
+    #                          DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"URM_validation": URM_validation},
+    #                          DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
+    #                          DictionaryKeys.FIT_KEYWORD_ARGS: {"validation_every_n":5, "stop_on_validation":True, "lower_validatons_allowed":10},
+    #                          DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
+    #
+    #
+    # best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=30)
+    #
+    # parameterSearch.evaluate_on_test(URM_test)
 
 
 
@@ -381,7 +404,7 @@ if __name__ == '__main__':
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
     resultList = pool.map(read_data_split_and_search, dataReader_class_list)
 
-    #
+
     # for dataReader_class in dataReader_class_list:
     #     try:
     #         read_data_split_and_search(dataReader_class)
@@ -389,5 +412,5 @@ if __name__ == '__main__':
     #
     #         print("On recommender {} Exception {}".format(dataReader_class, str(e)))
     #         traceback.print_exc()
-    #
-    #
+
+
