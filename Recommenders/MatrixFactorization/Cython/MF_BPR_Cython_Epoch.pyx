@@ -72,8 +72,6 @@ cdef class MF_BPR_Cython_Epoch:
 
         if sgd_mode=='adagrad':
             self.useAdaGrad = True
-        elif sgd_mode=='rmsprop':
-            self.rmsprop = True
         elif sgd_mode=='sgd':
             pass
         else:
@@ -103,7 +101,7 @@ cdef class MF_BPR_Cython_Epoch:
     def epochIteration_Cython(self):
 
         # Get number of available interactions
-        cdef long totalNumberOfBatch = int(self.numPositiveIteractions / self.batch_size) + 1
+        cdef long totalNumberOfBatch = int(self.n_users / self.batch_size) + 1
 
 
         cdef BPR_sample sample
@@ -191,7 +189,7 @@ cdef class MF_BPR_Cython_Epoch:
             if((numCurrentBatch%5000000==0 and not numCurrentBatch==0) or numCurrentBatch==totalNumberOfBatch-1):
                 print("Processed {} ( {:.2f}% ) in {:.2f} seconds. Sample per second: {:.0f}".format(
                     numCurrentBatch*self.batch_size,
-                    100.0* float(numCurrentBatch*self.batch_size)/self.numPositiveIteractions,
+                    100.0* float(numCurrentBatch*self.batch_size)/self.n_users,
                     time.time() - start_time_batch,
                     float(numCurrentBatch*self.batch_size + 1) / (time.time() - start_time_epoch)))
 

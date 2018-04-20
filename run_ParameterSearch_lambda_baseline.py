@@ -265,7 +265,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     hyperparamethers_range_dictionary["user_reg"] = [1e-2, 1e-3, 1e-4, 1e-5]
     hyperparamethers_range_dictionary["positive_reg"] = [1e-2, 1e-3, 1e-4, 1e-5]
     hyperparamethers_range_dictionary["negative_reg"] = [1e-2, 1e-3, 1e-4, 1e-5]
-    hyperparamethers_range_dictionary["sgd_mode"] = ["rmsprop", "adagrad"]
+    hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad"]
 
     output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
 
@@ -295,7 +295,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
 
     recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
-                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {'train_with_sparse_weights':False, 'symmetric':True, 'positive_threshold':4,
+                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {'train_with_sparse_weights':False, 'symmetric':True, 'positive_threshold':0,
                                                                        "URM_validation": URM_validation.copy()},
                              DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
                              DictionaryKeys.FIT_KEYWORD_ARGS: {"validation_every_n":5, "stop_on_validation":True, "lower_validatons_allowed":10},
