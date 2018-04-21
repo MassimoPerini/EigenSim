@@ -313,6 +313,7 @@ def plot_hybrid_performance_inner(dataReader_class, use_lambda):
     map_performance_pers_only = []
     map_performance_pers_only_less = []
     map_performance_non_pers_only_less = []
+    map_performance_non_pers_only_over = []
     map_performance_random_less = []
 
     map_performance_pers_only_less_train_subset = []
@@ -347,6 +348,9 @@ def plot_hybrid_performance_inner(dataReader_class, use_lambda):
 
         lambda_threshold = user_lambda[lambda_threshold_index]
 
+        if lambda_threshold >= 6:
+            break
+
 
 
         hybrid_all.set_lambda_threshold(lambda_threshold)
@@ -360,6 +364,13 @@ def plot_hybrid_performance_inner(dataReader_class, use_lambda):
 
         results_pers_only = hybrid_pers_only.evaluateRecommendations(URM_test, at=5, exclude_seen=True, filterCustomUsers=users_with_lower_lambda)
         print("Lambda threshold is {}, result pers only: {}".format(lambda_threshold, results_pers_only))
+
+        non_pers_only_over = non_personalized_recommender.evaluateRecommendations(URM_test, at=5, exclude_seen=True, filterCustomUsers=users_with_lower_lambda)
+        print("Lambda threshold is {}, result non pers over: {}".format(lambda_threshold, non_pers_only_over))
+
+
+
+
 
         users_with_higher_lambda = hybrid_all.get_lambda_values()>lambda_threshold
         users_with_higher_lambda = np.arange(0, len(user_lambda), dtype=np.int)[users_with_higher_lambda]
@@ -408,6 +419,9 @@ def plot_hybrid_performance_inner(dataReader_class, use_lambda):
         map_performance_pers_only.append(results_pers_only["map"])
         map_performance_pers_only_less.append(results_pers_only_less["map"])
         map_performance_non_pers_only_less.append(results_non_pers_only_less["map"])
+        map_performance_non_pers_only_over.append(non_pers_only_over["map"])
+
+
         map_performance_random_less.append(results_random_less["map"])
 
         map_performance_pers_only_less_train_subset.append(results_pers_only_less_train_subset["map"])
@@ -430,29 +444,32 @@ def plot_hybrid_performance_inner(dataReader_class, use_lambda):
         marker_iterator_local = itertools.cycle(marker_list)
 
 
-        plt.plot(x_tick, map_performance_hybrid_all, linewidth=3, label="Hybrid all",
+        # plt.plot(x_tick, map_performance_hybrid_all, linewidth=3, label="Hybrid all",
+        #          linestyle = "-", marker = marker_iterator_local.__next__())
+
+        plt.plot(x_tick, map_performance_pers_only, linewidth=3, label="Item KNN CF, lambda > threshold",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
-        plt.plot(x_tick, map_performance_pers_only, linewidth=3, label="Personalized only",
+        plt.plot(x_tick, map_performance_pers_only_less, linewidth=3, label="Item KNN CF, lambda < threshold",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
-        plt.plot(x_tick, map_performance_pers_only_less, linewidth=3, label="Personalized only less lambda",
+        plt.plot(x_tick, map_performance_non_pers_only_less, linewidth=3, label="TopPop, lambda < threshold",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
-        plt.plot(x_tick, map_performance_non_pers_only_less, linewidth=3, label="Non personalized only less lambda",
+        plt.plot(x_tick, map_performance_non_pers_only_over, linewidth=3, label="TopPop, lambda > threshold",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
-        plt.plot(x_tick, map_performance_random_less, linewidth=3, label="Random less lambda",
-                 linestyle = "-", marker = marker_iterator_local.__next__())
+        # plt.plot(x_tick, map_performance_random_less, linewidth=3, label="Random less lambda",
+        #          linestyle = "-", marker = marker_iterator_local.__next__())
 
 
-        plt.plot(x_tick, np.ones_like(x_tick)*results_run_non_pers["map"], linewidth=3, label="TopPop",
-                 linestyle = ":", marker = marker_iterator_local.__next__())
+        # plt.plot(x_tick, np.ones_like(x_tick)*results_run_non_pers["map"], linewidth=3, label="TopPop",
+        #          linestyle = ":", marker = marker_iterator_local.__next__())
 
-        plt.plot(x_tick, np.ones_like(x_tick)*results_run_pers["map"], linewidth=3, label="Item KNN Collaborative",
-                 linestyle = "--", marker = marker_iterator_local.__next__())
+        # plt.plot(x_tick, np.ones_like(x_tick)*results_run_pers["map"], linewidth=3, label="Item KNN CF",
+        #          linestyle = "--", marker = marker_iterator_local.__next__())
 
-        legend = plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1), ncol=2)
+        legend = plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1), ncol=1)
         legend = [legend]
 
         if use_lambda:
@@ -469,54 +486,54 @@ def plot_hybrid_performance_inner(dataReader_class, use_lambda):
 
 
 
-
-
-
-        # Turn interactive plotting off
-        plt.ioff()
-
-        # Ensure it works even on SSH
-        plt.switch_backend('agg')
-
-
-        plt.xlabel('lambda threshold')
-        plt.ylabel("MAP")
-        plt.title("Recommender MAP for increasing lambda threshold")
-
-        marker_list = ['o', 's', '^', 'v', 'D']
-        marker_iterator_local = itertools.cycle(marker_list)
-
-
-        plt.plot(x_tick, map_performance_hybrid_all, linewidth=3, label="Hybrid all",
-                 linestyle = "-", marker = marker_iterator_local.__next__())
-
-        plt.plot(x_tick, map_performance_pers_only_train_subset, linewidth=3, label="Personalized only",
-                 linestyle = "-", marker = marker_iterator_local.__next__())
-
-        plt.plot(x_tick, map_performance_pers_only_less_train_subset, linewidth=3, label="Personalized only less lambda",
-                 linestyle = "-", marker = marker_iterator_local.__next__())
-
-        plt.plot(x_tick, map_performance_non_pers_only_less_train_subset, linewidth=3, label="Non personalized only less lambda",
-                 linestyle = "-", marker = marker_iterator_local.__next__())
-
-        plt.plot(x_tick, map_performance_random_less, linewidth=3, label="Random less lambda",
-                 linestyle = "-", marker = marker_iterator_local.__next__())
-
-
-        plt.plot(x_tick, np.ones_like(x_tick)*results_run_non_pers["map"], linewidth=3, label="TopPop",
-                 linestyle = ":", marker = marker_iterator_local.__next__())
-
-        plt.plot(x_tick, np.ones_like(x_tick)*results_run_pers["map"], linewidth=3, label="Item KNN Collaborative",
-                 linestyle = "--", marker = marker_iterator_local.__next__())
-
-        legend = plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1), ncol=2)
-        legend = [legend]
-
-        plt.savefig("results/MAP_over_lambda_{}_{}_{}_train_on_subset{}".format(dataset_name,
-            personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME, discrminant_is),
-            additional_artists=legend, bbox_inches="tight")
-
-        plt.close()
+        #
+        #
+        #
+        # # Turn interactive plotting off
+        # plt.ioff()
+        #
+        # # Ensure it works even on SSH
+        # plt.switch_backend('agg')
+        #
+        #
+        # plt.xlabel('lambda threshold')
+        # plt.ylabel("MAP")
+        # plt.title("Recommender MAP for increasing lambda threshold")
+        #
+        # marker_list = ['o', 's', '^', 'v', 'D']
+        # marker_iterator_local = itertools.cycle(marker_list)
+        #
+        #
+        # plt.plot(x_tick, map_performance_hybrid_all, linewidth=3, label="Hybrid all",
+        #          linestyle = "-", marker = marker_iterator_local.__next__())
+        #
+        # plt.plot(x_tick, map_performance_pers_only_train_subset, linewidth=3, label="Personalized only",
+        #          linestyle = "-", marker = marker_iterator_local.__next__())
+        #
+        # plt.plot(x_tick, map_performance_pers_only_less_train_subset, linewidth=3, label="Personalized only less lambda",
+        #          linestyle = "-", marker = marker_iterator_local.__next__())
+        #
+        # plt.plot(x_tick, map_performance_non_pers_only_less_train_subset, linewidth=3, label="Non personalized only less lambda",
+        #          linestyle = "-", marker = marker_iterator_local.__next__())
+        #
+        # plt.plot(x_tick, map_performance_random_less, linewidth=3, label="Random less lambda",
+        #          linestyle = "-", marker = marker_iterator_local.__next__())
+        #
+        #
+        # plt.plot(x_tick, np.ones_like(x_tick)*results_run_non_pers["map"], linewidth=3, label="TopPop",
+        #          linestyle = ":", marker = marker_iterator_local.__next__())
+        #
+        # plt.plot(x_tick, np.ones_like(x_tick)*results_run_pers["map"], linewidth=3, label="Item KNN Collaborative",
+        #          linestyle = "--", marker = marker_iterator_local.__next__())
+        #
+        # legend = plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1), ncol=2)
+        # legend = [legend]
+        #
+        # plt.savefig("results/MAP_over_lambda_{}_{}_{}_train_on_subset{}".format(dataset_name,
+        #     personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME, discrminant_is),
+        #     additional_artists=legend, bbox_inches="tight")
+        #
+        # plt.close()
 
 
 import multiprocessing, traceback
@@ -524,7 +541,7 @@ import multiprocessing, traceback
 if __name__ == '__main__':
 
     dataReader_class_list = [
-        Movielens1MReader,
+        #Movielens1MReader,
         Movielens10MReader,
         #NetflixEnhancedReader,
         #BookCrossingReader,
