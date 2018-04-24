@@ -34,7 +34,7 @@ import pickle
 
 
 
-def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath ="results/"):
+def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, logFilePath ="results/"):
 
     from Recommenders.Lambda.Cython.Lambda_BPR_Cython import Lambda_BPR_Cython
 
@@ -73,6 +73,7 @@ def runParameterSearch(URM_train, URM_validation, dataReader_class, logFilePath 
     best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=10)
 
 
+    parameterSearch.evaluate_on_test(URM_test)
 
 
 
@@ -98,20 +99,42 @@ def read_data_split_and_search(dataReader_class):
     URM_test = dataSplitter.get_URM_test()
 
 
+    if dataReader_class is BookCrossingReader:
+
+        users_to_select = 0.15
+
+        select_users_mask = np.random.choice([True, False], size=URM_train.shape[0], p=[users_to_select, 1-users_to_select])
+
+        URM_train = URM_train[select_users_mask,:]
+        URM_validation = URM_validation[select_users_mask,:]
+        URM_test = URM_test[select_users_mask,:]
+
+        URM_all = URM_train + URM_validation + URM_test
+
+        URM_all = sps.csc_matrix(URM_all)
+
+        interactions_count = np.ediff1d(URM_all.indptr)
+
+        select_items_mask = interactions_count > 0
+
+        URM_train = URM_train[:,select_items_mask]
+        URM_validation = URM_validation[:,select_items_mask]
+        URM_test = URM_test[:,select_items_mask]
+
+        print("Selected users are: {}, selected items are {}".format(select_users_mask.sum(), select_items_mask.sum()))
 
 
-
-    runParameterSearch(URM_train, URM_validation, dataReader_class)
+    runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class)
 
 
 
 if __name__ == '__main__':
 
     dataReader_class_list = [
-        Movielens1MReader,
-        Movielens10MReader,
-        NetflixEnhancedReader,
-        #BookCrossingReader,
+        #Movielens1MReader,
+        #Movielens10MReader,
+        #NetflixEnhancedReader,
+        BookCrossingReader,
         #XingChallenge2016Reader
     ]
 
