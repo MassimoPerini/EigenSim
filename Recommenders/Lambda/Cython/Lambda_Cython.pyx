@@ -56,7 +56,7 @@ cdef class Lambda_BPR_Cython_Epoch:
     cdef int[:] URM_mask_transp_indices, URM_mask_transp_indptr #faster access to rows index with 1 of certain item (col)
     cdef double[:] lambda_learning # lambda learned
     cdef float[:,:] pseudoInv #pseudoinverse
-    cdef int enablePseudoInv
+    cdef int enablePseudoInv, force_positive
 
     cdef float[:,:] SVD_U, SVD_Vh
     cdef float[:] SVD_s
@@ -70,7 +70,7 @@ cdef class Lambda_BPR_Cython_Epoch:
     def __init__(self, URM_mask, URM_train, eligibleUsers, rcond = 0.1, k=10,
                  learning_rate = 0.05, alpha=0.0002,
                  batch_size = 1, sgd_mode='sgd', enablePseudoInv = False, initialize="zero",
-                 low_ram = True):
+                 low_ram = True, force_positive = True):
 
         super(Lambda_BPR_Cython_Epoch, self).__init__()
 
@@ -103,6 +103,7 @@ cdef class Lambda_BPR_Cython_Epoch:
 
         self.enablePseudoInv = enablePseudoInv
         self.low_ram = low_ram
+        self.force_positive = force_positive
 
         if enablePseudoInv:
 
@@ -317,8 +318,9 @@ cdef class Lambda_BPR_Cython_Epoch:
             gradient = gradient_copy / (sqrt(self.sgd_cache[sampled_user]) + 1e-8)
             self.lambda_learning[sampled_user] += (self.learning_rate * gradient)   #applico il gradiente all'utente campionato
 
-            if self.lambda_learning[sampled_user] <0 : # forzo a 0 il lambda se negativo
+            if self.force_positive and self.lambda_learning[sampled_user] <0 : # forzo a 0 il lambda se negativo
                 self.lambda_learning[sampled_user] = 0
+
             for index2 in range(len(usersPosItem)):     #applico il gradiente anche a coloro che hanno apprezzato i
                 currentUser = usersPosItem[index2]
                 if currentUser == sampled_user:
@@ -327,19 +329,23 @@ cdef class Lambda_BPR_Cython_Epoch:
                 self.sgd_cache[currentUser] += cacheUpdate
                 gradient = gradient_copy / (sqrt(self.sgd_cache[currentUser]) + 1e-8)
                 self.lambda_learning[currentUser] += (self.learning_rate * gradient)
-                if self.lambda_learning[currentUser]<0:
+
+                if self.force_positive and self.lambda_learning[currentUser]<0:
                     self.lambda_learning[currentUser] = 0
 
         else:
             self.lambda_learning[sampled_user] += (self.learning_rate * gradient_copy)
-            if self.lambda_learning[sampled_user] <0 :
+
+            if self.force_positive and self.lambda_learning[sampled_user] <0 :
                 self.lambda_learning[sampled_user] = 0
+
             for index2 in range(len(usersPosItem)):     #e confronto quanti item piacciono a coloro a cui piace quell'item
                 currentUser = usersPosItem[index2]
                 if currentUser == sampled_user:
                     continue
                 self.lambda_learning[currentUser] += (self.learning_rate * gradient_copy)
-                if self.lambda_learning[currentUser]<0:
+
+                if self.force_positive and self.lambda_learning[currentUser]<0:
                     self.lambda_learning[currentUser] = 0
 
 
