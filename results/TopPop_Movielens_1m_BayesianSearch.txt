@@ -1,0 +1,1 @@
+ParameterSearch: Best result evaluated on URM_test. Results: {'AUC': 0.2679143204151484, 'precision': 0.15693938390195752, 'recall': 0.033249921803822934, 'map': 0.09901613853005115, 'NDCG': 0.06040570428114093, 'MRR': 0.2910179971292921}

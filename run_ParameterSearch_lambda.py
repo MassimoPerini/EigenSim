@@ -42,29 +42,65 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
 
 
     ##########################################################################################################
+    #
+    # recommender_class = Lambda_BPR_Cython
+    #
+    # parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    #
+    # hyperparamethers_range_dictionary = {}
+    # hyperparamethers_range_dictionary["pseudoInv"] = [True]
+    # hyperparamethers_range_dictionary["epochs"] = [5]
+    # hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.10, 0.3, 0.02))
+    # hyperparamethers_range_dictionary["lambda_2"] = [1e+4, 1e+3, 1e+2, 1e+1, 0.0, 1e-2, 1e-3, 1e-4, 1e-5]
+    # hyperparamethers_range_dictionary["low_ram"] = [False]
+    # hyperparamethers_range_dictionary["learning_rate"] = [0.01]
+    # hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad"]
+    # hyperparamethers_range_dictionary["batch_size"] = [1]
+    # hyperparamethers_range_dictionary["force_positive"] = [False]
+    # hyperparamethers_range_dictionary["initialize"] = ["zero", "random"]#, "one", "random"]
+    #
+    # output_root_path = logFilePath + "Lambda_BPR_Cython_pinv" + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
+    #
+    #
+    # recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
+    #                          DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"save_eval":False},
+    #                          DictionaryKeys.FIT_POSITIONAL_ARGS: [],
+    #                          DictionaryKeys.FIT_KEYWORD_ARGS: {"URM_validation": URM_validation, "validation_every_n":1,
+    #                                                            "lower_validatons_allowed":5},
+    #                          DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
+    #
+    #
+    #
+    # best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=10)
+    #
+    #
+    # parameterSearch.evaluate_on_test(URM_test)
+
+
+    ##########################################################################################################
 
     recommender_class = Lambda_BPR_Cython
 
     parameterSearch = BayesianSearch(recommender_class, URM_validation)
 
     hyperparamethers_range_dictionary = {}
-    hyperparamethers_range_dictionary["pseudoInv"] = [True]
-    hyperparamethers_range_dictionary["epochs"] = [10]
-    hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.10, 0.3, 0.02))
+    hyperparamethers_range_dictionary["pseudoInv"] = [False]
+    hyperparamethers_range_dictionary["epochs"] = [5]
+    hyperparamethers_range_dictionary["lambda_2"] = [1e+4, 1e+3, 1e+2, 1e+1, 0.0, 1e-2, 1e-3, 1e-4, 1e-5]
     hyperparamethers_range_dictionary["low_ram"] = [False]
-    #hyperparamethers_range_dictionary["k"] = list(range(5,260,10))
     hyperparamethers_range_dictionary["learning_rate"] = [0.01]
     hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad"]
     hyperparamethers_range_dictionary["batch_size"] = [1]
+    hyperparamethers_range_dictionary["force_positive"] = [False]
     hyperparamethers_range_dictionary["initialize"] = ["zero", "random"]#, "one", "random"]
 
-    output_root_path = logFilePath + "Lambda_BPR_Cython" + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
+    output_root_path = logFilePath + "Lambda_BPR_Cython_transpose" + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
 
 
     recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
                              DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"save_eval":False},
                              DictionaryKeys.FIT_POSITIONAL_ARGS: [],
-                             DictionaryKeys.FIT_KEYWORD_ARGS: {"URM_test": URM_validation, "validation_every_n":1,
+                             DictionaryKeys.FIT_KEYWORD_ARGS: {"URM_validation": URM_validation, "validation_every_n":1,
                                                                "lower_validatons_allowed":5},
                              DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
 
@@ -74,7 +110,6 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
 
 
     parameterSearch.evaluate_on_test(URM_test)
-
 
 
 
@@ -131,10 +166,10 @@ def read_data_split_and_search(dataReader_class):
 if __name__ == '__main__':
 
     dataReader_class_list = [
-        #Movielens1MReader,
+        Movielens1MReader,
         #Movielens10MReader,
         #NetflixEnhancedReader,
-        BookCrossingReader,
+        #BookCrossingReader,
         #XingChallenge2016Reader
     ]
 

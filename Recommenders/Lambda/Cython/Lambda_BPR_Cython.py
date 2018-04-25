@@ -68,7 +68,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
     #---------FIT
 
     #do the iterations
-    def fit_alreadyInitialized(self, epochs=30, URM_test=None,
+    def fit_alreadyInitialized(self, epochs=30, URM_validation=None,
                                batch_size=1000, validation_every_n=1,
                                stop_on_validation = True, lower_validatons_allowed = 2, validation_metric = "map"):
 
@@ -109,11 +109,11 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
                 #init in the 0 epoch
                 self.cythonEpoch.epochIteration_Cython()
 
-            if (URM_test is not None) and (currentEpoch % validation_every_n == 0):
+            if (URM_validation is not None) and (currentEpoch % validation_every_n == 0):
 
                 print("Evaluation begins")
 
-                results_run = self.launch_evaluation(URM_test)
+                results_run = self.launch_evaluation(URM_validation)
                 self.doSaveLambdaAndEvaluate(currentEpoch, results_run)
 
                 #-------- early stopping
@@ -153,10 +153,10 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
         sys.stdout.flush()
 
 
-    def fit(self, epochs=30, URM_test=None, minRatingsPerUser=1, topK = 300,
+    def fit(self, epochs=30, URM_validation=None, minRatingsPerUser=1, topK = 300,
             batch_size=1, validation_every_n=1,
-            alpha=0, learning_rate=0.0002, sgd_mode='sgd', initialize = "zero", rcond=0.2, k=10,
-            pseudoInv=False, lower_validatons_allowed=10, low_ram=True):
+            lambda_2=0, learning_rate=0.0002, sgd_mode='sgd', initialize = "zero", rcond=0.2, k=10,
+            pseudoInv=False, lower_validatons_allowed=10, low_ram=True, force_positive = False):
 
         self.topK = topK
         self.rcond = rcond
@@ -184,7 +184,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
         self.eligibleUsers = np.array(self.eligibleUsers, dtype=np.int64)
         self.initialize = initialize
-        self.alpha = alpha
+        self.lambda_2 = lambda_2
         self.learning_rate = learning_rate
 
         from Recommenders.Lambda.Cython.Lambda_Cython import Lambda_BPR_Cython_Epoch
@@ -192,17 +192,17 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
         # Cython
         if self.pseudoInv:
             self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.URM_train, self.eligibleUsers, learning_rate=learning_rate, batch_size=batch_size, sgd_mode=sgd_mode,
-                                                       alpha=alpha, enablePseudoInv=self.pseudoInv, low_ram = low_ram, initialize=initialize, rcond=rcond, k=k)
+                                                       lambda_2=lambda_2, enablePseudoInv=self.pseudoInv, low_ram = low_ram, initialize=initialize, rcond=rcond, k=k)
 
-            self.fit_alreadyInitialized(epochs=epochs, URM_test=URM_test, batch_size=batch_size,
+            self.fit_alreadyInitialized(epochs=epochs, URM_validation=URM_validation, batch_size=batch_size,
                                         validation_every_n=validation_every_n,
                                         lower_validatons_allowed=lower_validatons_allowed)
 
         else:
             self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.URM_train, self.eligibleUsers, learning_rate=learning_rate,
-                                                       batch_size=batch_size, sgd_mode=sgd_mode, alpha=alpha, enablePseudoInv=self.pseudoInv, initialize=initialize)
+                                                       batch_size=batch_size, sgd_mode=sgd_mode, lambda_2=lambda_2, enablePseudoInv=self.pseudoInv, initialize=initialize)
 
-            self.fit_alreadyInitialized(epochs=epochs, URM_test=URM_test, batch_size=batch_size,
+            self.fit_alreadyInitialized(epochs=epochs, URM_validation=URM_validation, batch_size=batch_size,
                                         validation_every_n=validation_every_n, lower_validatons_allowed=lower_validatons_allowed)
 
 
@@ -235,7 +235,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
         print("Test case: {}\nResults {}\n".format(current_config, results_run))
 
         if self.save_lambda:
-            np.savetxt('out/lambdas/alpha' + str(self.alpha) + 'learning_rate' + str(self.learning_rate) + 'epoch' + str(
+            np.savetxt('out/lambdas/lambda_2' + str(self.lambda_2) + 'learning_rate' + str(self.learning_rate) + 'epoch' + str(
                 currentEpoch) + '.txt', self.lambda_incremental, delimiter=',')
 
         #Saving evaluation on file
@@ -244,7 +244,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
             if self.pseudoInv:
                 t = "_pseudoinv_rcond"+str(self.rcond)
 
-            with open('out/evaluations/'+"nnz_"+str(self.URM_train.nnz)+str(t)+'_alpha' + str(self.alpha) + '_learning_rate' + str(self.learning_rate) +"_"+ str(self.sgd_mode) +"_"+str(self.initialize)+ '.txt', 'a') as out:
+            with open('out/evaluations/'+"nnz_"+str(self.URM_train.nnz)+str(t)+'_lambda_2' + str(self.lambda_2) + '_learning_rate' + str(self.learning_rate) +"_"+ str(self.sgd_mode) +"_"+str(self.initialize)+ '.txt', 'a') as out:
                 out.write('Epoch: ' + str(currentEpoch) +' ==> '+ str(results_run) + '\n')
 
     
