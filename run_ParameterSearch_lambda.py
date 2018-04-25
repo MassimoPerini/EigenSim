@@ -51,7 +51,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     hyperparamethers_range_dictionary["pseudoInv"] = [True]
     hyperparamethers_range_dictionary["epochs"] = [10]
     hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.10, 0.3, 0.02))
-    hyperparamethers_range_dictionary["lambda_2"] = [1e+4, 1e+3, 1e+2, 1e+1, 0.0, 1e-2, 1e-3, 1e-4, 1e-5]
+    hyperparamethers_range_dictionary["lambda_2"] = [1e+4, 1e+3, 1e+2, 1e+1, 1.0, 1e-2, 1e-3, 1e-4, 1e-5, 0.0]
     hyperparamethers_range_dictionary["low_ram"] = [False]
     hyperparamethers_range_dictionary["learning_rate"] = [0.01]
     hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad"]
@@ -86,7 +86,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     hyperparamethers_range_dictionary = {}
     hyperparamethers_range_dictionary["pseudoInv"] = [False]
     hyperparamethers_range_dictionary["epochs"] = [10]
-    hyperparamethers_range_dictionary["lambda_2"] = [1e+4, 1e+3, 1e+2, 1e+1, 0.0, 1e-2, 1e-3, 1e-4, 1e-5]
+    hyperparamethers_range_dictionary["lambda_2"] = [1e+4, 1e+3, 1e+2, 1e+1, 1.0, 1e-2, 1e-3, 1e-4, 1e-5, 0.0]
     hyperparamethers_range_dictionary["low_ram"] = [False]
     hyperparamethers_range_dictionary["learning_rate"] = [0.01]
     hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad"]

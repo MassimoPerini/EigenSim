@@ -302,58 +302,70 @@ class DataSplitter_Warm(DataSplitter):
 
         count_users_to_remove = np.logical_not(user_to_preserve).sum()
 
-        print("DataSplitter: removing {} of {} ({:.2f} %) users not having interactions in all splits".format(
+        print("DataSplitter: {} of {} ({:.2f} %) users not having interactions in all splits, balancing split....".format(
             count_users_to_remove, len(user_to_preserve), 100*count_users_to_remove/len(user_to_preserve)))
-
-
-        if splitProbability[0] != 0:
-            self.URM_train = self.URM_train[user_to_preserve,:]
-
-        if splitProbability[1] != 0:
-            self.URM_validation = self.URM_validation[user_to_preserve,:]
-
-        if splitProbability[2] != 0:
-            self.URM_test = self.URM_test[user_to_preserve,:]
-
 
 
         self.n_items = self.URM_train.shape[1]
         self.n_users = self.URM_train.shape[0]
 
-        #
-        # num_splits = sum(np.array(splitProbability)>0)
-        #
-        # for user_id in range(self.n_users):
-        #
-        #     start_user_position = URM.indptr[user_id]
-        #
-        #     user_profile = URM.indices[URM.indptr[user_id]:URM.indptr[user_id+1]]
-        #     user_ratings = URM.data[URM.indptr[user_id]:URM.indptr[user_id+1]]
-        #
-        #     if len(user_profile) < num_splits:
-        #         continue
-        #
-        #     sampled_indices = np.arange(len(user_profile), dtype=np.int)
-        #     available_indices = np.ones_like(sampled_indices)
-        #
-        #     initial_sample = np.random.choice(sampled_indices, num_splits, replace=False)
-        #     available_indices[initial_sample] = False
-        #
-        #     # set samples as in train, test, validation
-        #     if splitProbability[0] > 0:
-        #         # First element is in train
-        #         self.URM_test.data[start_user_position + initial_sample[0]] = 0
-        #         self.URM_validation.data[start_user_position + initial_sample[0]] = 0
-        #
-        #
-        #
-        #
-        #     # split the rest
-        #     sampled_indices = sampled_indices[available_indices]
-        #
-        #     split = np.random.choice([1, 2, 3], len(sampled_indices), p=splitProbability)
 
 
+        #############################################################
+
+        URM = URM.tocsr()
+
+        for user_id in range(URM.shape[0]):
+
+            if not user_to_preserve[user_id]:
+
+                start_user_position = URM.indptr[user_id]
+                end_user_position = URM.indptr[user_id+1]
+
+                user_profile = URM.indices[URM.indptr[user_id]:URM.indptr[user_id+1]]
+
+                indices_to_use_for_sampling = np.arange(len(user_profile), dtype=np.int)
+
+                np.random.shuffle(indices_to_use_for_sampling)
+
+                # Set an element for each split
+                el_index = 0
+
+                if splitProbability[0] != 0:
+                    split[start_user_position + indices_to_use_for_sampling[el_index]] = 1
+                    el_index += 1
+
+                if splitProbability[1] != 0:
+                    split[start_user_position + indices_to_use_for_sampling[el_index]] = 2
+                    el_index += 1
+
+                if splitProbability[2] != 0:
+                    split[start_user_position + indices_to_use_for_sampling[el_index]] = 3
+                    el_index += 1
+
+
+                remaining_elements_split = np.random.choice([1, 2, 3], len(user_profile)-el_index, p=splitProbability)
+
+                split[start_user_position + indices_to_use_for_sampling[el_index:]] = remaining_elements_split
+
+
+
+        URM = URM.tocoo()
+
+
+        trainMask = split == 1
+        self.URM_train = sps.coo_matrix((URM.data[trainMask], (URM.row[trainMask], URM.col[trainMask])), shape = shape)
+        self.URM_train = self.URM_train.tocsr()
+
+        testMask = split == 2
+
+        self.URM_test = sps.coo_matrix((URM.data[testMask], (URM.row[testMask], URM.col[testMask])), shape = shape)
+        self.URM_test = self.URM_test.tocsr()
+
+        validationMask = split == 3
+
+        self.URM_validation = sps.coo_matrix((URM.data[validationMask], (URM.row[validationMask], URM.col[validationMask])), shape = shape)
+        self.URM_validation = self.URM_validation.tocsr()
 
 
 
