@@ -8,8 +8,9 @@ Created on 12/01/18
 
 import scipy.sparse as sps
 import numpy as np
+import traceback
 
-from Recommenders.Base.Recommender_utils import check_matrix
+from Base.Recommender_utils import check_matrix
 
 
 
@@ -75,6 +76,11 @@ class DataSplitter(object):
             except FileNotFoundError:
 
                 print("DataSplitter: Split for dataset {} not found".format(dataReader_class))
+
+            except Exception:
+
+                print("DataSplitter: Reading split for dataset {} caused the following exception, skipping...".format(dataReader_class))
+                traceback.print_exc()
 
 
         print("DataSplitter: Generating new split")
@@ -219,6 +225,7 @@ class DataSplitter(object):
 class DataSplitter_Warm(DataSplitter):
     """
     This splitter performs a Holdout from the full URM splitting in train, test and validation
+    Ensures that every user has at least an interaction in all splits
     """
 
     SPLIT_SUBFOLDER = "warm/"
@@ -375,6 +382,7 @@ class DataSplitter_Warm(DataSplitter):
             sps.save_npz(data_path + "{}{}.npz".format(ICM_name, self.k_cores_name_suffix), getattr(dataReader, ICM_name))
 
         print("DataSplitter: Split complete")
+
 
 
 
@@ -804,7 +812,7 @@ class DataSplitter_ColdItems_WarmValidation(DataSplitter):
 
 
 
-from Recommenders.Base.Recommender_utils import reshapeSparse
+from Base.Recommender_utils import reshapeSparse
 
 
 class DataSplitter_ColdItems_ColdValidation(DataSplitter):
@@ -827,11 +835,15 @@ class DataSplitter_ColdItems_ColdValidation(DataSplitter):
 
     def selectColdItems(self, URM, splitProbability_test, minItemsPercentage):
 
+        assert URM.shape[1] > 0, "URM is empty"
+        assert URM.shape[1] >= 2, "URM contains too few elements"
+
         numGlobalInteractions = URM.nnz
         current_matrix_n_items = URM.shape[1]
 
 
-        numInteractionsPerItem = np.array(URM.sum(axis=0)).ravel()
+        URM = check_matrix(URM, "csr")
+        numInteractionsPerItem = np.ediff1d(URM.indptr)
 
 
         # Select cold items
