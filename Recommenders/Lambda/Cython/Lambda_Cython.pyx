@@ -545,6 +545,7 @@ cdef class Lambda_BPR_Cython_Epoch:
 
            W_sparse = sps.diags(np.array(self.lambda_learning)).dot(self.URM_train)
            W_sparse = self.URM_train.T.dot(W_sparse)
+           W_sparse.eliminate_zeros()
 
            return similarityMatrixTopK(W_sparse.T, k=TopK)
 
@@ -555,7 +556,7 @@ cdef class Lambda_BPR_Cython_Epoch:
 
             W_sparse = sps.diags(np.array(self.lambda_learning)).dot(np.array(self.pseudoInv).T)
             W_sparse = self.URM_train.T.dot(W_sparse)
-            W_sparse.eliminate_zeros()
+
             #W_sparse = np.array(self.pseudoInv).dot(sps.diags(np.array(self.lambda_learning)).dot(self.URM_train))
 
             return similarityMatrixTopK(W_sparse.T, k=TopK)
