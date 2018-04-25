@@ -36,8 +36,6 @@ cdef class MF_BPR_Cython_Epoch:
     cdef int n_users, n_items, n_factors
     cdef int numPositiveIteractions
 
-    cdef int useAdaGrad, rmsprop
-
     cdef float learning_rate, user_reg, positive_reg, negative_reg
 
     cdef int batch_size
@@ -47,9 +45,21 @@ cdef class MF_BPR_Cython_Epoch:
     cdef double[:,:] W, H
 
 
+    # Adaptive gradient
+    cdef int useAdaGrad, useRmsprop, useAdam
+
+    cdef double [:] sgd_cache_I, sgd_cache_U
+    cdef double gamma
+
+    cdef double [:] sgd_cache_I_momentum_1, sgd_cache_I_momentum_2
+    cdef double [:] sgd_cache_U_momentum_1, sgd_cache_U_momentum_2
+    cdef double beta_1, beta_2, beta_1_power_t, beta_2_power_t
+    cdef double momentum_1, momentum_2
+
+
     def __init__(self, URM_mask, n_factors = 10,
                  learning_rate = 0.01, user_reg = 0.0, positive_reg = 0.0, negative_reg = 0.0,
-                 batch_size = 1, sgd_mode='sgd'):
+                 batch_size = 1, sgd_mode='sgd', gamma=0.995, beta_1=0.9, beta_2=0.999):
 
         super(MF_BPR_Cython_Epoch, self).__init__()
 
@@ -70,13 +80,45 @@ cdef class MF_BPR_Cython_Epoch:
 
 
 
+        self.useAdaGrad = False
+        self.useRmsprop = False
+        self.useAdam = False
+
+
         if sgd_mode=='adagrad':
             self.useAdaGrad = True
+            self.sgd_cache_I = np.zeros((self.n_items), dtype=np.float64)
+            self.sgd_cache_U = np.zeros((self.n_users), dtype=np.float64)
+
+        elif sgd_mode=='rmsprop':
+            self.useRmsprop = True
+            self.sgd_cache_I = np.zeros((self.n_items), dtype=np.float64)
+            self.sgd_cache_U = np.zeros((self.n_users), dtype=np.float64)
+
+            # Gamma default value suggested by Hinton
+            # self.gamma = 0.9
+            self.gamma = gamma
+
+        elif sgd_mode=='adam':
+            self.useAdam = True
+            self.sgd_cache_I_momentum_1 = np.zeros((self.n_items), dtype=np.float64)
+            self.sgd_cache_I_momentum_2 = np.zeros((self.n_items), dtype=np.float64)
+
+            self.sgd_cache_U_momentum_1 = np.zeros((self.n_users), dtype=np.float64)
+            self.sgd_cache_U_momentum_2 = np.zeros((self.n_users), dtype=np.float64)
+
+            # Default value suggested by the original paper
+            # beta_1=0.9, beta_2=0.999
+            self.beta_1 = beta_1
+            self.beta_2 = beta_2
+            self.beta_1_power_t = beta_1
+            self.beta_2_power_t = beta_2
+
         elif sgd_mode=='sgd':
             pass
         else:
             raise ValueError(
-                "SGD_mode not valid. Acceptable values are: 'sgd', 'adagrad', 'rmsprop'. Provided value was '{}'".format(
+                "SGD_mode not valid. Acceptable values are: 'sgd', 'adagrad', 'rmsprop', 'adam'. Provided value was '{}'".format(
                     sgd_mode))
 
 
@@ -111,21 +153,8 @@ cdef class MF_BPR_Cython_Epoch:
 
         cdef int numSeenItems
 
-        # Variables for AdaGrad and RMSprop
-        cdef double [:] sgd_cache_item_factors, sgd_cache_user_factors
-        cdef double cacheUpdate
-        cdef float gamma
 
         cdef double H_i, H_j, W_u
-
-
-        if self.useAdaGrad:
-             sgd_cache_item_factors = np.zeros((self.n_items), dtype=float)
-             sgd_cache_user_factors = np.zeros((self.n_users), dtype=float)
-
-        # elif self.rmsprop:
-        #     sgd_cache = np.zeros((self.n_items), dtype=float)
-        #     gamma = 0.001
 
 
         cdef long start_time_epoch = time.time()
@@ -150,27 +179,14 @@ cdef class MF_BPR_Cython_Epoch:
             sigmoid_item = 1 / (1 + exp(x_uij))
             sigmoid_user = sigmoid_item
 
+            #print(sample)
+
+            sigmoid_item_i = self.adaptive_gradient_item(sigmoid_item, i)
+            sigmoid_item_j = self.adaptive_gradient_item(sigmoid_item, j)
+
+            sigmoid_user = self.adaptive_gradient_user(sigmoid_user, u)
 
 
-
-            if self.useAdaGrad:
-                cacheUpdate = sigmoid_item ** 2
-
-                sgd_cache_item_factors[i] += cacheUpdate
-                sgd_cache_item_factors[j] += cacheUpdate
-                sgd_cache_user_factors[u] += cacheUpdate
-
-                sigmoid_item = sigmoid_item / (sqrt(sgd_cache_item_factors[i]) + 1e-8)
-                sigmoid_user = sigmoid_user / (sqrt(sgd_cache_user_factors[u]) + 1e-8)
-
-            #   INCOMPATIBLE CODE
-            # elif self.rmsprop:
-            #     cacheUpdate = sgd_cache[i] * gamma + (1 - gamma) * gradient ** 2
-            #
-            #     sgd_cache[i] = cacheUpdate
-            #     sgd_cache[j] = cacheUpdate
-            #
-            #     gradient = gradient / (sqrt(sgd_cache[i]) + 1e-8)
 
 
             for index in range(self.n_factors):
@@ -181,10 +197,10 @@ cdef class MF_BPR_Cython_Epoch:
                 W_u = self.W[u, index]
 
                 self.W[u, index] += self.learning_rate * (sigmoid_user * ( H_i - H_j ) - self.user_reg * W_u)
-                self.H[i, index] += self.learning_rate * (sigmoid_item * ( W_u ) - self.positive_reg * H_i)
-                self.H[j, index] += self.learning_rate * (sigmoid_item * (-W_u ) - self.negative_reg * H_j)
+                self.H[i, index] += self.learning_rate * (sigmoid_item_i * ( W_u ) - self.positive_reg * H_i)
+                self.H[j, index] += self.learning_rate * (sigmoid_item_j * (-W_u ) - self.negative_reg * H_j)
 
-
+            #input()
 
             if((numCurrentBatch%5000000==0 and not numCurrentBatch==0) or numCurrentBatch==totalNumberOfBatch-1):
                 print("Processed {} ( {:.2f}% ) in {:.2f} seconds. Sample per second: {:.0f}".format(
@@ -205,6 +221,91 @@ cdef class MF_BPR_Cython_Epoch:
 
     def get_H(self):
         return np.array(self.H)
+
+
+
+    cdef double adaptive_gradient_item(self, double gradient, long item_id):
+
+
+        cdef double gradient_update
+
+
+        if self.useAdaGrad:
+            self.sgd_cache_I[item_id] += gradient ** 2
+
+            gradient_update = gradient / (sqrt(self.sgd_cache_I[item_id]) + 1e-8)
+
+
+        elif self.useRmsprop:
+            self.sgd_cache_I[item_id] = self.sgd_cache_I[item_id] * self.gamma + (1 - self.gamma) * gradient ** 2
+
+            gradient_update = gradient / (sqrt(self.sgd_cache_I[item_id]) + 1e-8)
+
+
+        elif self.useAdam:
+
+            self.sgd_cache_I_momentum_1[item_id] = \
+                self.sgd_cache_I_momentum_1[item_id] * self.beta_1 + (1 - self.beta_1) * gradient
+
+            self.sgd_cache_I_momentum_2[item_id] = \
+                self.sgd_cache_I_momentum_2[item_id] * self.beta_2 + (1 - self.beta_2) * gradient**2
+
+
+            self.momentum_1 = self.sgd_cache_I_momentum_1[item_id]/ (1 - self.beta_1_power_t)
+            self.momentum_2 = self.sgd_cache_I_momentum_2[item_id]/ (1 - self.beta_2_power_t)
+
+            gradient_update = self.momentum_1/ (sqrt(self.momentum_2) + 1e-8)
+
+
+        else:
+
+            gradient_update = gradient
+
+
+        return gradient_update
+
+
+
+    cdef double adaptive_gradient_user(self, double gradient, long user_id):
+
+
+        cdef double gradient_update
+
+        if self.useAdaGrad:
+            self.sgd_cache_U[user_id] += gradient ** 2
+
+            gradient_update = gradient / (sqrt(self.sgd_cache_U[user_id]) + 1e-8)
+
+
+        elif self.useRmsprop:
+            self.sgd_cache_U[user_id] = self.sgd_cache_U[user_id] * self.gamma + (1 - self.gamma) * gradient ** 2
+
+            gradient_update = gradient / (sqrt(self.sgd_cache_U[user_id]) + 1e-8)
+
+
+        elif self.useAdam:
+
+            self.sgd_cache_U_momentum_1[user_id] = \
+                self.sgd_cache_U_momentum_1[user_id] * self.beta_1 + (1 - self.beta_1) * gradient
+
+            self.sgd_cache_U_momentum_2[user_id] = \
+                self.sgd_cache_U_momentum_2[user_id] * self.beta_2 + (1 - self.beta_2) * gradient**2
+
+
+            self.momentum_1 = self.sgd_cache_U_momentum_1[user_id]/ (1 - self.beta_1_power_t)
+            self.momentum_2 = self.sgd_cache_U_momentum_2[user_id]/ (1 - self.beta_2_power_t)
+
+            gradient_update = self.momentum_1/ (sqrt(self.momentum_2) + 1e-8)
+
+
+        else:
+
+            gradient_update = gradient
+
+
+        return gradient_update
+
+
 
 
 

@@ -56,7 +56,7 @@ class MF_BPR_Cython(Recommender):
 
     def fit(self, epochs=30, logFile=None, URM_test=None, filterTopPop = False, filterCustomItems = np.array([], dtype=np.int), minRatingsPerUser=1,
             batch_size = 1000, num_factors=10,
-            learning_rate = 0.05, sgd_mode='sgd', user_reg = 0.0, positive_reg = 0.0, negative_reg = 0.0,
+            learning_rate = 0.01, sgd_mode='sgd', user_reg = 0.0, positive_reg = 0.0, negative_reg = 0.0,
             stop_on_validation = False, lower_validatons_allowed = 5, validation_metric = "map",
             validation_function = None, validation_every_n = 1):
 
