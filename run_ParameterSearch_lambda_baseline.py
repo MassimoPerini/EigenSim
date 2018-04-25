@@ -45,6 +45,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     from Recommenders.GraphBased.P3alpha import P3alphaRecommender
     from Recommenders.SLIM_ElasticNet.Cython.SLIM_Structure_Cython import SLIM_Structure_BPR_Cython, SLIM_Structure_MSE_Cython
     from Recommenders.MatrixFactorization.Cython.MF_BPR_Cython import MF_BPR_Cython
+    from Recommenders.MatrixFactorization.MatrixFactorization_RMSE import FunkSVD
     from Recommenders.SLIM_BPR.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
 
 
@@ -277,33 +278,59 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     # pickle.dump(best_parameters, open(logFilePath + recommender_class.RECOMMENDER_NAME + "_best_parameters", "wb"), protocol=pickle.HIGHEST_PROTOCOL)
     #
     # ##########################################################################################################
+    #
+    # recommender_class = MF_BPR_Cython
+    # parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    #
+    # hyperparamethers_range_dictionary = {}
+    # hyperparamethers_range_dictionary["num_factors"] = [5, 10, 30, 50, 100]
+    # hyperparamethers_range_dictionary["epochs"] = [500]
+    # hyperparamethers_range_dictionary["batch_size"] = [1]
+    # hyperparamethers_range_dictionary["user_reg"] = [0.0]#, 1e-2, 1e-3, 1e-4, 1e-5]
+    # hyperparamethers_range_dictionary["positive_reg"] = [0.0]#, 1e-2, 1e-3, 1e-4, 1e-5]
+    # hyperparamethers_range_dictionary["negative_reg"] = [0.0]#, 1e-2, 1e-3, 1e-4, 1e-5]
+    # hyperparamethers_range_dictionary["learning_rate"] = [0.005]
+    # hyperparamethers_range_dictionary["sgd_mode"] = ["adam"]
+    #
+    # output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
+    #
+    # recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
+    #                          DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"positive_threshold": 3, "URM_validation": URM_validation},
+    #                          DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
+    #                          DictionaryKeys.FIT_KEYWORD_ARGS: {"validation_every_n":2, "stop_on_validation":True, "lower_validatons_allowed":30},
+    #                          DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
+    #
+    #
+    # best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=30)
+    #
+    # parameterSearch.evaluate_on_test(URM_test)
+    #
 
-    recommender_class = MF_BPR_Cython
+    #########################################################################################################
+
+
+    recommender_class = FunkSVD
     parameterSearch = BayesianSearch(recommender_class, URM_validation)
 
     hyperparamethers_range_dictionary = {}
     hyperparamethers_range_dictionary["num_factors"] = [5, 10, 30, 50, 100]
-    hyperparamethers_range_dictionary["epochs"] = [500]
-    hyperparamethers_range_dictionary["batch_size"] = [1]
-    hyperparamethers_range_dictionary["user_reg"] = [0.0]#, 1e-2, 1e-3, 1e-4, 1e-5]
-    hyperparamethers_range_dictionary["positive_reg"] = [0.0]#, 1e-2, 1e-3, 1e-4, 1e-5]
-    hyperparamethers_range_dictionary["negative_reg"] = [0.0]#, 1e-2, 1e-3, 1e-4, 1e-5]
-    hyperparamethers_range_dictionary["learning_rate"] = [0.005]
-    hyperparamethers_range_dictionary["sgd_mode"] = ["adam"]
+    hyperparamethers_range_dictionary["epochs"] = [5, 10, 30, 50, 100, 150, 200]
+    hyperparamethers_range_dictionary["reg"] = [0.0, 1e-2, 1e-3, 1e-4, 1e-5]
+    hyperparamethers_range_dictionary["learning_rate"] = [1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7]
+
 
     output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
 
     recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
-                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"positive_threshold": 3, "URM_validation": URM_validation},
+                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {},
                              DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
-                             DictionaryKeys.FIT_KEYWORD_ARGS: {"validation_every_n":2, "stop_on_validation":True, "lower_validatons_allowed":30},
+                             DictionaryKeys.FIT_KEYWORD_ARGS: dict(),
                              DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
 
 
     best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=30)
 
     parameterSearch.evaluate_on_test(URM_test)
-
 
     #########################################################################################################
     #

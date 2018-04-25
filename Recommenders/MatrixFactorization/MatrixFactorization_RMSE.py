@@ -12,7 +12,7 @@ import numpy as np
 from Base.Recommender_utils import check_matrix
 
 from Base.Recommender import Recommender
-from MatrixFactorization.Cython.MF_RMSE import FunkSVD_sgd, AsySVD_sgd, AsySVD_compute_user_factors, BPRMF_sgd
+from Recommenders.MatrixFactorization.Cython.MF_RMSE import FunkSVD_sgd, AsySVD_sgd, AsySVD_compute_user_factors, BPRMF_sgd
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -33,6 +33,8 @@ class FunkSVD(Recommender):
     \operatornamewithlimits{argmin} \limits_{U,V}\frac{1}{2}||R - UV^T||^2_2 + \frac{\lambda}{2}(||U||^2_F + ||V||^2_F)
     Latent factors are initialized from a Normal distribution with given mean and std.
     '''
+
+    RECOMMENDER_NAME = "FunkSVD"
 
     # TODO: add global effects
     def __init__(self, URM_train):
@@ -190,6 +192,35 @@ class FunkSVD(Recommender):
 
         return ranking
 
+
+
+    def saveModel(self, folderPath, namePrefix = None, forceSparse = True):
+
+        print("{}: Saving model in folder '{}'".format(self.RECOMMENDER_NAME, folderPath))
+
+        if namePrefix is None:
+            namePrefix = self.RECOMMENDER_NAME
+
+        namePrefix += "_"
+
+        np.savez(folderPath + "{}.npz".format(namePrefix), W = self.U, H = self.V)
+
+
+
+    def loadModel(self, folderPath, namePrefix = None, forceSparse = True):
+
+
+        print("{}: Loading model from folder '{}'".format(self.RECOMMENDER_NAME, folderPath))
+
+        if namePrefix is None:
+            namePrefix = self.RECOMMENDER_NAME
+
+        namePrefix += "_"
+
+        npzfile = np.load(folderPath + "{}.npz".format(namePrefix))
+
+        for attrib_name in npzfile.files:
+             self.__setattr__(attrib_name, npzfile[attrib_name])
 
 
 
