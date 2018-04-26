@@ -162,6 +162,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
         self.rcond = rcond
         self.pseudoInv = pseudoInv
         self.sgd_mode = sgd_mode
+        self.force_positive = force_positive
         #
         # if self.pseudoInv:
         #     #self.pinv = np.linalg.pinv(self.URM_train.todense(), rcond = rcond) # calculate pseudoinv if pseudoinv is enabled
@@ -192,7 +193,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
         # Cython
         if self.pseudoInv:
             self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.URM_train, self.eligibleUsers, learning_rate=learning_rate, batch_size=batch_size, sgd_mode=sgd_mode,
-                                                       lambda_2=lambda_2, enablePseudoInv=self.pseudoInv, low_ram = low_ram, initialize=initialize, rcond=rcond, k=k)
+                                                       lambda_2=lambda_2, enablePseudoInv=self.pseudoInv, low_ram = low_ram, initialize=initialize, rcond=rcond, k=k, force_positive = force_positive)
 
             self.fit_alreadyInitialized(epochs=epochs, URM_validation=URM_validation, batch_size=batch_size,
                                         validation_every_n=validation_every_n,
@@ -200,7 +201,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
         else:
             self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.URM_train, self.eligibleUsers, learning_rate=learning_rate,
-                                                       batch_size=batch_size, sgd_mode=sgd_mode, lambda_2=lambda_2, enablePseudoInv=self.pseudoInv, initialize=initialize)
+                                                       batch_size=batch_size, sgd_mode=sgd_mode, lambda_2=lambda_2, enablePseudoInv=self.pseudoInv, initialize=initialize, force_positive=force_positive)
 
             self.fit_alreadyInitialized(epochs=epochs, URM_validation=URM_validation, batch_size=batch_size,
                                         validation_every_n=validation_every_n, lower_validatons_allowed=lower_validatons_allowed)

@@ -6,12 +6,12 @@ Created on 06/04/18
 @author: Maurizio Ferrari Dacrema
 """
 
-from Recommenders.Item_based_lambda_discriminant import ItemBasedLambdaDiscriminantRecommender
+from Item_based_lambda_discriminant import ItemBasedLambdaDiscriminantRecommender
 
-from Recommenders.Base.non_personalized import TopPop, Random
-from Recommenders.KNN.item_knn_CF import ItemKNNCFRecommender
-from Recommenders.GraphBased.P3alpha import P3alphaRecommender
-from Recommenders.GraphBased.RP3beta import RP3betaRecommender
+from Base.non_personalized import TopPop, Random
+from KNN.item_knn_CF import ItemKNNCFRecommender
+from GraphBased.P3alpha import P3alphaRecommender
+from GraphBased.RP3beta import RP3betaRecommender
 
 
 from data.NetflixEnhanced.NetflixEnhancedReader import NetflixEnhancedReader
@@ -30,7 +30,7 @@ import scipy.sparse as sps
 
 
 
-def plot_lambda_profile_length(user_lambda, URM_train, dataset_name):
+def plot_lambda_profile_length(user_lambda, URM_train, dataset_name, mode):
 
     # Turn interactive plotting off
     plt.ioff()
@@ -50,12 +50,12 @@ def plot_lambda_profile_length(user_lambda, URM_train, dataset_name):
 
     plt.scatter(profile_length[profile_length_user_id], user_lambda[profile_length_user_id], s=0.5)
 
-    plt.savefig("results/Profile_length_over_lambda_{}".format(dataset_name))
+    plt.savefig("results/Profile_length_over_lambda_{}_{}".format(dataset_name, mode))
 
     plt.close()
 
 
-from Recommenders.Base.metrics import roc_auc, precision, recall, map, ndcg, rr
+from Base.metrics import roc_auc, precision, recall, map, ndcg, rr
 
 
 def plot_lambda_user_performance(user_lambda, personalized_recommender, URM_train, URM_test, dataset_name):
@@ -232,7 +232,10 @@ def plot_hybrid_performance(dataReader_class):
     plot_hybrid_performance_inner(dataReader_class, True)
     #plot_hybrid_performance_inner(dataReader_class, False)
 
-def plot_hybrid_performance_inner(dataReader_class, use_lambda):
+
+
+
+def plot_hybrid_performance_inner(dataReader_class, use_lambda, mode = "pinv"):
 
     #dataReader_class = Movielens10MReader
 
@@ -275,13 +278,13 @@ def plot_hybrid_performance_inner(dataReader_class, use_lambda):
     dataset_name = dataReader_class.DATASET_SUBFOLDER[:-1]
 
     optimal_params = pickle.load(open("results/Lambda_BPR_Cython" +
-                                      "_{}_best_parameters".format(dataset_name), "rb"))
+                                      "_{}_{}_best_parameters".format(mode, dataset_name), "rb"))
 
 
 
     print("Using params: {}".format(optimal_params))
 
-    namePrefix = "Lambda_BPR_Cython_{}_best_model".format(dataset_name)
+    namePrefix = "Lambda_BPR_Cython_{}_{}_best_model".format(mode, dataset_name)
 
 
     try:
@@ -298,9 +301,14 @@ def plot_hybrid_performance_inner(dataReader_class, use_lambda):
         user_lambda = np.ediff1d(URM_train.indptr)
 
 
-    plot_lambda_profile_length(user_lambda, URM_train, dataset_name)
+    plot_lambda_profile_length(user_lambda, URM_train, dataset_name, mode)
+
+    return
+
     plot_lambda_user_performance(user_lambda, personalized_recommender, URM_train, URM_test, dataset_name)
     plot_lambda_user_performance_on_train(user_lambda, personalized_recommender, URM_train, dataset_name)
+
+
 
     hybrid_all.user_lambda = user_lambda.copy()
     hybrid_pers_only.user_lambda = user_lambda.copy()
@@ -541,7 +549,7 @@ import multiprocessing, traceback
 if __name__ == '__main__':
 
     dataReader_class_list = [
-        #Movielens1MReader,
+        Movielens1MReader,
         Movielens10MReader,
         #NetflixEnhancedReader,
         #BookCrossingReader,

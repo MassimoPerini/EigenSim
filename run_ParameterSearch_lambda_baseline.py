@@ -198,7 +198,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     #
     #
     # hyperparamethers_range_dictionary = {}
-    # hyperparamethers_range_dictionary["topK"] = [50, 100, 150, 200]
+    # hyperparamethers_range_dictionary["topK"] = [50, 100, 150, 200, 300, 500]
     # hyperparamethers_range_dictionary["alpha"] = list(np.arange(0.1, 2.1, 0.2))
     # hyperparamethers_range_dictionary["normalize_similarity"] = [True, False]
     #
@@ -224,7 +224,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     #
     #
     # hyperparamethers_range_dictionary = {}
-    # hyperparamethers_range_dictionary["topK"] = [50, 100, 150, 200]
+    # hyperparamethers_range_dictionary["topK"] = [50, 100, 150, 200, 300, 500]
     # hyperparamethers_range_dictionary["alpha"] = list(np.arange(0.1, 1.7, 0.2))
     # hyperparamethers_range_dictionary["beta"] = list(np.arange(0.1, 1.7, 0.2))
     # hyperparamethers_range_dictionary["normalize_similarity"] = [True, False]
@@ -307,30 +307,30 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     #
 
     #########################################################################################################
-
-
-    recommender_class = FunkSVD
-    parameterSearch = BayesianSearch(recommender_class, URM_validation)
-
-    hyperparamethers_range_dictionary = {}
-    hyperparamethers_range_dictionary["num_factors"] = [5, 10, 30, 50, 100]
-    hyperparamethers_range_dictionary["epochs"] = [5, 10, 30, 50, 100, 150, 200]
-    hyperparamethers_range_dictionary["reg"] = [0.0, 1e-2, 1e-3, 1e-4, 1e-5]
-    hyperparamethers_range_dictionary["learning_rate"] = [1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7]
-
-
-    output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
-
-    recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
-                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {},
-                             DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
-                             DictionaryKeys.FIT_KEYWORD_ARGS: dict(),
-                             DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
-
-
-    best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=30)
-
-    parameterSearch.evaluate_on_test(URM_test)
+    #
+    #
+    # recommender_class = FunkSVD
+    # parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    #
+    # hyperparamethers_range_dictionary = {}
+    # hyperparamethers_range_dictionary["num_factors"] = [5, 10, 30, 50, 100]
+    # hyperparamethers_range_dictionary["epochs"] = [5, 10, 30, 50, 100, 150, 200]
+    # hyperparamethers_range_dictionary["reg"] = [0.0, 1e-2, 1e-3, 1e-4, 1e-5]
+    # hyperparamethers_range_dictionary["learning_rate"] = [1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7]
+    #
+    #
+    # output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
+    #
+    # recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
+    #                          DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {},
+    #                          DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
+    #                          DictionaryKeys.FIT_KEYWORD_ARGS: dict(),
+    #                          DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
+    #
+    #
+    # best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=30)
+    #
+    # parameterSearch.evaluate_on_test(URM_test)
 
     #########################################################################################################
     #

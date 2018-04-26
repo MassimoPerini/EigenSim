@@ -6,9 +6,9 @@ Created on 06/04/18
 @author: Maurizio Ferrari Dacrema
 """
 
-from Recommenders.Recommender import Recommender
-from Recommenders.Recommender_utils import check_matrix
-from Recommenders.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
+from Base.Recommender import Recommender
+from Base.Recommender_utils import check_matrix
+from Base.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
 
 
 import numpy as np
@@ -45,7 +45,7 @@ class ItemBasedLambdaDiscriminantRecommender(Similarity_Matrix_Recommender, Reco
         if pseudoinverse_size >= 3*1e+9:
             input("Pseudoinverse size is: {:.2f} GB. Continue?".format(pseudoinverse_size/1e+9))
 
-        from Recommenders.Lambda.Cython.Lambda_BPR_Cython import Lambda_BPR_Cython
+        from Lambda.Cython.Lambda_BPR_Cython import Lambda_BPR_Cython
 
 
         lambda_cython = Lambda_BPR_Cython(self.URM_train, recompile_cython=False,

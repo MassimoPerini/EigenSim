@@ -34,47 +34,16 @@ import pickle
 
 
 
-def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, logFilePath ="results/"):
+def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, logFilePath ="results/", force_positive = True):
 
     from Lambda.Cython.Lambda_BPR_Cython import Lambda_BPR_Cython
 
     from ParameterTuning.AbstractClassSearch import DictionaryKeys
 
-
-    ##########################################################################################################
-    #
-    # recommender_class = Lambda_BPR_Cython
-    #
-    # parameterSearch = BayesianSearch(recommender_class, URM_validation)
-    #
-    # hyperparamethers_range_dictionary = {}
-    # hyperparamethers_range_dictionary["pseudoInv"] = [True]
-    # hyperparamethers_range_dictionary["epochs"] = [10]
-    # hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.10, 0.3, 0.02))
-    # hyperparamethers_range_dictionary["lambda_2"] = [1e+4, 1e+3, 1e+2, 1e+1, 1.0, 1e-2, 1e-3, 1e-4, 1e-5, 0.0]
-    # hyperparamethers_range_dictionary["low_ram"] = [False]
-    # hyperparamethers_range_dictionary["learning_rate"] = [0.01]
-    # hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad"]
-    # hyperparamethers_range_dictionary["batch_size"] = [1]
-    # hyperparamethers_range_dictionary["force_positive"] = [False]
-    # hyperparamethers_range_dictionary["initialize"] = ["zero", "random"]#, "one", "random"]
-    #
-    # output_root_path = logFilePath + "Lambda_BPR_Cython_pinv" + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
-    #
-    #
-    # recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
-    #                          DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"save_eval":False},
-    #                          DictionaryKeys.FIT_POSITIONAL_ARGS: [],
-    #                          DictionaryKeys.FIT_KEYWORD_ARGS: {"URM_validation": URM_validation, "validation_every_n":1,
-    #                                                            "lower_validatons_allowed":5},
-    #                          DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
-    #
-    #
-    #
-    # best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=10)
-    #
-    #
-    # parameterSearch.evaluate_on_test(URM_test)
+    if force_positive:
+        positive_name_string = "positive"
+    else:
+        positive_name_string = "negative"
 
 
     ##########################################################################################################
@@ -84,6 +53,44 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     parameterSearch = BayesianSearch(recommender_class, URM_validation)
 
     hyperparamethers_range_dictionary = {}
+    hyperparamethers_range_dictionary["topK"] = [100, 200, 300, 500]
+    hyperparamethers_range_dictionary["pseudoInv"] = [True]
+    hyperparamethers_range_dictionary["epochs"] = [10]
+    hyperparamethers_range_dictionary["rcond"] = list(np.arange(0.10, 0.3, 0.02))
+    hyperparamethers_range_dictionary["lambda_2"] = [1e+1, 1.0, 1e-2, 1e-3, 1e-4, 1e-5, 0.0]
+    hyperparamethers_range_dictionary["low_ram"] = [False]
+    hyperparamethers_range_dictionary["learning_rate"] = [0.01]
+    hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad"]
+    hyperparamethers_range_dictionary["batch_size"] = [1]
+    hyperparamethers_range_dictionary["force_positive"] = [force_positive]
+    hyperparamethers_range_dictionary["initialize"] = ["zero", "random"]#, "one", "random"]
+
+    output_root_path = logFilePath + "Lambda_BPR_Cython_pinv_{}_{}".format(positive_name_string, dataReader_class.DATASET_SUBFOLDER[:-1])
+
+
+    recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
+                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"save_eval":False},
+                             DictionaryKeys.FIT_POSITIONAL_ARGS: [],
+                             DictionaryKeys.FIT_KEYWORD_ARGS: {"URM_validation": URM_validation, "validation_every_n":1,
+                                                               "lower_validatons_allowed":5},
+                             DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
+
+
+
+    best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=10)
+
+
+    parameterSearch.evaluate_on_test(URM_test)
+
+
+    ##########################################################################################################
+
+    recommender_class = Lambda_BPR_Cython
+
+    parameterSearch = BayesianSearch(recommender_class, URM_validation)
+
+    hyperparamethers_range_dictionary = {}
+    hyperparamethers_range_dictionary["topK"] = [100, 200, 300, 500]
     hyperparamethers_range_dictionary["pseudoInv"] = [False]
     hyperparamethers_range_dictionary["epochs"] = [10]
     hyperparamethers_range_dictionary["lambda_2"] = [1e+4, 1e+3, 1e+2, 1e+1, 1.0, 1e-2, 1e-3, 1e-4, 1e-5, 0.0]
@@ -91,10 +98,10 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     hyperparamethers_range_dictionary["learning_rate"] = [0.01]
     hyperparamethers_range_dictionary["sgd_mode"] = ["adagrad"]
     hyperparamethers_range_dictionary["batch_size"] = [1]
-    hyperparamethers_range_dictionary["force_positive"] = [False]
+    hyperparamethers_range_dictionary["force_positive"] = [force_positive]
     hyperparamethers_range_dictionary["initialize"] = ["zero", "random"]#, "one", "random"]
 
-    output_root_path = logFilePath + "Lambda_BPR_Cython_transpose" + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
+    output_root_path = logFilePath + "Lambda_BPR_Cython_transpose_{}_{}".format(positive_name_string, dataReader_class.DATASET_SUBFOLDER[:-1])
 
 
     recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
@@ -136,7 +143,21 @@ def read_data_split_and_search(dataReader_class):
 
     if dataReader_class is BookCrossingReader:
 
-        users_to_select = 0.15
+        users_to_select = 0.25
+
+        URM_train.data[URM_train.data<=0] = 0.0
+        URM_train.eliminate_zeros()
+
+        URM_validation.data[URM_validation.data<=0] = 0.0
+        URM_validation.eliminate_zeros()
+
+        URM_test.data[URM_test.data<=0] = 0.0
+        URM_test.eliminate_zeros()
+
+
+
+
+
 
         select_users_mask = np.random.choice([True, False], size=URM_train.shape[0], p=[users_to_select, 1-users_to_select])
 
@@ -159,7 +180,8 @@ def read_data_split_and_search(dataReader_class):
         print("Selected users are: {}, selected items are {}".format(select_users_mask.sum(), select_items_mask.sum()))
 
 
-    runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class)
+    runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, force_positive = True)
+    runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, force_positive = False)
 
 
 
@@ -167,23 +189,23 @@ if __name__ == '__main__':
 
     dataReader_class_list = [
         Movielens1MReader,
-        #Movielens10MReader,
+        Movielens10MReader,
         #NetflixEnhancedReader,
-        #BookCrossingReader,
+        BookCrossingReader,
         #XingChallenge2016Reader
     ]
 
 
-    # pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
-    # resultList = pool.map(read_data_split_and_search, dataReader_class_list)
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
+    resultList = pool.map(read_data_split_and_search, dataReader_class_list)
 
-
-    for dataReader_class in dataReader_class_list:
-        try:
-            read_data_split_and_search(dataReader_class)
-        except Exception as e:
-
-            print("On recommender {} Exception {}".format(dataReader_class, str(e)))
-            traceback.print_exc()
-
+    #
+    # for dataReader_class in dataReader_class_list:
+    #     try:
+    #         read_data_split_and_search(dataReader_class)
+    #     except Exception as e:
+    #
+    #         print("On recommender {} Exception {}".format(dataReader_class, str(e)))
+    #         traceback.print_exc()
+    #
 
