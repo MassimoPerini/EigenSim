@@ -10,9 +10,9 @@ import numpy as np
 import scipy.sparse as sps
 import scipy.sparse.linalg
 
-from Recommenders.Recommender import Recommender
-from Recommenders.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
-from Recommenders.Base.Recommender_utils import check_matrix
+from Base.Recommender import Recommender
+from Base.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
+from Base.Recommender_utils import check_matrix
 
 
 class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
@@ -187,7 +187,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
         self.lambda_2 = lambda_2
         self.learning_rate = learning_rate
 
-        from Recommenders.Lambda.Cython.Lambda_Cython import Lambda_BPR_Cython_Epoch
+        from Lambda.Cython.Lambda_Cython import Lambda_BPR_Cython_Epoch
 
         # Cython
         if self.pseudoInv:

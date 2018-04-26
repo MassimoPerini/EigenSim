@@ -15,7 +15,7 @@ import time
 import sys
 import scipy.sparse.linalg
 
-from Recommenders.Base.Recommender_utils import similarityMatrixTopK
+from Base.Recommender_utils import similarityMatrixTopK
 
 from cpython.array cimport array, clone
 from libc.math cimport exp, sqrt

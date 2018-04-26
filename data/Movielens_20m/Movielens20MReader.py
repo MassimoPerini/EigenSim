@@ -13,7 +13,7 @@ import zipfile
 
 from data.DataReader import DataReader, reconcile_mapper_with_removed_tokens
 from data.URM_Dense_K_Cores import select_k_cores
-from Recommenders.Base.Recommender_utils import reshapeSparse
+from Base.Recommender_utils import reshapeSparse
 
 
 class Movielens20MReader(DataReader):

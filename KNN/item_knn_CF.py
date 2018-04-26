@@ -6,16 +6,16 @@ Created on 23/10/17
 @author: Maurizio Ferrari Dacrema
 """
 
-from Recommenders.Base.Recommender import Recommender
-from Recommenders.Base.Recommender_utils import check_matrix
-from Recommenders.Base.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
+from Base.Recommender import Recommender
+from Base.Recommender_utils import check_matrix
+from Base.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
 
 try:
-    from Recommenders.Base.Cython.cosine_similarity import Cosine_Similarity
+    from Base.Cython.cosine_similarity import Cosine_Similarity
     #from Base.Cython.cosine_similarity_prune import Cosine_Similarity
 except ImportError:
     print("Unable to load Cython Cosine_Similarity, reverting to Python")
-    from Recommenders.Base.cosine_similarity import Cosine_Similarity
+    from Base.cosine_similarity import Cosine_Similarity
 
 
 class ItemKNNCFRecommender(Similarity_Matrix_Recommender, Recommender):

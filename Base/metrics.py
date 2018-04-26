@@ -1,8 +1,10 @@
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 
 @author: Massimo Quadrana
 """
+
 
 import numpy as np
 import unittest
@@ -23,6 +25,20 @@ def roc_auc(is_relevant):
         auc_score /= (pos_ranks.shape[0] * neg_ranks.shape[0])
     assert 0 <= auc_score <= 1, auc_score
     return auc_score
+
+
+
+def arhr(is_relevant):
+    # average reciprocal hit-rank (ARHR)
+    # pag 17
+    # http://glaros.dtc.umn.edu/gkhome/fetch/papers/itemrsTOIS04.pdf
+
+    p_reciprocal = 1/np.arange(1,len(is_relevant)+1, 1.0, dtype=np.float64)
+    arhr_score = is_relevant.dot(p_reciprocal)
+
+    assert 0 <= arhr_score <= p_reciprocal.sum(), arhr_score
+    return arhr_score
+
 
 
 def precision(is_relevant):
@@ -65,10 +81,16 @@ def ndcg(ranked_list, pos_items, relevance=None, at=None):
     if relevance is None:
         relevance = np.ones_like(pos_items)
     assert len(relevance) == pos_items.shape[0]
+
+    # Create a dictionary associating item_id to its relevance
     it2rel = {it: r for it, r in zip(pos_items, relevance)}
     rank_scores = np.asarray([it2rel.get(it, 0.0) for it in ranked_list[:at]], dtype=np.float32)
     ideal_dcg = dcg(np.sort(relevance)[::-1])
     rank_dcg = dcg(rank_scores)
+
+    if rank_dcg == 0.0:
+        return 0.0
+
     ndcg_ = rank_dcg / ideal_dcg
     # assert 0 <= ndcg_ <= 1, (rank_dcg, ideal_dcg, ndcg_)
     return ndcg_

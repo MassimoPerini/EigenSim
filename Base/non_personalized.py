@@ -7,8 +7,8 @@
 
 import numpy as np
 import scipy.sparse as sps
-from Recommenders.Base.Recommender import Recommender
-from Recommenders.Base.Recommender_utils import check_matrix
+from Base.Recommender import Recommender
+from Base.Recommender_utils import check_matrix
 
 
 class TopPop(Recommender):

@@ -162,7 +162,7 @@ def urllretrieve_reporthook(count, block_size, total_size):
 
 
 
-from Recommenders.Base.Recommender_utils import check_matrix
+from Base.Recommender_utils import check_matrix
 
 def removeFeatures(ICM, minOccurrence = 5, maxPercOccurrence = 0.30, reconcile_mapper = None):
     """
