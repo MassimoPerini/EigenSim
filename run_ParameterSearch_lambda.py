@@ -18,6 +18,7 @@ from data.Movielens_1m.Movielens1MReader import Movielens1MReader
 from data.Movielens_10m.Movielens10MReader import Movielens10MReader
 from data.Movielens_20m.Movielens20MReader import Movielens20MReader
 from data.BookCrossing.BookCrossingReader import BookCrossingReader
+from data.XingChallenge2016.XingChallenge2016Reader import XingChallenge2016Reader
 
 
 from ParameterTuning.BayesianSearch import BayesianSearch
@@ -141,9 +142,15 @@ def read_data_split_and_search(dataReader_class):
     URM_test = dataSplitter.get_URM_test()
 
 
-    if dataReader_class is BookCrossingReader:
+    if dataReader_class is BookCrossingReader or dataReader_class is XingChallenge2016Reader:
 
-        users_to_select = 0.25
+        if dataReader_class is BookCrossingReader:
+            users_to_select = 0.35
+
+        elif dataReader_class is XingChallenge2016Reader:
+            users_to_select = 0.03
+
+
 
         URM_train.data[URM_train.data<=0] = 0.0
         URM_train.eliminate_zeros()
@@ -196,8 +203,8 @@ if __name__ == '__main__':
     ]
 
 
-    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
-    resultList = pool.map(read_data_split_and_search, dataReader_class_list)
+    # pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
+    # resultList = pool.map(read_data_split_and_search, dataReader_class_list)
 
     #
     # for dataReader_class in dataReader_class_list:
@@ -207,5 +214,7 @@ if __name__ == '__main__':
     #
     #         print("On recommender {} Exception {}".format(dataReader_class, str(e)))
     #         traceback.print_exc()
-    #
 
+
+
+    read_data_split_and_search(XingChallenge2016Reader)

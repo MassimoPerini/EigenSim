@@ -570,16 +570,41 @@ cdef class Lambda_BPR_Cython_Epoch:
         cdef int[:] cols = np.zeros((self.n_items*TopK,), dtype=np.int32)
         cdef long sparse_data_pointer = 0
 
+        #
+        # if not self.enablePseudoInv:
+        #     URM_train_lambda = sps.diags(np.array(self.lambda_learning)).dot(self.URM_train)
+        #
+        # elif not self.low_ram:
+        #     pseudoInv_lambda = sps.diags(np.array(self.lambda_learning)).dot(np.array(self.pseudoInv).T)
+        #
+        # else:
         SVD_s_inv = 1/np.array(self.SVD_s)
 
 
-        for itemIndex in range(self.n_items):
 
+
+        self.URM_train = sps.csc_matrix(self.URM_train)
+
+
+        for itemIndex in range(self.n_items):
+            #
+            # if not self.enablePseudoInv:
+            #
+            #     #this_item_weights = sps.diags(np.array(self.lambda_learning)).dot(self.URM_train)
+            #     this_item_weights = self.URM_train[:,itemIndex].T.dot(URM_train_lambda).toarray().ravel()
+            #
+            # elif not self.low_ram:
+            #
+            #     #this_item_weights = sps.diags(np.array(self.lambda_learning)).dot(np.array(self.pseudoInv).T)
+            #     this_item_weights = self.URM_train[:,itemIndex].T.dot(pseudoInv_lambda).ravel()
+            #
+            # else:
             pseudoinverse_row = np.array(np.multiply(self.SVD_Vh[:, itemIndex], SVD_s_inv)).ravel()
             pseudoinverse_row = pseudoinverse_row.dot(self.SVD_U.T)
 
             this_item_weights = sps.diags(np.array(self.lambda_learning)).dot(pseudoinverse_row)
             this_item_weights = self.URM_train.T.dot(this_item_weights)
+
 
 
             # Sort indices and select TopK
