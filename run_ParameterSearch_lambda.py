@@ -148,7 +148,7 @@ def read_data_split_and_search(dataReader_class):
             users_to_select = 0.35
 
         elif dataReader_class is XingChallenge2016Reader:
-            users_to_select = 0.03
+            users_to_select = 0.013
 
 
 
@@ -203,8 +203,8 @@ if __name__ == '__main__':
     ]
 
 
-    # pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
-    # resultList = pool.map(read_data_split_and_search, dataReader_class_list)
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
+    resultList = pool.map(read_data_split_and_search, dataReader_class_list)
 
     #
     # for dataReader_class in dataReader_class_list:
