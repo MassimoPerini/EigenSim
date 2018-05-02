@@ -228,14 +228,14 @@ if __name__ == '__main__':
     ]
 
 
-    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
-    resultList = pool.map(read_data_split_and_search, dataReader_class_list)
-    #
-    #
-    # for dataReader_class in dataReader_class_list:
-    #     try:
-    #         read_data_split_and_search(dataReader_class)
-    #     except Exception as e:
-    #
-    #         print("On recommender {} Exception {}".format(dataReader_class, str(e)))
-    #         traceback.print_exc()
+    # pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
+    # resultList = pool.map(read_data_split_and_search, dataReader_class_list)
+
+
+    for dataReader_class in dataReader_class_list:
+        try:
+            read_data_split_and_search(dataReader_class)
+        except Exception as e:
+
+            print("On recommender {} Exception {}".format(dataReader_class, str(e)))
+            traceback.print_exc()
