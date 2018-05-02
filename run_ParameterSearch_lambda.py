@@ -223,7 +223,7 @@ if __name__ == '__main__':
         #Movielens1MReader,
         #Movielens10MReader,
         #NetflixEnhancedReader,
-        BookCrossingReader,
+        #BookCrossingReader,
         XingChallenge2016Reader
     ]
 
