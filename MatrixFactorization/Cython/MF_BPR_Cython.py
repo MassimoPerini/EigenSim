@@ -75,7 +75,7 @@ class MF_BPR_Cython(Recommender):
 
 
         # Import compiled module
-        from Recommenders.MatrixFactorization.Cython.MF_BPR_Cython_Epoch import MF_BPR_Cython_Epoch
+        from MatrixFactorization.Cython.MF_BPR_Cython_Epoch import MF_BPR_Cython_Epoch
 
 
         self.cythonEpoch = MF_BPR_Cython_Epoch(URM_train_positive,

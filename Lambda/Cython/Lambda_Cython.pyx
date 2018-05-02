@@ -476,13 +476,14 @@ cdef class Lambda_BPR_Cython_Epoch:
 
         cdef long totalNumberOfBatch = int(self.n_users / self.batch_size)
         #print(self.batch_size, " ", self.numPositiveIteractions)
-        cdef long start_time_epoch = time.time(), start_time_batch
+        cdef long start_time_epoch, last_print_time
         cdef int printStep = 100
         cdef double cacheUpdate
         cdef float gamma
         cdef long numCurrentBatch
 
-        start_time_batch = time.time()
+        start_time_epoch = time.time()
+        last_print_time = start_time_epoch
 
         if totalNumberOfBatch == 0:
             totalNumberOfBatch = 1
@@ -509,16 +510,21 @@ cdef class Lambda_BPR_Cython_Epoch:
 
                 # Set block size to the number of items necessary in order to print every 30 seconds
                 itemPerSec = numCurrentBatch/(time.time()-start_time_epoch)
+
                 printStep = int(itemPerSec*30)
 
-                print("Processed {} ( {:.2f}% ) in {:.2f} seconds. Sample per second: {:.0f}".format(
-                    numCurrentBatch*self.batch_size,
-                    100.0* float(numCurrentBatch*self.batch_size + 1)/totalNumberOfBatch,
-                    time.time() - start_time_batch,
-                    float(numCurrentBatch*self.batch_size + 1) / (time.time() - start_time_epoch)))
+                if current_time - last_print_time > 30  or numCurrentBatch==totalNumberOfBatch-1:
 
-                sys.stdout.flush()
-                sys.stderr.flush()
+                    last_print_time = current_time
+
+                    print("Processed {} ( {:.2f}% ) in {:.2f} seconds. Sample per second: {:.0f}".format(
+                        numCurrentBatch*self.batch_size,
+                        100.0* float(numCurrentBatch*self.batch_size + 1)/totalNumberOfBatch,
+                        time.time() - start_time_epoch,
+                        float(numCurrentBatch*self.batch_size + 1) / (time.time() - start_time_epoch)))
+
+                    sys.stdout.flush()
+                    sys.stderr.flush()
 
 
 
@@ -536,32 +542,36 @@ cdef class Lambda_BPR_Cython_Epoch:
 
         """
 
-        cdef int itemIndex
+        cdef int itemIndex, innerItemIndex, topKItemIndex
+        cdef np.ndarray[np.float64_t, ndim=1] this_item_weights, SVD_s_inv, pseudoinverse_row
+        cdef np.ndarray[long, ndim=1] top_k_partition, top_k_partition_sorting, top_k_idx
+
+
 
         print("SLIM_Lambda_Cython: Computing W_sparse")
 
-        # Use transpose
-        if not self.enablePseudoInv:
-
-           W_sparse = sps.diags(np.array(self.lambda_learning)).dot(self.URM_train)
-           W_sparse = self.URM_train.T.dot(W_sparse)
-           W_sparse.eliminate_zeros()
-
-           return similarityMatrixTopK(W_sparse.T, k=TopK)
-
-
-
-        # Use pseudoinverse
-        if not self.low_ram:
-
-            W_sparse = sps.diags(np.array(self.lambda_learning)).dot(np.array(self.pseudoInv).T)
-            W_sparse = self.URM_train.T.dot(W_sparse)
-
-            #W_sparse = np.array(self.pseudoInv).dot(sps.diags(np.array(self.lambda_learning)).dot(self.URM_train))
-
-            return similarityMatrixTopK(W_sparse.T, k=TopK)
-
-
+        # # Use transpose
+        # if not self.enablePseudoInv:
+        #
+        #    W_sparse = sps.diags(np.array(self.lambda_learning)).dot(self.URM_train)
+        #    W_sparse = self.URM_train.T.dot(W_sparse)
+        #    W_sparse.eliminate_zeros()
+        #
+        #    return similarityMatrixTopK(W_sparse.T, k=TopK)
+        #
+        #
+        #
+        # # Use pseudoinverse
+        # if not self.low_ram:
+        #
+        #     W_sparse = sps.diags(np.array(self.lambda_learning)).dot(np.array(self.pseudoInv).T)
+        #     W_sparse = self.URM_train.T.dot(W_sparse)
+        #
+        #     #W_sparse = np.array(self.pseudoInv).dot(sps.diags(np.array(self.lambda_learning)).dot(self.URM_train))
+        #
+        #     return similarityMatrixTopK(W_sparse.T, k=TopK)
+        #
+        #
 
         # Data structure to incrementally build sparse matrix
         # Preinitialize max possible length
@@ -570,15 +580,15 @@ cdef class Lambda_BPR_Cython_Epoch:
         cdef int[:] cols = np.zeros((self.n_items*TopK,), dtype=np.int32)
         cdef long sparse_data_pointer = 0
 
-        #
-        # if not self.enablePseudoInv:
-        #     URM_train_lambda = sps.diags(np.array(self.lambda_learning)).dot(self.URM_train)
-        #
-        # elif not self.low_ram:
-        #     pseudoInv_lambda = sps.diags(np.array(self.lambda_learning)).dot(np.array(self.pseudoInv).T)
-        #
-        # else:
-        SVD_s_inv = 1/np.array(self.SVD_s)
+
+        if not self.enablePseudoInv:
+            URM_train_lambda = sps.diags(np.array(self.lambda_learning)).dot(self.URM_train)
+
+        elif not self.low_ram:
+            pseudoInv_lambda = sps.diags(np.array(self.lambda_learning)).dot(np.array(self.pseudoInv).T)
+
+        else:
+            SVD_s_inv = 1/np.array(self.SVD_s)
 
 
 
@@ -587,23 +597,23 @@ cdef class Lambda_BPR_Cython_Epoch:
 
 
         for itemIndex in range(self.n_items):
-            #
-            # if not self.enablePseudoInv:
-            #
-            #     #this_item_weights = sps.diags(np.array(self.lambda_learning)).dot(self.URM_train)
-            #     this_item_weights = self.URM_train[:,itemIndex].T.dot(URM_train_lambda).toarray().ravel()
-            #
-            # elif not self.low_ram:
-            #
-            #     #this_item_weights = sps.diags(np.array(self.lambda_learning)).dot(np.array(self.pseudoInv).T)
-            #     this_item_weights = self.URM_train[:,itemIndex].T.dot(pseudoInv_lambda).ravel()
-            #
-            # else:
-            pseudoinverse_row = np.array(np.multiply(self.SVD_Vh[:, itemIndex], SVD_s_inv)).ravel()
-            pseudoinverse_row = pseudoinverse_row.dot(self.SVD_U.T)
 
-            this_item_weights = sps.diags(np.array(self.lambda_learning)).dot(pseudoinverse_row)
-            this_item_weights = self.URM_train.T.dot(this_item_weights)
+            if not self.enablePseudoInv:
+
+                #this_item_weights = sps.diags(np.array(self.lambda_learning)).dot(self.URM_train)
+                this_item_weights = self.URM_train[:,itemIndex].T.dot(URM_train_lambda).toarray().ravel()
+
+            elif not self.low_ram:
+
+                #this_item_weights = sps.diags(np.array(self.lambda_learning)).dot(np.array(self.pseudoInv).T)
+                this_item_weights = self.URM_train[:,itemIndex].T.dot(pseudoInv_lambda).ravel()
+
+            else:
+                pseudoinverse_row = np.array(np.multiply(self.SVD_Vh[:, itemIndex], SVD_s_inv)).ravel()
+                pseudoinverse_row = pseudoinverse_row.dot(self.SVD_U.T)
+
+                this_item_weights = sps.diags(np.array(self.lambda_learning)).dot(pseudoinverse_row)
+                this_item_weights = self.URM_train.T.dot(this_item_weights)
 
 
 
@@ -630,9 +640,9 @@ cdef class Lambda_BPR_Cython_Epoch:
 
                 topKItemIndex = top_k_idx[innerItemIndex]
 
-                values[sparse_data_pointer] = this_item_weights[topKItemIndex]
-                rows[sparse_data_pointer] = itemIndex
-                cols[sparse_data_pointer] = topKItemIndex
+                values[sparse_data_pointer] = -this_item_weights[topKItemIndex]
+                rows[sparse_data_pointer] = topKItemIndex
+                cols[sparse_data_pointer] = itemIndex
 
                 sparse_data_pointer += 1
 
@@ -646,6 +656,8 @@ cdef class Lambda_BPR_Cython_Epoch:
                                 dtype=np.float32)
 
         return W_sparse
+
+
 
 
 

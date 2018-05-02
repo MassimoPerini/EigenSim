@@ -7,15 +7,15 @@ Created on 07/09/17
 """
 
 
-from Recommenders.Base.Recommender import Recommender
-from Recommenders.Base.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
-from Recommenders.Base.Recommender_utils import check_matrix
+from Base.Recommender import Recommender
+from Base.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
+from Base.Recommender_utils import check_matrix
 
 try:
     from Recommenders.Base.Cython.cosine_similarity import Cosine_Similarity
 except ImportError:
     print("Unable to load Cython Cosine_Similarity, reverting to Python")
-    from Recommenders.Base.cosine_similarity import Cosine_Similarity
+    from Base.cosine_similarity import Cosine_Similarity
 
 
 import subprocess

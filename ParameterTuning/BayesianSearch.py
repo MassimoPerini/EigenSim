@@ -9,6 +9,7 @@ Created on 10/03/2018
 from ParameterTuning.AbstractClassSearch import AbstractClassSearch, DictionaryKeys
 from functools import partial
 import traceback, pickle
+import numpy as np
 
 try:
     from bayes_opt import BayesianOptimization
@@ -261,7 +262,7 @@ class BayesianSearch(AbstractClassSearch):
             writeLog("BayesianSearch: Testing config: {} - Exception {}\n".format(paramether_dictionary, str(e)), self.logFile)
             traceback.print_exc()
 
-            return None
+            return - np.inf
 
 
 

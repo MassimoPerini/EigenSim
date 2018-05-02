@@ -12,7 +12,7 @@ import numpy as np
 from Base.Recommender_utils import check_matrix
 
 from Base.Recommender import Recommender
-from Recommenders.MatrixFactorization.Cython.MF_RMSE import FunkSVD_sgd, AsySVD_sgd, AsySVD_compute_user_factors, BPRMF_sgd
+from MatrixFactorization.Cython.MF_RMSE import FunkSVD_sgd, AsySVD_sgd, AsySVD_compute_user_factors, BPRMF_sgd
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(

@@ -18,6 +18,8 @@ from data.NetflixEnhanced.NetflixEnhancedReader import NetflixEnhancedReader
 from data.Movielens_1m.Movielens1MReader import Movielens1MReader
 from data.Movielens_10m.Movielens10MReader import Movielens10MReader
 from data.Movielens_20m.Movielens20MReader import Movielens20MReader
+from data.XingChallenge2016.XingChallenge2016Reader import XingChallenge2016Reader
+from data.BookCrossing.BookCrossingReader import BookCrossingReader
 
 
 from data.DataSplitter import DataSplitter_Warm
@@ -30,7 +32,7 @@ import scipy.sparse as sps
 
 
 
-def plot_lambda_profile_length(user_lambda, URM_train, dataset_name, mode):
+def plot_lambda_profile_length(user_lambda, URM_train, dataset_name, lambda_range, mode):
 
     # Turn interactive plotting off
     plt.ioff()
@@ -50,7 +52,7 @@ def plot_lambda_profile_length(user_lambda, URM_train, dataset_name, mode):
 
     plt.scatter(profile_length[profile_length_user_id], user_lambda[profile_length_user_id], s=0.5)
 
-    plt.savefig("results/Profile_length_over_lambda_{}_{}".format(dataset_name, mode))
+    plt.savefig("results/Profile_length_over_lambda_{}_{}_{}".format(dataset_name, lambda_range, mode))
 
     plt.close()
 
@@ -229,22 +231,42 @@ def plot_lambda_user_performance_on_train(user_lambda, personalized_recommender,
 
 def plot_hybrid_performance(dataReader_class):
 
-    plot_hybrid_performance_inner(dataReader_class, True)
-    #plot_hybrid_performance_inner(dataReader_class, False)
+    use_lambda = True
+
+    for mode in ["pinv", "transpose"]:
+
+        for negative in [True, False]:
+
+            plot_hybrid_performance_inner(dataReader_class, use_lambda = use_lambda, mode = mode, negative = negative)
+
+    # plot_hybrid_performance_inner(dataReader_class, use_lambda = True, mode="pinv", negative=False)
+    # plot_hybrid_performance_inner(dataReader_class, use_lambda = True, mode="transpose", negative=False)
+    #plot_hybrid_performance_inner(dataReader_class, use_lambda = False)
 
 
 
 
-def plot_hybrid_performance_inner(dataReader_class, use_lambda, mode = "pinv"):
+def plot_hybrid_performance_inner(dataReader_class, use_lambda = True, mode = "pinv", negative = False):
 
     #dataReader_class = Movielens10MReader
 
+    if dataReader_class is BookCrossingReader or dataReader_class is XingChallenge2016Reader:
 
-    dataSplitter = DataSplitter_Warm(dataReader_class)
+        split_path = "results/split/" + dataReader_class.DATASET_SUBFOLDER[:-1] + "_"
 
-    URM_train = dataSplitter.get_URM_train()
-    URM_validation = dataSplitter.get_URM_validation()
-    URM_test = dataSplitter.get_URM_test()
+        URM_train = sps.load_npz(split_path + "URM_train.npz")
+        URM_test = sps.load_npz(split_path + "URM_test.npz")
+        URM_validation = sps.load_npz(split_path + "URM_validation.npz")
+
+
+    else:
+
+        dataSplitter = DataSplitter_Warm(dataReader_class)
+
+        URM_train = dataSplitter.get_URM_train()
+        URM_validation = dataSplitter.get_URM_validation()
+        URM_test = dataSplitter.get_URM_test()
+
 
     #ICM = dataSplitter.get_split_for_specific_ICM("ICM_all")
     #
@@ -261,7 +283,7 @@ def plot_hybrid_performance_inner(dataReader_class, use_lambda, mode = "pinv"):
 
 
     non_personalized_recommender.fit()
-    personalized_recommender.fit()
+    #personalized_recommender.fit()
     random_recommender.fit()
 
     hybrid_all = ItemBasedLambdaDiscriminantRecommender(URM_train,
@@ -277,23 +299,30 @@ def plot_hybrid_performance_inner(dataReader_class, use_lambda, mode = "pinv"):
 
     dataset_name = dataReader_class.DATASET_SUBFOLDER[:-1]
 
-    optimal_params = pickle.load(open("results/Lambda_BPR_Cython" +
-                                      "_{}_{}_best_parameters".format(mode, dataset_name), "rb"))
+    if negative:
+        lambda_range = "negative"
+    else:
+        lambda_range = "positive"
+
+
+    optimal_params = pickle.load(open("results/lambda_BPR/Lambda_BPR_Cython" +
+                                      "_{}_{}_{}_best_parameters".format(mode, lambda_range, dataset_name), "rb"))
 
 
 
     print("Using params: {}".format(optimal_params))
 
-    namePrefix = "Lambda_BPR_Cython_{}_{}_best_model".format(mode, dataset_name)
+    namePrefix = "Lambda_BPR_Cython_{}_{}_{}_best_model".format(mode, lambda_range, dataset_name)
 
+    #
+    # try:
+    #     hybrid_all.loadModel("results/", namePrefix=namePrefix)
+    # except:
+    #     hybrid_all.fit(**optimal_params)
+    #     hybrid_all.saveModel("results/", namePrefix=namePrefix)
 
-    try:
-        hybrid_all.loadModel("results/", namePrefix=namePrefix)
-    except:
-        hybrid_all.fit(**optimal_params)
-        hybrid_all.saveModel("results/", namePrefix=namePrefix)
-
-    hybrid_pers_only.loadModel("results/", namePrefix=namePrefix)
+    hybrid_all.loadModel("results/lambda_BPR/", namePrefix=namePrefix)
+    hybrid_pers_only.loadModel("results/lambda_BPR/", namePrefix=namePrefix)
 
     if use_lambda:
         user_lambda = hybrid_all.get_lambda_values()
@@ -301,12 +330,12 @@ def plot_hybrid_performance_inner(dataReader_class, use_lambda, mode = "pinv"):
         user_lambda = np.ediff1d(URM_train.indptr)
 
 
-    plot_lambda_profile_length(user_lambda, URM_train, dataset_name, mode)
+    plot_lambda_profile_length(user_lambda, URM_train, dataset_name, lambda_range, mode)
 
     return
 
-    plot_lambda_user_performance(user_lambda, personalized_recommender, URM_train, URM_test, dataset_name)
-    plot_lambda_user_performance_on_train(user_lambda, personalized_recommender, URM_train, dataset_name)
+    #plot_lambda_user_performance(user_lambda, personalized_recommender, URM_train, URM_test, dataset_name)
+    #plot_lambda_user_performance_on_train(user_lambda, personalized_recommender, URM_train, dataset_name)
 
 
 

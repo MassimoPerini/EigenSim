@@ -8,7 +8,7 @@ import subprocess
 import os, sys, time
 import numpy as np
 import scipy.sparse as sps
-import scipy.sparse.linalg
+from numpy.linalg.linalg import LinAlgError
 
 from Base.Recommender import Recommender
 from Base.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
@@ -192,12 +192,21 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
         # Cython
         if self.pseudoInv:
-            self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.URM_train, self.eligibleUsers, learning_rate=learning_rate, batch_size=batch_size, sgd_mode=sgd_mode,
-                                                       lambda_2=lambda_2, enablePseudoInv=self.pseudoInv, low_ram = low_ram, initialize=initialize, rcond=rcond, k=k, force_positive = force_positive)
 
-            self.fit_alreadyInitialized(epochs=epochs, URM_validation=URM_validation, batch_size=batch_size,
-                                        validation_every_n=validation_every_n,
-                                        lower_validatons_allowed=lower_validatons_allowed)
+            try :
+                self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.URM_train, self.eligibleUsers, learning_rate=learning_rate, batch_size=batch_size, sgd_mode=sgd_mode,
+                                                           lambda_2=lambda_2, enablePseudoInv=self.pseudoInv, low_ram = low_ram, initialize=initialize, rcond=rcond, k=k, force_positive = force_positive)
+
+                self.fit_alreadyInitialized(epochs=epochs, URM_validation=URM_validation, batch_size=batch_size,
+                                            validation_every_n=validation_every_n,
+                                            lower_validatons_allowed=lower_validatons_allowed)
+
+            except LinAlgError as linAlgError:
+
+                print("SLIM_lambda_Cython: LinAlgError, SVD did not converge! Terminating...")
+
+                raise linAlgError
+
 
         else:
             self.cythonEpoch = Lambda_BPR_Cython_Epoch(self.URM_mask, self.URM_train, self.eligibleUsers, learning_rate=learning_rate,

@@ -95,7 +95,7 @@ class SLIM_BPR_Cython(Similarity_Matrix_Recommender, Recommender):
 
 
         # Import compiled module
-        from Recommenders.SLIM_BPR.Cython.SLIM_BPR_Cython_Epoch import SLIM_BPR_Cython_Epoch
+        from SLIM_BPR.Cython.SLIM_BPR_Cython_Epoch import SLIM_BPR_Cython_Epoch
 
         # Select only positive interactions
         URM_train_positive = self.URM_train.copy()
