@@ -35,12 +35,23 @@ import scipy.sparse as sps
 
 
 
+
+
 cdef struct BPR_sample:
     long user
     long pos_item
     long neg_item
     long seen_items_start_pos
     long seen_items_end_pos
+
+
+cdef struct MSE_sample:
+    long user
+    long item
+    long rating
+    long seen_items_start_pos
+    long seen_items_end_pos
+
 
 
 
@@ -473,11 +484,14 @@ cdef class SLIM_Structure_Cython_Epoch:
         cdef double sample_rating, gradient_update, gradient, prediction, sample_quota_current_item
         cdef int is_last_sample = False
 
-        cdef int[:] sample_indices, sample_shuffle
+        cdef int[:] sample_indices, sample_shuffle, num_samples_to_choose
         cdef double[:] sample_data
 
         cdef int[:] user_profile_item_id
         cdef double[:] user_profile_rating
+
+        cdef BPR_sample sample_bpr
+        cdef MSE_sample sample_mse
 
         cdef long start_time = time.time()
         cdef long last_print_time = start_time
@@ -536,6 +550,13 @@ cdef class SLIM_Structure_Cython_Epoch:
                 sample_quota_current_item = sample_quota
 
 
+            num_samples_to_choose = int(len(sample_indices)*1.0*sample_quota)
+
+            if num_samples_to_choose < 1:
+                num_samples_to_choose = 1
+
+
+
 
             for current_epoch in range(n_epochs):
 
@@ -543,10 +564,8 @@ cdef class SLIM_Structure_Cython_Epoch:
 
                 #print("sample_shuffle {}".format(time.time() - start_time))
 
-                for sample_index in range(len(sample_indices)):
+                for sample_index in range(num_samples_to_choose):
 
-                    if rand() > RAND_MAX * sample_quota:
-                        continue
 
                     sample_user = sample_indices[sample_shuffle[sample_index]]
                     sample_rating = sample_data[sample_shuffle[sample_index]]
@@ -559,6 +578,9 @@ cdef class SLIM_Structure_Cython_Epoch:
                     if use_BPR:
 
                         prediction = 0.0
+
+                        sample_bpr = self.sampleBPR_Cython(current_item)
+
 
                         for item_index in range(len(user_profile_item_id)):
                             item_id = user_profile_item_id[item_index]
@@ -578,6 +600,8 @@ cdef class SLIM_Structure_Cython_Epoch:
 
                         #prediction = + self.user_bias[sample_user]
                         prediction = 0.0
+
+                        sample_mse = self.sampleMSE_Cython(current_item)
 
                         for item_index in range(len(user_profile_item_id)):
                             item_id = user_profile_item_id[item_index]
@@ -681,6 +705,47 @@ cdef class SLIM_Structure_Cython_Epoch:
 
 
         print("SLIM_Structure, fit complete!")
+
+
+    cdef BPR_sample sampleBPR_Cython(self, long current_item, int[:] users_interacting_with_item):
+
+        cdef BPR_sample sample = BPR_sample(-1,-1,-1,-1,-1)
+
+        cdef long index
+
+        cdef int negItemSelected = False, numSeenItems = 0
+
+        # Skip users with no interactions or with no negative items
+        while numSeenItems == 0 or numSeenItems == self.n_items:
+
+            sample.user = rand() % len(users_interacting_with_item)
+
+            sample.seen_items_start_pos = self.URM_indices_csc[sample.user]
+            sample.seen_items_end_pos = self.URM_mask_indptr[sample.user + 1]
+
+            numSeenItems = sample.seen_items_end_pos - sample.seen_items_start_pos
+
+            if numSeenItems != 0:
+
+                user_profile_item_id = self.URM_indices[self.URM_indptr[sample_user]:self.URM_indptr[sample_user + 1]]
+
+                index = rand() % numSeenItems
+
+                sample.neg_item = self.URM_mask_indices[sample.seen_items_start_pos + index]
+
+                index = 0
+                while index < numSeenItems and self.URM_mask_indices[sample.seen_items_start_pos + index]!=sample.neg_item:
+                    index+=1
+
+                if index == numSeenItems:
+                    negItemSelected = True
+
+
+                negItemSelected = True
+
+
+        return sample
+
 
 
     def epochIteration_Cython_batch(self, epochs=30):
