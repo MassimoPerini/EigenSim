@@ -6,7 +6,6 @@
 """
 
 import numpy as np
-import scipy.sparse as sps
 from Base.Recommender import Recommender
 from Base.Recommender_utils import check_matrix
 

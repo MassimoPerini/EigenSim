@@ -12,7 +12,7 @@ from Base.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
 from Base.Recommender_utils import check_matrix
 
 try:
-    from Recommenders.Base.Cython.cosine_similarity import Cosine_Similarity
+    from Base.Cython.cosine_similarity import Cosine_Similarity
 except ImportError:
     print("Unable to load Cython Cosine_Similarity, reverting to Python")
     from Base.cosine_similarity import Cosine_Similarity
@@ -85,7 +85,7 @@ class SLIM_Structure_Cython(Similarity_Matrix_Recommender, Recommender):
 
 
         # Import compiled module
-        from Recommenders.SLIM_ElasticNet.Cython.SLIM_Structure_Cython_Epoch import SLIM_Structure_Cython_Epoch
+        from SLIM_ElasticNet.Cython.SLIM_Structure_Cython_Epoch import SLIM_Structure_Cython_Epoch
 
         if(topK != False and topK<1):
             raise ValueError("TopK not valid. Acceptable values are either False or a positive integer value. Provided value was '{}'".format(topK))

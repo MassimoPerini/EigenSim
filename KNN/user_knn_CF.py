@@ -13,7 +13,7 @@ from Base.Recommender_utils import check_matrix
 from Base.Similarity_Matrix_Recommender import Similarity_Matrix_Recommender
 
 try:
-    from Recommenders.Base.Cython.cosine_similarity import Cosine_Similarity
+    from Base.Cython.cosine_similarity import Cosine_Similarity
     #from Base.Cython.cosine_similarity_prune import Cosine_Similarity
 except ImportError:
     print("Unable to load Cython Cosine_Similarity, reverting to Python")
