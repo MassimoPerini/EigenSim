@@ -21,6 +21,7 @@ from data.Movielens_20m.Movielens20MReader import Movielens20MReader
 from data.XingChallenge2016.XingChallenge2016Reader import XingChallenge2016Reader
 from data.BookCrossing.BookCrossingReader import BookCrossingReader
 
+from Lambda.Cython.Lambda_BPR_Cython import Lambda_BPR_Cython
 
 from data.DataSplitter import DataSplitter_Warm
 
@@ -599,12 +600,6 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
 
 
 
-    non_personalized_recommender = TopPop(URM_train)
-    personalized_recommender = ItemKNNCFRecommender(URM_train)
-
-
-    non_personalized_recommender.fit()
-    personalized_recommender.fit()
 
 
 
@@ -616,19 +611,26 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
         lambda_range = "positive"
 
 
+
+
     optimal_params = pickle.load(open("results/lambda_BPR/Lambda_BPR_Cython" +
                                       "_{}_{}_{}_best_parameters".format(mode, lambda_range, dataset_name), "rb"))
 
-
-
     print("Using params: {}".format(optimal_params))
+
 
     namePrefix = "Lambda_BPR_Cython_{}_{}_{}_best_model.npz".format(mode, lambda_range, dataset_name)
 
     npzfile = np.load("results/lambda_BPR/" + namePrefix)
     user_lambda = npzfile["user_lambda"]
 
+
+
+
+
+
     plot_lambda_profile_length(user_lambda, URM_train, dataset_name, lambda_range, mode)
+
 
 
 
@@ -660,14 +662,22 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
     # print("Personalized result: {}".format(results_run_pers))
     # print("Non personalized result: {}".format(results_run_non_pers))
 
-
     if train_on is "all":
 
         non_personalized_recommender = TopPop(URM_train)
         personalized_recommender = ItemKNNCFRecommender(URM_train)
+        lambda_bpr_recommender = Lambda_BPR_Cython(URM_train)
+
 
         non_personalized_recommender.fit()
         personalized_recommender.fit()
+
+        try:
+            lambda_bpr_recommender.loadModel("results/lambda_BPR", namePrefix="Lambda_BPR_Cython_{}_{}_{}_best".format(mode, lambda_range, dataset_name))
+        except:
+            lambda_bpr_recommender.fit(**optimal_params)
+            lambda_bpr_recommender.saveModel("results/", namePrefix=namePrefix)
+
 
 
 
@@ -773,7 +783,7 @@ if __name__ == '__main__':
 
     dataReader_class_list = [
         Movielens1MReader,
-        Movielens10MReader,
+        #Movielens10MReader,
         #NetflixEnhancedReader,
         #BookCrossingReader,
         #XingChallenge2016Reader

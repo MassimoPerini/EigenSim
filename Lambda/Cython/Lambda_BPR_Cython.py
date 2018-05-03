@@ -22,7 +22,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
 
     def __init__(self, URM_train, recompile_cython=False,
-                 check_stability=False, save_lambda=False, save_eval=True):
+                 check_stability=False, save_lambda=False, save_eval=False):
 
         super(Lambda_BPR_Cython, self).__init__()
 
@@ -65,9 +65,9 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
 
 
-    #---------FIT
 
-    #do the iterations
+
+
     def fit_alreadyInitialized(self, epochs=30, URM_validation=None,
                                batch_size=1000, validation_every_n=1,
                                stop_on_validation = True, lower_validatons_allowed = 2, validation_metric = "map"):
@@ -151,6 +151,7 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
         print("Fit completed in {:.2f} minutes".format(float(time.time() - start_time_train) / 60))
         sys.stdout.flush()
+
 
 
     def fit(self, epochs=30, URM_validation=None, minRatingsPerUser=1, topK = 300,
@@ -266,270 +267,80 @@ class Lambda_BPR_Cython (Similarity_Matrix_Recommender, Recommender):
 
 
 
+    #
+    #
+    #
+    #
+    # def saveModel(self, folderPath, namePrefix = None):
+    #
+    #
+    #     print("{}: Saving model in folder '{}'".format(self.RECOMMENDER_NAME, folderPath))
+    #
+    #     if namePrefix is None:
+    #         namePrefix = self.RECOMMENDER_NAME
+    #
+    #         namePrefix += "_"
+    #
+    #     np.savez(folderPath + "{}.npz".format(namePrefix), user_lambda = self.get_lambda())
+    #
+    #
+    #
+    #
+    # def loadModel(self, folderPath, namePrefix = None):
+    #
+    #     print("{}: Loading model from folder '{}'".format(self.RECOMMENDER_NAME, folderPath))
+    #
+    #     if namePrefix is None:
+    #         namePrefix = self.RECOMMENDER_NAME
+    #
+    #         namePrefix += "_"
+    #
+    #
+    #     npzfile = np.load(folderPath + "{}.npz".format(namePrefix))
+    #
+    #     for attrib_name in npzfile.files:
+    #          self.__setattr__(attrib_name, npzfile[attrib_name])
+    #
 
 
 
 
-    def saveModel(self, folderPath, namePrefix = None):
 
+    def saveModel(self, folderPath, namePrefix = None, forceSparse = True):
+
+        import pickle
 
         print("{}: Saving model in folder '{}'".format(self.RECOMMENDER_NAME, folderPath))
 
         if namePrefix is None:
             namePrefix = self.RECOMMENDER_NAME
 
-            namePrefix += "_"
 
-        np.savez(folderPath + "{}.npz".format(namePrefix), user_lambda = self.get_lambda())
+        data_dict = {
+            "sparse_weights":self.sparse_weights,
+            "W_sparse":self.W_sparse,
+            "user_lambda":self.get_lambda()
+        }
 
-        #pickle.dump(self.user_lambda, open(folderPath + "{}.npz".format(namePrefix), "wb"), protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(data_dict,
+                    open(folderPath + namePrefix, "wb"),
+                    protocol=pickle.HIGHEST_PROTOCOL)
 
 
 
+    def loadModel(self, folderPath, namePrefix = None, forceSparse = True):
 
-    def loadModel(self, folderPath, namePrefix = None):
+        import pickle
 
         print("{}: Loading model from folder '{}'".format(self.RECOMMENDER_NAME, folderPath))
 
         if namePrefix is None:
             namePrefix = self.RECOMMENDER_NAME
 
-            namePrefix += "_"
 
-        #self.user_lambda = pickle.load(open(folderPath + "{}.npz".format(namePrefix), "wb"))
-        npzfile = np.load(folderPath + "{}.npz".format(namePrefix))
+        data_dict = pickle.load(open(folderPath + namePrefix, "rb"))
 
-        for attrib_name in npzfile.files:
-             self.__setattr__(attrib_name, npzfile[attrib_name])
+        for attrib_name in data_dict.keys():
+             self.__setattr__(attrib_name, data_dict[attrib_name])
 
 
-
-
-    '''
-    #------------EVALUATION
-    def evaluateRecommendations(self, URM_test, at=5, minRatingsPerUser=1, exclude_seen=True, pseudoInverse = False):
-        check_stability = self.check_stability
-        self.URM_test = check_matrix(URM_test, format='csr')
-        self.URM_train = check_matrix(self.URM_train, format='csr')
-        self.at = at
-        self.minRatingsPerUser = minRatingsPerUser
-        self.exclude_seen = exclude_seen
-
-        if pseudoInverse == False:
-            self.similarity = (self.URM_train.transpose().dot(self.W_sparse.dot(self.URM_train)))
-            self.similarity.eliminate_zeros()
-            self.similarity = check_matrix(self.similarity, format='csr')
-        else:
-            self.similarity = self.pinv.dot((self.W_sparse.dot(self.URM_train)).todense())
-            #self.similarity = check_matrix(self.similarity, format='csc')
-            print("similarity matrix: ", self.similarity.shape)
-
-        nusers = self.URM_test.shape[0]
-        rows = self.URM_test.indptr
-        numRatings = np.ediff1d(rows)
-        mask = numRatings >= minRatingsPerUser
-        usersToEvaluate = np.arange(nusers)[mask]
-        usersToEvaluate = list(usersToEvaluate)
-        if pseudoInverse == False:
-            print("users to test: ", len(usersToEvaluate), "non-zero similarity-sparse: ", self.similarity.nnz)
-        return self.evaluateRecommendationsSequential(usersToEvaluate, check_stability=check_stability, pseudoInv = pseudoInverse)
-
-    def get_user_relevant_items(self, user_id):
-        return self.URM_test.indices[self.URM_test.indptr[user_id]:self.URM_test.indptr[user_id + 1]]
-
-    def get_user_test_ratings(self, user_id):
-        return self.URM_test.data[self.URM_test.indptr[user_id]:self.URM_test.indptr[user_id + 1]]
-
-    def evaluateRecommendationsSequential(self, usersToEvaluate, check_stability = True, pseudoInv = False):
-        start_time = time.time()
-        roc_auc_, precision_, recall_, map_, mrr_, ndcg_ = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-        roc_auc_tmp, precision_tmp, recall_tmp, map_tmp, mrr_tmp, ndcg_tmp = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-        roc_auc_delta, precision_delta, recall_delta, map_delta, mrr_delta, ndcg_delta = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-
-        n_eval = 0
-
-        for test_user in usersToEvaluate: #for each valid user
-            if n_eval % 1000 == 0:
-                print(n_eval)
-            relevant_items = self.get_user_relevant_items(test_user)
-            n_eval += 1
-            recommended_items = self.recommend(user_id=test_user, exclude_seen=self.exclude_seen, n=self.at, test_stability_ranking=False, pseudoInv=pseudoInv)
-            is_relevant = np.in1d(recommended_items, relevant_items, assume_unique=True) #how many are good
-            roc_auc_tmp = roc_auc(is_relevant)
-            precision_tmp = precision(is_relevant)
-            recall_tmp = recall(is_relevant, relevant_items)
-            map_tmp = map(is_relevant, relevant_items)
-            mrr_tmp = rr(is_relevant)
-            ndcg_tmp = ndcg(recommended_items, relevant_items, relevance=self.get_user_test_ratings(test_user), at=self.at)
-
-            roc_auc_ += roc_auc_tmp
-            precision_ += precision_tmp
-            recall_ += recall_tmp
-            map_ += map_tmp
-            mrr_ += mrr_tmp
-            ndcg_ += ndcg_tmp
-
-            if check_stability: #if I want to check the stability
-                relevant_items = self.get_user_relevant_items(test_user)
-                #esegui la predizione con il profilo "modificato" e calcola le differenze
-                recommended_items = self.recommend(user_id=test_user, exclude_seen=self.exclude_seen, n=self.at, test_stability_ranking=True, pseudoInv=pseudoInv)
-                is_relevant = np.in1d(recommended_items, relevant_items, assume_unique=True)
-                roc_auc_delta += (roc_auc(is_relevant) - roc_auc_tmp)
-                precision_delta += (precision(is_relevant) - precision_tmp)
-                recall_delta += (recall(is_relevant, relevant_items) - recall_tmp)
-                map_delta += (map(is_relevant, relevant_items) - map_tmp)
-                mrr_delta += (rr(is_relevant) -  mrr_tmp)
-                ndcg_delta += (ndcg(recommended_items, relevant_items, relevance=self.get_user_test_ratings(test_user), at=self.at) - ndcg_tmp)
-
-            if (n_eval % 10000 == 0):
-                print("Processed {} ( {:.2f}% ) in {:.2f} seconds. Users per second: {:.0f}".format(
-                    n_eval,
-                    100.0 * float(n_eval) / len(usersToEvaluate),
-                    time.time() - start_time,
-                    float(n_eval) / (time.time() - start_time)))
-        if (n_eval > 0):
-            roc_auc_ /= n_eval
-            precision_ /= n_eval
-            recall_ /= n_eval
-            map_ /= n_eval
-            mrr_ /= n_eval
-            ndcg_ /= n_eval
-
-            if check_stability:
-                roc_auc_delta /= n_eval
-                precision_delta /= n_eval
-                recall_delta /= n_eval
-                map_delta /= n_eval
-                mrr_delta /= n_eval
-                ndcg_delta /= n_eval
-
-
-        else:
-            print("WARNING: No users had a sufficient number of relevant items")
-
-        results_run = {}
-        results_run["AUC"] = roc_auc_
-        results_run["precision"] = precision_
-        results_run["recall"] = recall_
-        results_run["map"] = map_
-        results_run["NDCG"] = ndcg_
-        results_run["MRR"] = mrr_
-
-        if check_stability:
-            results_run["AUC_delta"] = roc_auc_delta
-            results_run["precision_delta"] = precision_delta
-            results_run["recall_delta"] = recall_delta
-            results_run["map_delta"] = map_delta
-            results_run["NDCG_delta"] = ndcg_delta
-            results_run["MRR_delta"] = mrr_delta
-
-        return (results_run)
-        '''
-
-    #----------------RECOMMEND
-    '''
-    def recommend(self, user_id, n=None, exclude_seen=True, test_stability_ranking = False, pseudoInv = False):
-        if self.sparse_weights:
-            if pseudoInv:
-                #user_profile = self.URM_train[user_id].todense()
-                user_profile = self.URM_train[user_id]
-                scores = np.ravel(user_profile.dot(self.similarity))
-            else:
-                user_profile = self.URM_train[user_id]
-                scores = user_profile.dot(self.similarity).toarray().ravel()
-        else:
-            # necessita di modifiche (matrici dense non sono state implementate)
-            user_profile = self.URM_train.indices[self.URM_train.indptr[user_id]:self.URM_train.indptr[user_id + 1]]
-            user_ratings = self.URM_train.data[self.URM_train.indptr[user_id]:self.URM_train.indptr[user_id + 1]]
-            relevant_weights = self.W[user_profile]
-            scores = relevant_weights.T.dot(user_ratings)
-
-        if exclude_seen: #exclude items already seen
-            scores = self._filter_seen_on_scores(user_id, scores)
-
-        #partiziona in base all'n-esimo elemento (in ordine decrescente)
-        relevant_items_partition = (-scores).argpartition(n)[0:n]
-        relevant_items_partition_sorting = np.argsort(-scores[relevant_items_partition])
-        ranking = relevant_items_partition[relevant_items_partition_sorting] #genera il ranking
-
-        #se devo testare la stabilità devo eseguire il calcolo con il profilo modificato
-        if test_stability_ranking:
-            ranking = np.asarray(ranking)
-            ranking = ranking[:2] # prendi i primi 2 elementi ed inseriscili nel profilo (elementi ad 1)
-            user_profile = self.URM_train[user_id].copy()
-            user_profile[0, ranking] = 1
-            if pseudoInv:
-                scores = np.ravel(user_profile.dot(self.similarity))
-            else:
-                scores = user_profile.dot(self.similarity).toarray().ravel() # ri-calcola i punteggi
-
-            if exclude_seen: # evita di predire gli elementi visti
-                seen = self.URM_train.indices[self.URM_train.indptr[user_id]:self.URM_train.indptr[user_id + 1]]
-                scores[seen] = -np.inf
-                scores[ranking] = -np.inf
-            relevant_items_partition = (-scores).argpartition(n)[0:n]
-            relevant_items_partition_sorting = np.argsort(-scores[relevant_items_partition])
-            ranking = relevant_items_partition[relevant_items_partition_sorting]
-
-        return ranking
-
-
-    def _filter_seen_on_scores(self, user_id, scores):
-        seen = self.URM_train.indices[self.URM_train.indptr[user_id]:self.URM_train.indptr[user_id + 1]]
-        scores[seen] = -np.inf
-        return scores
-    '''
-
-        #
-    #
-    # # new recommend
-    # def recommend(self, user_id, n=None, exclude_seen=True, filterTopPop=False, filterCustomItems=False):
-    #
-    #     if n == None:
-    #         n = self.URM_train.shape[1] - 1
-    #
-    #     # compute the scores using the dot product
-    #     if self.sparse_weights:
-    #         scores = self.URM_train[user_id].dot(self.W_sparse).toarray().ravel()
-    #     else:
-    #         # Numpy dot does not recognize sparse matrices, so we must
-    #         # invoke the dot function on the sparse one
-    #         scores = np.ravel(self.URM_train[user_id].dot(self.W))
-    #
-    #     #???
-    #     if self.normalize:
-    #         # normalization will keep the scores in the same range
-    #         # of value of the ratings in dataset
-    #         user_profile = self.URM_train[user_id]
-    #
-    #         rated = user_profile.copy()
-    #         rated.data = np.ones_like(rated.data)
-    #         if self.sparse_weights:
-    #             den = rated.dot(self.W_sparse).toarray().ravel()
-    #         else:
-    #             den = rated.dot(self.W).ravel()
-    #         den[np.abs(den) < 1e-6] = 1.0  # to avoid NaNs
-    #         scores /= den
-    #
-    #     if exclude_seen:
-    #         scores = self._filter_seen_on_scores(user_id, scores)
-    #
-    #     if filterTopPop:
-    #         scores = self._filter_TopPop_on_scores(scores)
-    #
-    #     if filterCustomItems:
-    #         scores = self._filterCustomItems_on_scores(scores)
-    #
-    #     # rank items and mirror column to obtain a ranking in descending score
-    #     # ranking = scores.argsort()
-    #     # ranking = np.flip(ranking, axis=0)
-    #
-    #     # Sorting is done in three steps. Faster then plain np.argsort for higher number of items
-    #     # - Partition the data to extract the set of relevant items
-    #     # - Sort only the relevant items
-    #     # - Get the original item index
-    #     relevant_items_partition = (-scores).argpartition(n)[0:n]
-    #     relevant_items_partition_sorting = np.argsort(-scores[relevant_items_partition])
-    #     ranking = relevant_items_partition[relevant_items_partition_sorting]
-    #
-    #     return ranking
