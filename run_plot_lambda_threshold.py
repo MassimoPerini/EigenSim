@@ -8,6 +8,8 @@ Created on 06/04/18
 
 from Item_based_lambda_discriminant import ItemBasedLambdaDiscriminantRecommender
 
+from Base.Recommender_utils import check_matrix
+
 from Base.non_personalized import TopPop, Random
 from KNN.item_knn_CF import ItemKNNCFRecommender
 from GraphBased.P3alpha import P3alphaRecommender
@@ -53,7 +55,7 @@ def plot_lambda_profile_length(user_lambda, URM_train, dataset_name, lambda_rang
 
     plt.scatter(profile_length[profile_length_user_id], user_lambda[profile_length_user_id], s=0.5)
 
-    plt.savefig("results/Profile_length_over_lambda_{}_{}_{}".format(dataset_name, lambda_range, mode))
+    plt.savefig("results/plot/Profile_length_over_lambda_{}_{}_{}".format(dataset_name, lambda_range, mode))
 
     plt.close()
 
@@ -119,7 +121,7 @@ def plot_lambda_user_performance(user_lambda, personalized_recommender, URM_trai
 
     plt.scatter(user_map[user_map_user_id], user_lambda[user_map_user_id], s=0.5)
 
-    plt.savefig("results/User_MAP_over_lambda_{}".format(dataset_name))
+    plt.savefig("results/plot/User_MAP_over_lambda_{}".format(dataset_name))
 
     plt.close()
 
@@ -138,7 +140,7 @@ def plot_lambda_user_performance(user_lambda, personalized_recommender, URM_trai
 
     plt.scatter(user_lambda[lambda_user_id],user_map[lambda_user_id], s=0.5)
 
-    plt.savefig("results/Lambda_over_user_map_{}".format(dataset_name))
+    plt.savefig("results/plot/Lambda_over_user_map_{}".format(dataset_name))
 
     plt.close()
 
@@ -600,7 +602,9 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
 
 
 
-
+    URM_train = check_matrix(URM_train, "csr")
+    URM_validation = check_matrix(URM_validation, "csr")
+    URM_test = check_matrix(URM_test, "csr")
 
 
     dataset_name = dataReader_class.DATASET_SUBFOLDER[:-1]
@@ -630,7 +634,6 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
 
 
     plot_lambda_profile_length(user_lambda, URM_train, dataset_name, lambda_range, mode)
-
 
 
 
@@ -671,12 +674,12 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
 
         non_personalized_recommender.fit()
         personalized_recommender.fit()
-
-        try:
-            lambda_bpr_recommender.loadModel("results/lambda_BPR", namePrefix="Lambda_BPR_Cython_{}_{}_{}_best".format(mode, lambda_range, dataset_name))
-        except:
-            lambda_bpr_recommender.fit(**optimal_params)
-            lambda_bpr_recommender.saveModel("results/", namePrefix=namePrefix)
+        #
+        # try:
+        #     lambda_bpr_recommender.loadModel("results/lambda_BPR", namePrefix="Lambda_BPR_Cython_{}_{}_{}_best".format(mode, lambda_range, dataset_name))
+        # except:
+        #     lambda_bpr_recommender.fit(**optimal_params)
+        #     lambda_bpr_recommender.saveModel("results/", namePrefix=namePrefix)
 
 
 
@@ -698,11 +701,13 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
         users_not_involved = np.arange(0, len(user_lambda), dtype=np.int)[np.logical_not(users_involved_mask)]
 
 
-        URM_train_current_user_batch = URM_train[users_involved,:]
-        URM_test_current_user_batch = URM_test[users_involved,:]
 
 
         if train_on is "subset":
+
+            URM_train_current_user_batch = URM_train[users_involved,:]
+            URM_test_current_user_batch = URM_test[users_involved,:]
+
 
             non_personalized_recommender = TopPop(URM_train_current_user_batch)
             personalized_recommender = ItemKNNCFRecommender(URM_train_current_user_batch)
@@ -710,6 +715,11 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
 
             non_personalized_recommender.fit()
             personalized_recommender.fit()
+
+        else:
+
+            # There is no need to eliminate test items for users not involved, the filterCustomUsers takes care of that
+            URM_test_current_user_batch = URM_test.copy()
 
 
 
@@ -741,7 +751,7 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
 
         plt.xlabel('user lambda')
         plt.ylabel("MAP")
-        plt.title("Recommender MAP for increasing lambda threshold")
+        plt.title("Recommender MAP for increasing user lambda")
 
         marker_list = ['o', 's', '^', 'v', 'D']
         marker_iterator_local = itertools.cycle(marker_list)
@@ -783,7 +793,7 @@ if __name__ == '__main__':
 
     dataReader_class_list = [
         Movielens1MReader,
-        #Movielens10MReader,
+        Movielens10MReader,
         #NetflixEnhancedReader,
         #BookCrossingReader,
         #XingChallenge2016Reader
