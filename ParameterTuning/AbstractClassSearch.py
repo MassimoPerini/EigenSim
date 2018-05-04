@@ -58,7 +58,7 @@ def evaluation_function_default(recommender, URM_validation, parameter_dictionar
 
 class AbstractClassSearch(object):
 
-    def __init__(self, recommender_class, URM_validation, evaluation_function=None, from_fit_params_to_saved_params_function=None):
+    def __init__(self, recommender_class, URM_validation, URM_test = None, evaluation_function=None, from_fit_params_to_saved_params_function=None):
 
         super(AbstractClassSearch, self).__init__()
 
@@ -72,6 +72,11 @@ class AbstractClassSearch(object):
             self.evaluation_function = evaluation_function_default
         else:
             self.evaluation_function = evaluation_function
+
+        if URM_test is not None:
+            self.URM_test = URM_test.copy()
+        else:
+            self.URM_test = None
 
 
         if from_fit_params_to_saved_params_function is None:

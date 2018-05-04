@@ -80,7 +80,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     #
     # recommender_class = Lambda_BPR_Cython
     #
-    # parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    # parameterSearch = BayesianSearch(recommender_class, URM_validation, URM_test = URM_test)
     #
     # hyperparamethers_range_dictionary = {}
     # hyperparamethers_range_dictionary["pseudoInv"] = [True]
@@ -112,7 +112,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     #
     #
     # recommender_class = UserKNNCFRecommender
-    # parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    # parameterSearch = BayesianSearch(recommender_class, URM_validation, URM_test = URM_test)
     #
     # hyperparamethers_range_dictionary = {}
     # hyperparamethers_range_dictionary["topK"] = [50, 100, 150, 200]
@@ -138,7 +138,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
 
     recommender_class = ItemKNNCFRecommender
 
-    parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    parameterSearch = BayesianSearch(recommender_class, URM_validation, URM_test = URM_test)
 
     hyperparamethers_range_dictionary = {}
     hyperparamethers_range_dictionary["topK"] = [100, 200, 500]
@@ -167,7 +167,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     #
     #
     # recommender_class = MultiThreadSLIM_RMSE
-    # parameterSearch = GridSearch(recommender_class, URM_validation)
+    # parameterSearch = GridSearch(recommender_class, URM_validation, URM_test = URM_test)
     #
     # hyperparamethers_range_dictionary = {}
     # hyperparamethers_range_dictionary["topK"] = [50, 100]
@@ -198,7 +198,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
    ##########################################################################################################
 
     recommender_class = P3alphaRecommender
-    parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    parameterSearch = BayesianSearch(recommender_class, URM_validation, URM_test = URM_test)
 
 
     hyperparamethers_range_dictionary = {}
@@ -224,7 +224,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     ##########################################################################################################
 
     recommender_class = RP3betaRecommender
-    parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    parameterSearch = BayesianSearch(recommender_class, URM_validation, URM_test = URM_test)
 
 
     hyperparamethers_range_dictionary = {}
@@ -251,7 +251,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     ##########################################################################################################
     #
     # recommender_class = FunkSVD
-    # parameterSearch = GridSearch(recommender_class, URM_validation)
+    # parameterSearch = GridSearch(recommender_class, URM_validation, URM_test = URM_test)
     #
     # hyperparamethers_range_dictionary = {}
     # hyperparamethers_range_dictionary["num_factors"] = [1, 5, 10, 20, 30]
@@ -279,39 +279,11 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     #
     # ##########################################################################################################
 
-    recommender_class = MF_BPR_Cython
-    parameterSearch = BayesianSearch(recommender_class, URM_validation)
 
-    hyperparamethers_range_dictionary = {}
-    hyperparamethers_range_dictionary["num_factors"] = [5, 10, 30, 50, 100, 150, 200]
-    hyperparamethers_range_dictionary["epochs"] = [500]
-    hyperparamethers_range_dictionary["batch_size"] = [1]
-    hyperparamethers_range_dictionary["user_reg"] = [1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 0.0]
-    hyperparamethers_range_dictionary["positive_reg"] = [1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 0.0]
-    hyperparamethers_range_dictionary["negative_reg"] = [1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 0.0]
-    hyperparamethers_range_dictionary["learning_rate"] = [0.001]
-    hyperparamethers_range_dictionary["sgd_mode"] = ["adam"]
-
-
-    output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
-
-    recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
-                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"positive_threshold": 0, "URM_validation": URM_validation},
-                             DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
-                             DictionaryKeys.FIT_KEYWORD_ARGS: {"validation_every_n":2, "stop_on_validation":True, "lower_validatons_allowed":10},
-                             DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
-
-
-    best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=30)
-
-    parameterSearch.evaluate_on_test(URM_test)
-
-
-    #########################################################################################################
     #
     #
     # recommender_class = FunkSVD
-    # parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    # parameterSearch = BayesianSearch(recommender_class, URM_validation, URM_test = URM_test)
     #
     # hyperparamethers_range_dictionary = {}
     # hyperparamethers_range_dictionary["num_factors"] = [5, 10, 30, 50, 100]
@@ -336,7 +308,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     #########################################################################################################
 
     recommender_class = SLIM_BPR_Cython
-    parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    parameterSearch = BayesianSearch(recommender_class, URM_validation, URM_test = URM_test)
 
     hyperparamethers_range_dictionary = {}
     hyperparamethers_range_dictionary["topK"] = [100, 200, 500]
@@ -363,7 +335,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     #########################################################################################################
     #
     # recommender_class = SLIM_Structure_BPR_Cython
-    # parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    # parameterSearch = BayesianSearch(recommender_class, URM_validation, URM_test = URM_test)
     #
     #
     # hyperparamethers_range_dictionary = {}
@@ -390,7 +362,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
     ##########################################################################################################
     #
     # recommender_class = SLIM_Structure_MSE_Cython
-    # parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    # parameterSearch = BayesianSearch(recommender_class, URM_validation, URM_test = URM_test)
     #
     # hyperparamethers_range_dictionary = {}
     # hyperparamethers_range_dictionary["topK"] = [100, 200, 500]
@@ -418,7 +390,7 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
 
 
     recommender_class = SLIM_ElasticNet
-    parameterSearch = BayesianSearch(recommender_class, URM_validation)
+    parameterSearch = BayesianSearch(recommender_class, URM_validation, URM_test = URM_test)
 
     hyperparamethers_range_dictionary = {}
     hyperparamethers_range_dictionary["topK"] = [100, 300]
@@ -440,8 +412,38 @@ def runParameterSearch(URM_train, URM_validation, URM_test, dataReader_class, lo
 
     parameterSearch.evaluate_on_test(URM_test)
 
+    #########################################################################################################
 
 
+    recommender_class = MF_BPR_Cython
+    parameterSearch = BayesianSearch(recommender_class, URM_validation, URM_test = URM_test)
+
+    hyperparamethers_range_dictionary = {}
+    hyperparamethers_range_dictionary["num_factors"] = [5, 10, 30, 50, 100, 150, 200]
+    hyperparamethers_range_dictionary["epochs"] = [500]
+    hyperparamethers_range_dictionary["batch_size"] = [1]
+    hyperparamethers_range_dictionary["user_reg"] = [1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 0.0]
+    hyperparamethers_range_dictionary["positive_reg"] = [1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 0.0]
+    hyperparamethers_range_dictionary["negative_reg"] = [1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 0.0]
+    hyperparamethers_range_dictionary["learning_rate"] = [0.001]
+    hyperparamethers_range_dictionary["sgd_mode"] = ["adam"]
+
+
+    output_root_path = logFilePath + recommender_class.RECOMMENDER_NAME + "_{}".format(dataReader_class.DATASET_SUBFOLDER[:-1])
+
+    recommenderDictionary = {DictionaryKeys.CONSTRUCTOR_POSITIONAL_ARGS: [URM_train],
+                             DictionaryKeys.CONSTRUCTOR_KEYWORD_ARGS: {"positive_threshold": 0, "URM_validation": URM_validation},
+                             DictionaryKeys.FIT_POSITIONAL_ARGS: dict(),
+                             DictionaryKeys.FIT_KEYWORD_ARGS: {"validation_every_n":2, "stop_on_validation":True, "lower_validatons_allowed":10},
+                             DictionaryKeys.FIT_RANGE_KEYWORD_ARGS: hyperparamethers_range_dictionary}
+
+
+    best_parameters = parameterSearch.search(recommenderDictionary, output_root_path = output_root_path, parallelize=False, n_cases=30)
+
+    parameterSearch.evaluate_on_test(URM_test)
+
+
+    #########################################################################################################
 
 
 
@@ -490,7 +492,7 @@ def read_data_split(dataReader_class):
                 users_to_select = 0.03
 
             elif dataReader_class is NetflixPrizeReader:
-                users_to_select = 0.20
+                users_to_select = 0.05
 
 
 
@@ -529,6 +531,11 @@ def read_data_split(dataReader_class):
 
             print("Selected users are: {}, selected items are {}".format(select_users_mask.sum(), select_items_mask.sum()))
 
+            sps.save_npz(split_path + "URM_train.npz", URM_train)
+            sps.save_npz(split_path + "URM_test.npz", URM_test)
+            sps.save_npz(split_path + "URM_validation.npz", URM_validation)
+
+
     else:
 
         dataSplitter = DataSplitter_Warm(dataReader_class)
@@ -556,11 +563,11 @@ if __name__ == '__main__':
 
     dataReader_class_list = [
         #Movielens1MReader,
-        Movielens10MReader,
+        #Movielens10MReader,
         #NetflixEnhancedReader,
         #BookCrossingReader,
         #XingChallenge2016Reader,
-        #NetflixPrizeReader
+        NetflixPrizeReader
     ]
 
 

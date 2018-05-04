@@ -40,9 +40,9 @@ class BayesianSearch(AbstractClassSearch):
     pip install bayesian-optimization
     """
 
-    def __init__(self, recommender_class, URM_validation, evaluation_function=None):
+    def __init__(self, recommender_class, URM_validation, URM_test = None, evaluation_function=None):
 
-        super(BayesianSearch, self).__init__(recommender_class, URM_validation,  evaluation_function = evaluation_function)
+        super(BayesianSearch, self).__init__(recommender_class, URM_validation, URM_test = URM_test, evaluation_function = evaluation_function)
 
 
 
@@ -249,6 +249,8 @@ class BayesianSearch(AbstractClassSearch):
                     print("BayesianSearch: Saving model in {}\n".format(self.output_root_path))
                     recommender.saveModel(self.output_root_path, namePrefix = "_best_model")
 
+                if self.URM_test is not None:
+                    self.evaluate_on_test(self.URM_test)
 
             else:
                 writeLog("BayesianSearch: Config is suboptimal. Config: {} - results: {}\n".format(paramether_dictionary_to_save, result_dict), self.logFile)
