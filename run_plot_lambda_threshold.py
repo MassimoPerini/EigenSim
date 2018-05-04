@@ -22,6 +22,7 @@ from data.Movielens_10m.Movielens10MReader import Movielens10MReader
 from data.Movielens_20m.Movielens20MReader import Movielens20MReader
 from data.XingChallenge2016.XingChallenge2016Reader import XingChallenge2016Reader
 from data.BookCrossing.BookCrossingReader import BookCrossingReader
+from data.NetflixPrize.NetflixPrizeReader import NetflixPrizeReader
 
 from Lambda.Cython.Lambda_BPR_Cython import Lambda_BPR_Cython
 
@@ -245,6 +246,266 @@ def plot_hybrid_performance(dataReader_class):
     # plot_hybrid_performance_inner(dataReader_class, use_lambda = True, mode="pinv", negative=False)
     # plot_hybrid_performance_inner(dataReader_class, use_lambda = True, mode="transpose", negative=False)
     #plot_hybrid_performance_inner(dataReader_class, use_lambda = False)
+
+
+
+
+def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", negative = False, train_on = "subset"):
+
+
+    if dataReader_class is BookCrossingReader or dataReader_class is XingChallenge2016Reader:
+
+        split_path = "results/split/" + dataReader_class.DATASET_SUBFOLDER[:-1] + "_"
+
+        URM_train = sps.load_npz(split_path + "URM_train.npz")
+        URM_test = sps.load_npz(split_path + "URM_test.npz")
+        URM_validation = sps.load_npz(split_path + "URM_validation.npz")
+
+
+    else:
+
+        dataSplitter = DataSplitter_Warm(dataReader_class)
+
+        URM_train = dataSplitter.get_URM_train()
+        URM_validation = dataSplitter.get_URM_validation()
+        URM_test = dataSplitter.get_URM_test()
+
+
+
+    URM_train = check_matrix(URM_train, "csr")
+    URM_validation = check_matrix(URM_validation, "csr")
+    URM_test = check_matrix(URM_test, "csr")
+
+
+    dataset_name = dataReader_class.DATASET_SUBFOLDER[:-1]
+
+    if negative:
+        lambda_range = "negative"
+    else:
+        lambda_range = "positive"
+
+
+
+
+    optimal_params = pickle.load(open("results/lambda_BPR/Lambda_BPR_Cython" +
+                                      "_{}_{}_{}_best_parameters".format(mode, lambda_range, dataset_name), "rb"))
+
+    print("Using params: {}".format(optimal_params))
+
+
+    namePrefix = "Lambda_BPR_Cython_{}_{}_{}_best_model.npz".format(mode, lambda_range, dataset_name)
+
+    npzfile = np.load("results/lambda_BPR/" + namePrefix)
+    user_lambda = npzfile["user_lambda"]
+
+
+
+
+
+
+    plot_lambda_profile_length(user_lambda, URM_train, dataset_name, lambda_range, mode)
+
+
+
+    #plot_lambda_user_performance(user_lambda, personalized_recommender, URM_train, URM_test, dataset_name)
+    #plot_lambda_user_performance_on_train(user_lambda, personalized_recommender, URM_train, dataset_name)
+
+
+    user_lambda_sorted = np.sort(user_lambda)
+
+    map_performance_TopPop = []
+    map_performance_CF = []
+    map_performance_SLIM_lambda = []
+
+    x_tick = []
+
+
+
+
+    # Turn interactive plotting off
+    plt.ioff()
+
+    # Ensure it works even on SSH
+    plt.switch_backend('agg')
+
+
+    ## Plot baseline
+    # results_run_non_pers = non_personalized_recommender.evaluateRecommendations(URM_test, at=5, exclude_seen=True)
+    # results_run_pers = personalized_recommender.evaluateRecommendations(URM_test, at=5, exclude_seen=True)
+    # print("Personalized result: {}".format(results_run_pers))
+    # print("Non personalized result: {}".format(results_run_non_pers))
+
+    if train_on is "all":
+
+        non_personalized_recommender = TopPop(URM_train)
+        personalized_recommender = ItemKNNCFRecommender(URM_train)
+
+
+
+        non_personalized_recommender.fit()
+        personalized_recommender.fit()
+
+
+        lambda_bpr_recommender = Lambda_BPR_Cython(URM_train)
+
+
+        lambda_bpr_recommender.loadModel("results/lambda_BPR/", namePrefix="Lambda_BPR_Cython_{}_{}_{}_best_model".format(mode, lambda_range, dataset_name))
+
+
+
+
+    lambda_step = int(URM_train.shape[0] * 0.10)
+
+
+    for lambda_threshold_index in range(0, len(user_lambda_sorted)-lambda_step, lambda_step):
+
+        lambda_threshold_min = user_lambda_sorted[lambda_threshold_index]
+        lambda_threshold_max = user_lambda_sorted[lambda_threshold_index+lambda_step]
+
+        #
+        # if lambda_threshold >= 6:
+        #     break
+
+        users_involved_mask = np.logical_and(user_lambda <= lambda_threshold_max, user_lambda >= lambda_threshold_min)
+        users_involved = np.arange(0, len(user_lambda), dtype=np.int)[users_involved_mask]
+        users_not_involved = np.arange(0, len(user_lambda), dtype=np.int)[np.logical_not(users_involved_mask)]
+
+
+
+
+        if train_on is "subset":
+
+            URM_train_current_user_batch = URM_train[users_involved,:]
+            URM_test_current_user_batch = URM_test[users_involved,:]
+
+
+            non_personalized_recommender = TopPop(URM_train_current_user_batch)
+            personalized_recommender = ItemKNNCFRecommender(URM_train_current_user_batch)
+
+
+            non_personalized_recommender.fit()
+            personalized_recommender.fit()
+
+        else:
+
+            # There is no need to eliminate test items for users not involved, the filterCustomUsers takes care of that
+            URM_test_current_user_batch = URM_test.copy()
+
+
+
+        results_personalized_CF = personalized_recommender.evaluateRecommendations(URM_test_current_user_batch, at=5, exclude_seen=True,
+                                                                    filterCustomUsers=users_not_involved)
+
+        print("Lambda threshold is {}-{}, result personalized: {}".format(lambda_threshold_min, lambda_threshold_max, results_personalized_CF))
+
+
+        results_non_personalized = non_personalized_recommender.evaluateRecommendations(URM_test_current_user_batch, at=5, exclude_seen=True,
+                                                                    filterCustomUsers=users_not_involved)
+
+        print("Lambda threshold is {}-{}, result non personalized: {}".format(lambda_threshold_min, lambda_threshold_max, results_non_personalized))
+
+
+
+
+        map_performance_TopPop.append(results_non_personalized["map"])
+        map_performance_CF.append(results_personalized_CF["map"])
+
+
+
+        if train_on is "all":
+
+            results_lambda_bpr = lambda_bpr_recommender.evaluateRecommendations(URM_test_current_user_batch, at=5, exclude_seen=True,
+                                                                        filterCustomUsers=users_not_involved)
+
+            print("Lambda threshold is {}-{}, result lambda_bpr: {}".format(lambda_threshold_min, lambda_threshold_max, results_lambda_bpr))
+
+            map_performance_SLIM_lambda.append(results_lambda_bpr["map"])
+
+
+
+        x_tick.append(lambda_threshold_min)
+
+        # Turn interactive plotting off
+        plt.ioff()
+
+        # Ensure it works even on SSH
+        plt.switch_backend('agg')
+
+
+        plt.xlabel('user lambda')
+        plt.ylabel("MAP")
+        plt.title("Recommender MAP for increasing user lambda")
+
+        marker_list = ['o', 's', '^', 'v', 'D']
+        marker_iterator_local = itertools.cycle(marker_list)
+
+
+        # plt.plot(x_tick, map_performance_hybrid_all, linewidth=3, label="Hybrid all",
+        #          linestyle = "-", marker = marker_iterator_local.__next__())
+        #
+        # width = 0.05
+        #
+        # plt.bar(np.array(x_tick), map_performance_TopPop, width = width, label="TopPop")
+        #
+        # plt.bar(np.array(x_tick) + 0.1, map_performance_CF, width = width, label="Item KNN CF")
+
+        plt.plot(x_tick, map_performance_TopPop, linewidth=3, label="TopPop",
+                 linestyle = "-", marker = marker_iterator_local.__next__())
+
+        plt.plot(x_tick, map_performance_CF, linewidth=3, label="Item KNN CF",
+                 linestyle = "-", marker = marker_iterator_local.__next__())
+
+        if train_on is "all":
+            plt.plot(x_tick, map_performance_SLIM_lambda, linewidth=3, label="EigenSim",
+                     linestyle = "-", marker = marker_iterator_local.__next__())
+
+
+
+
+        legend = plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1), ncol=1)
+        legend = [legend]
+
+        plt.savefig("results/plot/MAP_over_lambda_{}_mode_{}_range_{}_train_on_{}".format(dataset_name, mode, lambda_range, train_on
+            #personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME
+                                                                                          ),
+            additional_artists=legend, bbox_inches="tight")
+
+        plt.close()
+
+
+
+
+
+import multiprocessing, traceback
+
+if __name__ == '__main__':
+
+    dataReader_class_list = [
+        Movielens1MReader,
+        Movielens10MReader,
+        #NetflixEnhancedReader,
+        #BookCrossingReader,
+        #XingChallenge2016Reader
+        #NetflixPrizeReader
+    ]
+
+
+    # pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
+    # resultList = pool.map(plot_hybrid_performance, dataReader_class_list)
+
+
+    for dataReader_class in dataReader_class_list:
+        try:
+            plot_hybrid_performance(dataReader_class)
+        except Exception as e:
+
+            print("On recommender {} Exception {}".format(dataReader_class, str(e)))
+            traceback.print_exc()
+
+
+
+
+
 
 
 #
@@ -576,240 +837,5 @@ def plot_hybrid_performance(dataReader_class):
 #         #
 #         # plt.close()
 #
-
-
-
-
-def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", negative = False, train_on = "subset"):
-
-
-    if dataReader_class is BookCrossingReader or dataReader_class is XingChallenge2016Reader:
-
-        split_path = "results/split/" + dataReader_class.DATASET_SUBFOLDER[:-1] + "_"
-
-        URM_train = sps.load_npz(split_path + "URM_train.npz")
-        URM_test = sps.load_npz(split_path + "URM_test.npz")
-        URM_validation = sps.load_npz(split_path + "URM_validation.npz")
-
-
-    else:
-
-        dataSplitter = DataSplitter_Warm(dataReader_class)
-
-        URM_train = dataSplitter.get_URM_train()
-        URM_validation = dataSplitter.get_URM_validation()
-        URM_test = dataSplitter.get_URM_test()
-
-
-
-    URM_train = check_matrix(URM_train, "csr")
-    URM_validation = check_matrix(URM_validation, "csr")
-    URM_test = check_matrix(URM_test, "csr")
-
-
-    dataset_name = dataReader_class.DATASET_SUBFOLDER[:-1]
-
-    if negative:
-        lambda_range = "negative"
-    else:
-        lambda_range = "positive"
-
-
-
-
-    optimal_params = pickle.load(open("results/lambda_BPR/Lambda_BPR_Cython" +
-                                      "_{}_{}_{}_best_parameters".format(mode, lambda_range, dataset_name), "rb"))
-
-    print("Using params: {}".format(optimal_params))
-
-
-    namePrefix = "Lambda_BPR_Cython_{}_{}_{}_best_model.npz".format(mode, lambda_range, dataset_name)
-
-    npzfile = np.load("results/lambda_BPR/" + namePrefix)
-    user_lambda = npzfile["user_lambda"]
-
-
-
-
-
-
-    plot_lambda_profile_length(user_lambda, URM_train, dataset_name, lambda_range, mode)
-
-
-
-    #plot_lambda_user_performance(user_lambda, personalized_recommender, URM_train, URM_test, dataset_name)
-    #plot_lambda_user_performance_on_train(user_lambda, personalized_recommender, URM_train, dataset_name)
-
-
-    user_lambda_sorted = np.sort(user_lambda)
-
-    map_performance_TopPop = []
-    map_performance_CF = []
-    map_performance_SLIM_lambda = []
-
-    x_tick = []
-
-
-
-
-    # Turn interactive plotting off
-    plt.ioff()
-
-    # Ensure it works even on SSH
-    plt.switch_backend('agg')
-
-
-    ## Plot baseline
-    # results_run_non_pers = non_personalized_recommender.evaluateRecommendations(URM_test, at=5, exclude_seen=True)
-    # results_run_pers = personalized_recommender.evaluateRecommendations(URM_test, at=5, exclude_seen=True)
-    # print("Personalized result: {}".format(results_run_pers))
-    # print("Non personalized result: {}".format(results_run_non_pers))
-
-    if train_on is "all":
-
-        non_personalized_recommender = TopPop(URM_train)
-        personalized_recommender = ItemKNNCFRecommender(URM_train)
-        lambda_bpr_recommender = Lambda_BPR_Cython(URM_train)
-
-
-        non_personalized_recommender.fit()
-        personalized_recommender.fit()
-        #
-        # try:
-        #     lambda_bpr_recommender.loadModel("results/lambda_BPR", namePrefix="Lambda_BPR_Cython_{}_{}_{}_best".format(mode, lambda_range, dataset_name))
-        # except:
-        #     lambda_bpr_recommender.fit(**optimal_params)
-        #     lambda_bpr_recommender.saveModel("results/", namePrefix=namePrefix)
-
-
-
-
-    lambda_step = int(URM_train.shape[0] * 0.10)
-
-
-    for lambda_threshold_index in range(0, len(user_lambda_sorted)-lambda_step, lambda_step):
-
-        lambda_threshold_min = user_lambda_sorted[lambda_threshold_index]
-        lambda_threshold_max = user_lambda_sorted[lambda_threshold_index+lambda_step]
-
-        #
-        # if lambda_threshold >= 6:
-        #     break
-
-        users_involved_mask = np.logical_and(user_lambda <= lambda_threshold_max, user_lambda >= lambda_threshold_min)
-        users_involved = np.arange(0, len(user_lambda), dtype=np.int)[users_involved_mask]
-        users_not_involved = np.arange(0, len(user_lambda), dtype=np.int)[np.logical_not(users_involved_mask)]
-
-
-
-
-        if train_on is "subset":
-
-            URM_train_current_user_batch = URM_train[users_involved,:]
-            URM_test_current_user_batch = URM_test[users_involved,:]
-
-
-            non_personalized_recommender = TopPop(URM_train_current_user_batch)
-            personalized_recommender = ItemKNNCFRecommender(URM_train_current_user_batch)
-
-
-            non_personalized_recommender.fit()
-            personalized_recommender.fit()
-
-        else:
-
-            # There is no need to eliminate test items for users not involved, the filterCustomUsers takes care of that
-            URM_test_current_user_batch = URM_test.copy()
-
-
-
-        results_personalized_CF = personalized_recommender.evaluateRecommendations(URM_test_current_user_batch, at=5, exclude_seen=True,
-                                                                    filterCustomUsers=users_not_involved)
-
-        print("Lambda threshold is {}-{}, result personalized: {}".format(lambda_threshold_min, lambda_threshold_max, results_personalized_CF))
-
-        results_non_personalized = non_personalized_recommender.evaluateRecommendations(URM_test_current_user_batch, at=5, exclude_seen=True,
-                                                                    filterCustomUsers=users_not_involved)
-
-        print("Lambda threshold is {}-{}, result non personalized: {}".format(lambda_threshold_min, lambda_threshold_max, results_non_personalized))
-
-
-
-        map_performance_TopPop.append(results_non_personalized["map"])
-        map_performance_CF.append(results_personalized_CF["map"])
-        #map_performance_SLIM_lambda.append(results_pers_only["map"])
-
-
-        x_tick.append(lambda_threshold_min)
-
-        # Turn interactive plotting off
-        plt.ioff()
-
-        # Ensure it works even on SSH
-        plt.switch_backend('agg')
-
-
-        plt.xlabel('user lambda')
-        plt.ylabel("MAP")
-        plt.title("Recommender MAP for increasing user lambda")
-
-        marker_list = ['o', 's', '^', 'v', 'D']
-        marker_iterator_local = itertools.cycle(marker_list)
-
-
-        # plt.plot(x_tick, map_performance_hybrid_all, linewidth=3, label="Hybrid all",
-        #          linestyle = "-", marker = marker_iterator_local.__next__())
-        #
-        # width = 0.05
-        #
-        # plt.bar(np.array(x_tick), map_performance_TopPop, width = width, label="TopPop")
-        #
-        # plt.bar(np.array(x_tick) + 0.1, map_performance_CF, width = width, label="Item KNN CF")
-
-        plt.plot(x_tick, map_performance_TopPop, linewidth=3, label="TopPop",
-                 linestyle = "-", marker = marker_iterator_local.__next__())
-
-        plt.plot(x_tick, map_performance_CF, linewidth=3, label="Item KNN CF",
-                 linestyle = "-", marker = marker_iterator_local.__next__())
-
-
-
-        legend = plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1), ncol=1)
-        legend = [legend]
-
-        plt.savefig("results/plot/MAP_over_lambda_{}_mode_{}_range_{}_train_on_{}__{}_{}".format(dataset_name, mode, lambda_range, train_on,
-            personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME),
-            additional_artists=legend, bbox_inches="tight")
-
-        plt.close()
-
-
-
-
-
-import multiprocessing, traceback
-
-if __name__ == '__main__':
-
-    dataReader_class_list = [
-        Movielens1MReader,
-        Movielens10MReader,
-        #NetflixEnhancedReader,
-        #BookCrossingReader,
-        #XingChallenge2016Reader
-    ]
-
-
-    # pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
-    # resultList = pool.map(plot_hybrid_performance, dataReader_class_list)
-
-
-    for dataReader_class in dataReader_class_list:
-        try:
-            plot_hybrid_performance(dataReader_class)
-        except Exception as e:
-
-            print("On recommender {} Exception {}".format(dataReader_class, str(e)))
-            traceback.print_exc()
 
 

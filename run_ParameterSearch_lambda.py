@@ -148,11 +148,11 @@ if __name__ == '__main__':
 
     dataReader_class_list = [
         Movielens1MReader,
-        Movielens10MReader,
+        #Movielens10MReader,
         #NetflixEnhancedReader,
         #BookCrossingReader,
         #XingChallenge2016Reader,
-        NetflixPrizeReader
+        #NetflixPrizeReader
     ]
 
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count(), maxtasksperchild=1)
