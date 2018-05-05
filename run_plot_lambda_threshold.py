@@ -14,7 +14,8 @@ from Base.non_personalized import TopPop, Random
 from KNN.item_knn_CF import ItemKNNCFRecommender
 from GraphBased.P3alpha import P3alphaRecommender
 from GraphBased.RP3beta import RP3betaRecommender
-
+from KNN.item_knn_custom_Similarity import ItemKNNCustomSimilarityRecommender
+from SLIM_BPR.Cython.SLIM_BPR_Cython import SLIM_BPR_Cython
 
 from data.NetflixEnhanced.NetflixEnhancedReader import NetflixEnhancedReader
 from data.Movielens_1m.Movielens1MReader import Movielens1MReader
@@ -237,7 +238,7 @@ def plot_hybrid_performance(dataReader_class):
 
     for mode in ["pinv", "transpose"]:
 
-        for train_on in ["subset", "all"]:
+        for train_on in ["all"]:#["subset", "all"]:
 
             for negative in [False]:#, True]:
 
@@ -342,15 +343,27 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
     # print("Personalized result: {}".format(results_run_pers))
     # print("Non personalized result: {}".format(results_run_non_pers))
 
+
+    pers_collaborative_class = SLIM_BPR_Cython
+
+
+    optimal_params_pers = pickle.load(open("results/baselines/" + pers_collaborative_class.RECOMMENDER_NAME +
+                                      "_{}_best_parameters".format(dataset_name), "rb"))
+
+
+    W_sparse = sps.load_npz("results/baselines/" + pers_collaborative_class.RECOMMENDER_NAME +
+                                      "_{}_best_model_W_sparse.npz".format(dataset_name))
+
+
     if train_on is "all":
 
         non_personalized_recommender = TopPop(URM_train)
-        personalized_recommender = ItemKNNCFRecommender(URM_train)
+        #personalized_recommender = ItemKNNCFRecommender(URM_train)
 
-
+        personalized_recommender = ItemKNNCustomSimilarityRecommender(topK = optimal_params_pers["topK"])
 
         non_personalized_recommender.fit()
-        personalized_recommender.fit()
+        personalized_recommender.fit(W_sparse, URM_train)
 
 
 
@@ -387,7 +400,7 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
 
 
             non_personalized_recommender.fit()
-            personalized_recommender.fit()
+            personalized_recommender.fit(**optimal_params_pers)
 
         else:
 
@@ -455,7 +468,7 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
         plt.plot(x_tick, map_performance_TopPop, linewidth=3, label="TopPop",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
-        plt.plot(x_tick, map_performance_CF, linewidth=3, label="Item KNN CF",
+        plt.plot(x_tick, map_performance_CF, linewidth=3, label="SLIM BPR",
                  linestyle = "-", marker = marker_iterator_local.__next__())
 
         if train_on is "all":
@@ -468,7 +481,8 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
         legend = plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1), ncol=1)
         legend = [legend]
 
-        plt.savefig("results/plot/MAP_over_lambda_{}_mode_{}_range_{}_train_on_{}".format(dataset_name, mode, lambda_range, train_on
+        plt.savefig("results/plot/MAP_over_lambda_{}_mode_{}_range_{}_train_on_{}_{}".format(dataset_name, mode, lambda_range, train_on,
+            pers_collaborative_class.RECOMMENDER_NAME
             #personalized_recommender.RECOMMENDER_NAME, non_personalized_recommender.RECOMMENDER_NAME
                                                                                           ),
             additional_artists=legend, bbox_inches="tight")
