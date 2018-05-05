@@ -239,7 +239,7 @@ def plot_hybrid_performance(dataReader_class):
 
         for train_on in ["subset", "all"]:
 
-            for negative in [True, False]:
+            for negative in [False]:#, True]:
 
                 plot_CF_performance_on_lambda_threshold(dataReader_class, train_on = train_on, mode = mode, negative = negative)
 
@@ -253,7 +253,9 @@ def plot_hybrid_performance(dataReader_class):
 def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", negative = False, train_on = "subset"):
 
 
-    if dataReader_class is BookCrossingReader or dataReader_class is XingChallenge2016Reader:
+    if dataReader_class is BookCrossingReader or \
+            dataReader_class is XingChallenge2016Reader or \
+            dataReader_class is NetflixPrizeReader:
 
         split_path = "results/split/" + dataReader_class.DATASET_SUBFOLDER[:-1] + "_"
 
@@ -295,8 +297,13 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
 
     namePrefix = "Lambda_BPR_Cython_{}_{}_{}_best_model.npz".format(mode, lambda_range, dataset_name)
 
-    npzfile = np.load("results/lambda_BPR/" + namePrefix)
-    user_lambda = npzfile["user_lambda"]
+    lambda_bpr_recommender = Lambda_BPR_Cython(URM_train)
+    lambda_bpr_recommender.loadModel("results/lambda_BPR/", namePrefix="Lambda_BPR_Cython_{}_{}_{}_best_model".format(mode, lambda_range, dataset_name))
+
+    user_lambda = lambda_bpr_recommender.user_lambda.copy()
+
+    #npzfile = np.load("results/lambda_BPR/" + namePrefix)
+    #user_lambda = npzfile["user_lambda"]
 
 
 
@@ -346,10 +353,6 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
         personalized_recommender.fit()
 
 
-        lambda_bpr_recommender = Lambda_BPR_Cython(URM_train)
-
-
-        lambda_bpr_recommender.loadModel("results/lambda_BPR/", namePrefix="Lambda_BPR_Cython_{}_{}_{}_best_model".format(mode, lambda_range, dataset_name))
 
 
 
@@ -481,12 +484,12 @@ import multiprocessing, traceback
 if __name__ == '__main__':
 
     dataReader_class_list = [
-        Movielens1MReader,
+        #Movielens1MReader,
         Movielens10MReader,
         #NetflixEnhancedReader,
         #BookCrossingReader,
         #XingChallenge2016Reader
-        #NetflixPrizeReader
+        NetflixPrizeReader
     ]
 
 
