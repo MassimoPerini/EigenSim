@@ -240,7 +240,7 @@ def plot_hybrid_performance(dataReader_class):
 
         for train_on in ["all"]:#["subset", "all"]:
 
-            for negative in [False]:#, True]:
+            for negative in [True]:#, True]:
 
                 plot_CF_performance_on_lambda_threshold(dataReader_class, train_on = train_on, mode = mode, negative = negative)
 
@@ -503,7 +503,7 @@ if __name__ == '__main__':
         #NetflixEnhancedReader,
         #BookCrossingReader,
         #XingChallenge2016Reader
-        NetflixPrizeReader
+        #NetflixPrizeReader
     ]
 
 
