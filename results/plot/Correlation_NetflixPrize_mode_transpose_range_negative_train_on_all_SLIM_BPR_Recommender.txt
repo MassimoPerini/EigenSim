@@ -1,0 +1,4 @@
+eigenvalue - MAP correlation is: 0.04479935500124287
+profile len - MAP correlation is: 0.8818520532826158
+eigenvalue - profile len correlation is: 0.31504088930265123
+eigenvalue - log profile len correlation is: 0.3813845712995321
