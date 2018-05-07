@@ -46,8 +46,8 @@ def plot_lambda_profile_length(user_lambda, URM_train, dataset_name, lambda_rang
     plt.switch_backend('agg')
 
     plt.xlabel('profile length')
-    plt.ylabel("user lambda")
-    plt.title("Profile length and corresponding lambda")
+    plt.ylabel("user eigenvalue")
+    #plt.title("Profile length and corresponding lambda")
 
 
     URM_train = sps.csr_matrix(URM_train)
@@ -58,6 +58,23 @@ def plot_lambda_profile_length(user_lambda, URM_train, dataset_name, lambda_rang
     plt.scatter(profile_length[profile_length_user_id], user_lambda[profile_length_user_id], s=0.5)
 
     plt.savefig("results/plot/Profile_length_over_lambda_{}_{}_{}".format(dataset_name, lambda_range, mode))
+
+    plt.close()
+
+
+
+    # Turn interactive plotting off
+    plt.ioff()
+
+    # Ensure it works even on SSH
+    plt.switch_backend('agg')
+
+    plt.xlabel('log profile length')
+    plt.ylabel("user eigenvalue")
+
+    plt.scatter(np.log(profile_length[profile_length_user_id]), user_lambda[profile_length_user_id], s=0.5)
+
+    plt.savefig("results/plot/Profile_length_log_over_lambda_{}_{}_{}".format(dataset_name, lambda_range, mode))
 
     plt.close()
 
@@ -135,7 +152,7 @@ def plot_lambda_user_performance(user_lambda, personalized_recommender, URM_trai
     plt.switch_backend('agg')
 
     plt.xlabel('MAP')
-    plt.ylabel("user lambda")
+    plt.ylabel("user eigenvalue")
     plt.title("User MAP and corresponding lambda")
 
     lambda_user_id = np.argsort(user_lambda)
@@ -219,7 +236,7 @@ def plot_lambda_user_performance_on_train(user_lambda, personalized_recommender,
     # Ensure it works even on SSH
     plt.switch_backend('agg')
 
-    plt.xlabel('user lambda')
+    plt.xlabel('user eigenvalue')
     plt.ylabel("MAP")
     plt.title("User MAP and corresponding lambda")
 
@@ -230,24 +247,6 @@ def plot_lambda_user_performance_on_train(user_lambda, personalized_recommender,
     plt.savefig("results/Lambda_over_user_map_on_train_{}".format(dataset_name))
 
     plt.close()
-
-
-
-
-def plot_hybrid_performance(dataReader_class):
-
-    for mode in ["pinv", "transpose"]:
-
-        for train_on in ["all"]:#["subset", "all"]:
-
-            for negative in [True]:#, True]:
-
-                plot_CF_performance_on_lambda_threshold(dataReader_class, train_on = train_on, mode = mode, negative = negative)
-
-    # plot_hybrid_performance_inner(dataReader_class, use_lambda = True, mode="pinv", negative=False)
-    # plot_hybrid_performance_inner(dataReader_class, use_lambda = True, mode="transpose", negative=False)
-    #plot_hybrid_performance_inner(dataReader_class, use_lambda = False)
-
 
 
 
@@ -326,6 +325,7 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
     map_performance_SLIM_lambda = []
 
     x_tick = []
+    x_avg_p_len = []
 
 
 
@@ -441,6 +441,12 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
 
         x_tick.append(lambda_threshold_min)
 
+        URM_train_involved_users = sps.csr_matrix(URM_train[users_involved,:])
+        profile_length_involved_users = np.ediff1d(URM_train_involved_users.indptr)
+
+        x_avg_p_len.append(profile_length_involved_users.mean())
+
+
         # Turn interactive plotting off
         plt.ioff()
 
@@ -448,9 +454,9 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
         plt.switch_backend('agg')
 
 
-        plt.xlabel('user lambda')
+        plt.xlabel('user eigenvalue')
         plt.ylabel("MAP")
-        plt.title("Recommender MAP for increasing user lambda")
+        #plt.title("Recommender MAP for increasing user lambda")
 
         marker_list = ['o', 's', '^', 'v', 'D']
         marker_iterator_local = itertools.cycle(marker_list)
@@ -464,9 +470,9 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
         # plt.bar(np.array(x_tick), map_performance_TopPop, width = width, label="TopPop")
         #
         # plt.bar(np.array(x_tick) + 0.1, map_performance_CF, width = width, label="Item KNN CF")
-
-        plt.plot(x_tick, map_performance_TopPop, linewidth=3, label="TopPop",
-                 linestyle = "-", marker = marker_iterator_local.__next__())
+        #
+        # plt.plot(x_tick, map_performance_TopPop, linewidth=3, label="TopPop",
+        #          linestyle = "-", marker = marker_iterator_local.__next__())
 
         plt.plot(x_tick, map_performance_CF, linewidth=3, label="SLIM BPR",
                  linestyle = "-", marker = marker_iterator_local.__next__())
@@ -491,6 +497,51 @@ def plot_CF_performance_on_lambda_threshold(dataReader_class, mode = "pinv", neg
 
 
 
+    log_file = open("results/plot/Correlation_{}_mode_{}_range_{}_train_on_{}_{}.txt".format(dataset_name, mode, lambda_range, train_on,
+                pers_collaborative_class.RECOMMENDER_NAME), "a")
+
+
+
+    corr_lambda_map = np.corrcoef(x_tick, map_performance_CF)[0,1]
+
+    log_file.write("eigenvalue - MAP correlation is: {}\n".format(corr_lambda_map))
+
+    corr_p_len_map = np.corrcoef(x_avg_p_len, map_performance_CF)[0,1]
+
+    log_file.write("profile len - MAP correlation is: {}\n".format(corr_p_len_map))
+
+    URM_train = sps.csr_matrix(URM_train)
+    profile_length = np.ediff1d(URM_train.indptr)
+
+    corr_lambda_profile_length = np.corrcoef(user_lambda, profile_length)[0,1]
+
+    log_file.write("eigenvalue - profile len correlation is: {}\n".format(corr_lambda_profile_length))
+
+    corr_lambda_profile_length = np.corrcoef(user_lambda, np.log(profile_length))[0,1]
+
+    log_file.write("eigenvalue - log profile len correlation is: {}\n".format(corr_lambda_profile_length))
+
+    log_file.close()
+
+
+
+def plot_hybrid_performance(dataReader_class):
+
+    for mode in ["pinv", "transpose"]:
+
+        for train_on in ["all"]:#["subset", "all"]:
+
+            for negative in [True, False]:
+
+                plot_CF_performance_on_lambda_threshold(dataReader_class, train_on = train_on, mode = mode, negative = negative)
+
+    # plot_hybrid_performance_inner(dataReader_class, use_lambda = True, mode="pinv", negative=False)
+    # plot_hybrid_performance_inner(dataReader_class, use_lambda = True, mode="transpose", negative=False)
+    #plot_hybrid_performance_inner(dataReader_class, use_lambda = False)
+
+
+
+
 
 
 import multiprocessing, traceback
@@ -498,12 +549,12 @@ import multiprocessing, traceback
 if __name__ == '__main__':
 
     dataReader_class_list = [
-        #Movielens1MReader,
+        Movielens1MReader,
         Movielens10MReader,
         #NetflixEnhancedReader,
         #BookCrossingReader,
         #XingChallenge2016Reader
-        #NetflixPrizeReader
+        NetflixPrizeReader
     ]
 
 
