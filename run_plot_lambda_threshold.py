@@ -531,7 +531,7 @@ def plot_hybrid_performance(dataReader_class):
 
         for train_on in ["all"]:#["subset", "all"]:
 
-            for negative in [True, False]:
+            for negative in [True]:#, False]:
 
                 plot_CF_performance_on_lambda_threshold(dataReader_class, train_on = train_on, mode = mode, negative = negative)
 
@@ -549,12 +549,12 @@ import multiprocessing, traceback
 if __name__ == '__main__':
 
     dataReader_class_list = [
-        Movielens1MReader,
+        #Movielens1MReader,
         Movielens10MReader,
         #NetflixEnhancedReader,
         #BookCrossingReader,
         #XingChallenge2016Reader
-        NetflixPrizeReader
+        #NetflixPrizeReader
     ]
 
 
